@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <atom:link rel="self" type="application/rss+xml" href="http://www.fraterdeus.com/rss.xml" />
+    <title>Peter Fraterdeus-Photography and Mindful Marks</title>
+    <link>http://www.fraterdeus.com</link>
+    <description></description>
+
+    <language>en-us</language>
+    <copyright></copyright>
+    <generator>Plone</generator>
+    <item>
+      <title>RiTual Exhibit - Single Sheet Books</title>
+      <description>Making small single sheet books for the 2019 RiTual exhibit in Philadelphia. Using a number of brush written exercises, I folded and cut each sheet into a self-contained, self-bound book.</description>
+      
+      <pubDate>Wed, 15 Jan 2020 13:44:53 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/photo-albums/ritual-exhibit-single-sheet-books</guid>
+    </item>
+    <item>
+      <title>Calligraphy - Lessons and Demonstrations (2014)</title>
+      <description>A few sheets from a small study group I taught in Dubuque.</description>
+      
+      <pubDate>Wed, 15 Jan 2020 13:40:06 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/photo-albums/calligraphy-lessons-and-demonstrations-2014</guid>
+    </item>
+    <item>
+      <title>Atmospheres Exhibition 2014 (Dubuque, Iowa)</title>
+      <description></description>
+      
+      <pubDate>Wed, 15 Jan 2020 13:32:19 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/photo-albums/atmospheres-2014</guid>
+    </item>
+    <item>
+      <title>Photo Albums</title>
+      <description>These links will open Google Photos</description>
+      
+      <pubDate>Wed, 15 Jan 2020 13:10:43 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/photo-albums/photo-albums</guid>
+    </item>
+    <item>
+      <title>Portfolio and Archive Albums</title>
+      <description>Links to Google Photos Albums of Peter Fraterdeus calligraphy, typography, archives, experiments, teaching materials, letterform design, letter carving, etc</description>
+      
+      <pubDate>Wed, 15 Jan 2020 13:10:00 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/photo-albums</guid>
+    </item>
+    <item>
+      <title>"Pechakucha" at Wells College</title>
+      <description></description>
+      
+      <pubDate>Wed, 15 Jan 2020 13:10:44 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/photo-albums/pechakucha-at-wells-college</guid>
+    </item>
+    <item>
+      <title>Calligraphy Portfolio through 2018</title>
+      <description></description>
+      
+      <pubDate>Wed, 15 Jan 2020 13:10:00 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/photo-albums/callig-portfolio-thru-2018</guid>
+    </item>
+    <item>
+      <title>Contact</title>
+      <description></description>
+      
+      <pubDate>Thu, 15 Aug 2019 10:20:34 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/contact-us</guid>
+    </item>
+    <item>
+      <title>Contact us</title>
+      <description></description>
+      
+      <pubDate>Thu, 15 Aug 2019 10:20:11 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/contact-us</guid>
+    </item>
+    <item>
+      <title>Contact Us</title>
+      <description>Please send us a note!</description>
+      
+      <pubDate>Wed, 14 Aug 2019 18:27:18 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/contact-us-1</guid>
+    </item>
+    <item>
+      <title>Exhibit Downloads</title>
+      <description>PDF versions of the Atmospheres 2019: Cloudscapes and Calligraphy catalogue, and artist statement banners.</description>
+      
+      <pubDate>Thu, 08 Aug 2019 16:41:19 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/exhibit-downloads</guid>
+    </item>
+    <item>
+      <title>Available PDF Downloads</title>
+      <description></description>
+      
+      <pubDate>Thu, 08 Aug 2019 16:41:19 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/exhibit-downloads</guid>
+    </item>
+    <item>
+      <title>Sessions</title>
+      <description></description>
+      
+      <pubDate>Wed, 07 Aug 2019 23:19:00 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/sessions</guid>
+    </item>
+    <item>
+      <title>Sessions</title>
+      <description></description>
+      
+      <pubDate>Wed, 07 Aug 2019 23:17:00 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/sessions</guid>
+    </item>
+    <item>
+      <title>2019 Atmospheres Photo Album</title>
+      <description></description>
+      
+      <pubDate>Wed, 07 Aug 2019 09:14:19 -0400</pubDate>
+      <guid>http://www.fraterdeus.com/2019-atmospheres-photo-album</guid>
+    </item>
+  </channel>
+</rss>

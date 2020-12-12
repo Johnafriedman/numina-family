@@ -1,0 +1,19 @@
+{
+  "name": "numina-family",
+  "license": "MIT",
+  "repository": "https://github.com/Johnafriedman/numina-family.git",
+  "version": "1.0.0",
+  "engines": {
+    "node": "6.11.1",
+    "npm": "3.10.10"
+  },
+  "scripts": {
+    "build": "npm install"
+  },
+  "dependencies": {
+    "express": "^4.14.0",
+    "heroku-ssl-redirect": "0.0.4",
+    "vhost": "^3.0.2"
+  },
+  "devDependencies": {}
+}

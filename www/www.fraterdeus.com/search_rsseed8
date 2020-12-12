@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:syn="http://purl.org/rss/1.0/modules/syndication/" xmlns="http://purl.org/rss/1.0/">
+
+
+<channel rdf:about="http://www.fraterdeus.com/search_rss">
+  <title>Peter Fraterdeus-Photography and Mindful Marks</title>
+  <link>http://www.fraterdeus.com</link>
+
+  <image rdf:resource="http://www.fraterdeus.com/@@site-logo/2019 Ideaswords@0,5x.png" />
+
+  <items>
+    <rdf:Seq>
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/contact-us-1" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/contact-us" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/photo-albums/photo-albums" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/photo-albums" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/photo-albums/pechakucha-at-wells-college" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/photo-albums/callig-portfolio-thru-2018" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/photo-albums/atmospheres-2014" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/photo-albums/calligraphy-lessons-and-demonstrations-2014" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/photo-albums/ritual-exhibit-single-sheet-books" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/contact-us" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/sessions" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/sessions" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/2019jul15-washburnmarina_panorama1-0-33x.jpg/view" />
+      
+        <rdf:li rdf:resource="http://www.fraterdeus.com/august-2019-exhibit-in-washburn" />
+      
+    </rdf:Seq>
+  </items>
+
+</channel>
+
+
+  <item rdf:about="http://www.fraterdeus.com/contact-us-1">
+    <title>Contact Us</title>
+    <link>http://www.fraterdeus.com/contact-us-1</link>
+    <description>Please send us a note!</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/08/14 18:27:18 GMT-4</dc:date>
+    <dc:type>EasyForm</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com">
+    <title>August 2019 Exhibit in Washburn</title>
+    <link>http://www.fraterdeus.com</link>
+    <description>Your artwork at the Washburn Cultural Center created a peaceful temple of beauty. So many brilliant "hints" of the infinite. You’ve created an experience for the viewer that’s not so much multi-layered as it is a holographic equivalent of your state of being. — Catherine Lange</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/08/03 12:29:00 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/contact-us">
+    <title>Contact</title>
+    <link>http://www.fraterdeus.com/contact-us</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/08/15 10:20:34 GMT-4</dc:date>
+    <dc:type>Link</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/photo-albums/photo-albums">
+    <title>Photo Albums</title>
+    <link>http://www.fraterdeus.com/photo-albums/photo-albums</link>
+    <description>These links will open Google Photos</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2020/01/15 13:10:43 GMT-4</dc:date>
+    <dc:type>Collection</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/photo-albums">
+    <title>Portfolio and Archive Albums</title>
+    <link>http://www.fraterdeus.com/photo-albums</link>
+    <description>Links to Google Photos Albums of Peter Fraterdeus calligraphy, typography, archives, experiments, teaching materials, letterform design, letter carving, etc</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2020/01/15 13:10:00 GMT-4</dc:date>
+    <dc:type>Folder</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/photo-albums/pechakucha-at-wells-college">
+    <title>"Pechakucha" at Wells College</title>
+    <link>http://www.fraterdeus.com/photo-albums/pechakucha-at-wells-college</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+      <dc:subject>googlephotoalbum</dc:subject>
+    
+    <dc:date>2020/01/15 13:10:44 GMT-4</dc:date>
+    <dc:type>Link</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/photo-albums/callig-portfolio-thru-2018">
+    <title>Calligraphy Portfolio through 2018</title>
+    <link>http://www.fraterdeus.com/photo-albums/callig-portfolio-thru-2018</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+      <dc:subject>googlephotoalbum</dc:subject>
+    
+    <dc:date>2020/01/15 13:10:00 GMT-4</dc:date>
+    <dc:type>Link</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/photo-albums/atmospheres-2014">
+    <title>Atmospheres Exhibition 2014 (Dubuque, Iowa)</title>
+    <link>http://www.fraterdeus.com/photo-albums/atmospheres-2014</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2020/01/15 13:32:19 GMT-4</dc:date>
+    <dc:type>Link</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/photo-albums/calligraphy-lessons-and-demonstrations-2014">
+    <title>Calligraphy - Lessons and Demonstrations (2014)</title>
+    <link>http://www.fraterdeus.com/photo-albums/calligraphy-lessons-and-demonstrations-2014</link>
+    <description>A few sheets from a small study group I taught in Dubuque.</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2020/01/15 13:40:06 GMT-4</dc:date>
+    <dc:type>Link</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/photo-albums/ritual-exhibit-single-sheet-books">
+    <title>RiTual Exhibit - Single Sheet Books</title>
+    <link>http://www.fraterdeus.com/photo-albums/ritual-exhibit-single-sheet-books</link>
+    <description>Making small single sheet books for the 2019 RiTual exhibit in Philadelphia. Using a number of brush written exercises, I folded and cut each sheet into a self-contained, self-bound book.</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+      <dc:subject>googlephotoalbum</dc:subject>
+    
+    <dc:date>2020/01/15 13:44:53 GMT-4</dc:date>
+    <dc:type>Link</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/contact-us">
+    <title>Contact us</title>
+    <link>http://www.fraterdeus.com/contact-us</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/08/15 10:20:11 GMT-4</dc:date>
+    <dc:type>Folder</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/sessions">
+    <title>Sessions</title>
+    <link>http://www.fraterdeus.com/sessions</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/08/07 23:17:00 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/sessions">
+    <title>Sessions</title>
+    <link>http://www.fraterdeus.com/sessions</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/08/07 23:19:00 GMT-4</dc:date>
+    <dc:type>Folder</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/2019jul15-washburnmarina_panorama1-0-33x.jpg/view">
+    <title>2019Jul15-WashburnMarina_Panorama1@0,33x.jpg</title>
+    <link>http://www.fraterdeus.com/2019jul15-washburnmarina_panorama1-0-33x.jpg/view</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date></dc:date>
+    <dc:type>Image</dc:type>
+  </item>
+
+  <item rdf:about="http://www.fraterdeus.com/august-2019-exhibit-in-washburn">
+    <title>August 2019 Exhibit in Washburn</title>
+    <link>http://www.fraterdeus.com/august-2019-exhibit-in-washburn</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/08/03 12:29:00 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+
+
+</rdf:RDF>

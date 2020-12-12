@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ <id>urn:iweb:A30323F4-DCA7-47C9-B279-3C795B19D307</id>
+ <title>Page list Atom feed</title>
+ <updated>2010-10-08T17:31:09-05:00</updated>
+ <link rel="self" href="feed.xml"/>
+ <generator>iWeb</generator>
+ <author>
+  <name>iWeb</name>
+ </author>
+ <entry>
+  <id>urn:iweb:9623EFAB-FD31-4810-88F9-B5241A04FA20</id>
+  <title>uniformhiero2</title>
+  <title xmlns="urn:iweb:">uniformhiero2</title>
+  <in-navbar xmlns="urn:iweb:">9623EFAB-FD31-4810-88F9-B5241A04FA20</in-navbar>
+  <link rel="alternate" href="uniformhiero2.html"/>
+  <updated>2010-10-08T17:31:09.001-05:00</updated>
+  <content>uniformhiero2</content>
+ </entry>
+ <entry>
+  <id>urn:iweb:DEC2CDDB-2434-4E96-9E4B-CA8934738817</id>
+  <title>dark version2</title>
+  <title xmlns="urn:iweb:">dark version2</title>
+  <in-navbar xmlns="urn:iweb:">DEC2CDDB-2434-4E96-9E4B-CA8934738817</in-navbar>
+  <link rel="alternate" href="dark_version2.html"/>
+  <updated>2010-10-08T17:31:09.002-05:00</updated>
+  <content>dark version2</content>
+ </entry>
+ <entry>
+  <id>urn:iweb:10391215-9487-4B62-BDB3-DE26AE6DDB7F</id>
+  <title>gray version2 </title>
+  <title xmlns="urn:iweb:">gray version2 </title>
+  <in-navbar xmlns="urn:iweb:">10391215-9487-4B62-BDB3-DE26AE6DDB7F</in-navbar>
+  <link rel="alternate" href="gray_version2.html"/>
+  <updated>2010-10-08T17:31:09.003-05:00</updated>
+  <content>gray version2 </content>
+ </entry>
+ <entry>
+  <id>urn:iweb:895143CC-4857-4181-8EA1-42B5D9E1932B</id>
+  <title>Publicart2</title>
+  <title xmlns="urn:iweb:">Publicart2</title>
+  <in-navbar xmlns="urn:iweb:">895143CC-4857-4181-8EA1-42B5D9E1932B</in-navbar>
+  <link rel="alternate" href="Publicart2.html"/>
+  <updated>2010-10-08T17:31:09.004-05:00</updated>
+  <content>Publicart2</content>
+ </entry>
+ <entry>
+  <id>urn:iweb:4A4CE79E-3960-4044-B6D2-F62A8D2C024D</id>
+  <title>Statement2</title>
+  <title xmlns="urn:iweb:">Statement2</title>
+  <in-navbar xmlns="urn:iweb:">4A4CE79E-3960-4044-B6D2-F62A8D2C024D</in-navbar>
+  <link rel="alternate" href="Statement2.html"/>
+  <updated>2010-10-08T17:31:09.005-05:00</updated>
+  <content>Statement2</content>
+ </entry>
+ <entry>
+  <id>urn:iweb:CDD6A6E4-6475-4013-B5FB-FD737631F919</id>
+  <title>Resume2</title>
+  <title xmlns="urn:iweb:">Resume2</title>
+  <in-navbar xmlns="urn:iweb:">CDD6A6E4-6475-4013-B5FB-FD737631F919</in-navbar>
+  <link rel="alternate" href="Resume2.html"/>
+  <updated>2010-10-08T17:31:09.006-05:00</updated>
+  <content>Resume2</content>
+ </entry>
+</feed>

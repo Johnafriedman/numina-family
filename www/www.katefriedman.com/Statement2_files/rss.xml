@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:iphoto="urn:iphoto:property" xmlns:iweb="http://www.apple.com/iweb" version="2.0">
+  <channel>
+    <title>Statement2</title>
+    <link>http://www.katefriedman.com/site_10.8.10/Statement2.html</link>
+    <description>Statement2</description>
+    <item>
+      <title>Mark, Janice, and Justin  hanging in the lodge</title>
+      <link>http://www.katefriedman.com/site_10.8.10/Statement2.html#0</link>
+      <guid isPermaLink="false">6cc44187-aa03-43fa-8c71-12d27ea07361</guid>
+      <enclosure url="http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt9_rgb_A/PHO_IBK_IPH_Pt9_rgb_A.jpg" length="104544" type="image/jpeg"/>
+      <iphoto:thumbnail>http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt9_rgb_A/thumb.jpg</iphoto:thumbnail>
+      <iweb:micro>http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt9_rgb_A/micro.jpg</iweb:micro>
+      <iweb:richTitle>&lt;div style=&quot;padding: 0px; &quot; class=&quot;image_cluster_layout_style_default_External_253_75&quot;&gt;&lt;div class=&quot;image_cluster_layout_style_default&quot;&gt;&lt;p style=&quot;padding-bottom: 0pt; padding-top: 0pt; &quot; class=&quot;Caption&quot;&gt;Mark, Janice, and Justin &lt;br/&gt;hanging in the lodge&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;</iweb:richTitle>
+    </item>
+    <item>
+      <title>John stuffing his face on our big night out</title>
+      <link>http://www.katefriedman.com/site_10.8.10/Statement2.html#1</link>
+      <guid isPermaLink="false">be1b349c-1adc-47d7-80df-adda2da70e08</guid>
+      <enclosure url="http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt8_rgb_A/PHO_IBK_IPH_Pt8_rgb_A.jpg" length="70132" type="image/jpeg"/>
+      <iphoto:thumbnail>http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt8_rgb_A/thumb.jpg</iphoto:thumbnail>
+      <iweb:micro>http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt8_rgb_A/micro.jpg</iweb:micro>
+      <iweb:richTitle>&lt;div style=&quot;padding: 0px; &quot; class=&quot;image_cluster_layout_style_default_External_253_75&quot;&gt;&lt;div class=&quot;image_cluster_layout_style_default&quot;&gt;&lt;p style=&quot;padding-bottom: 0pt; padding-top: 0pt; &quot; class=&quot;Caption&quot;&gt;John stuffing his face on our big night out&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;</iweb:richTitle>
+    </item>
+    <item>
+      <title>Justin and April before  hitting the slopes</title>
+      <link>http://www.katefriedman.com/site_10.8.10/Statement2.html#2</link>
+      <guid isPermaLink="false">d8b54dc5-504e-471c-a303-097f20b2684f</guid>
+      <enclosure url="http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt16_A/PHO_IBK_IPH_Pt16_A.jpg" length="78882" type="image/jpeg"/>
+      <iphoto:thumbnail>http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt16_A/thumb.jpg</iphoto:thumbnail>
+      <iweb:micro>http://www.katefriedman.com/site_10.8.10/Statement2_files/Media/PHO_IBK_IPH_Pt16_A/micro.jpg</iweb:micro>
+      <iweb:richTitle>&lt;div style=&quot;padding: 0px; &quot; class=&quot;image_cluster_layout_style_default_External_253_75&quot;&gt;&lt;div class=&quot;image_cluster_layout_style_default&quot;&gt;&lt;p style=&quot;padding-bottom: 0pt; padding-top: 0pt; &quot; class=&quot;Caption&quot;&gt;Justin and April before &lt;br/&gt;hitting the slopes&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;</iweb:richTitle>
+    </item>
+  </channel>
+</rss>

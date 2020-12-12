@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<script src="https://www.googleoptimize.com/optimize.js?id=OPT-K8QZ7H2"></script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!--
+	Not Box Mod
+    © Copyright 2011 John Friedman
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    contact:     john@numina.org
+
+-->
+<!-- git commit -->
+<title>Not Box Mod</title>
+<script type="text/javascript">
+	// function getWidth(){
+	// 	return innerWidth-32;
+	// }
+	// function getHeight(){
+	// 	return innerHeight-32;
+	// }
+
+notBox = {
+  MAX_WIDTH: 1024,
+  MAX_HEIGHT: 800
+};
+  
+window.onload = window.onresize = function() {
+	init();
+	canvas.width = Math.min(getWidth(), notBox.MAX_WIDTH);
+	canvas.height = Math.min(getHeight(), notBox.MAX_HEIGHT);
+
+	cx = Math.floor(canvas.width/2);
+	cy = Math.floor(canvas.height/2);
+	max_width  =cx-1;
+	max_height  =cy-1;
+
+	ctx = canvas.getContext('2d');
+
+	ctx.globalCompositeOperation = 'copy';
+	ctx.fillStyle = "rgb(255,255,255)";
+	ctx.clearRect(0,0,1280,1280);
+
+	ctx.globalCompositeOperation = 'xor';
+	ctx.fillStyle = "rgb(0,0,0)";
+
+}
+window.onclick = function(){
+	window.location.assign("springs.html")
+}
+
+var busy = false;
+function draw (){
+	if(busy==false){
+		busy=true;
+		do{
+			var oldw = w;
+			var oldh = h;
+			var x0 = cx-w;
+			var y0 = cy-h;
+			ctx.fillRect(x0,y0,w*2,h*2);
+			w=(w+inc)%max_width;
+			h=(h+inc)%max_height;
+		}while((oldw<=w)&&(oldh<=h));
+		busy=false;
+	}
+}
+
+function init(){
+
+	canvas = document.getElementById('notBoxMod');
+	canvas.width = getWidth();
+	canvas.height = getHeight();
+	if(typeof notInterval != "undefined"){
+		clearInterval(notInterval);
+	}
+
+	if (canvas.getContext){
+		ctx = canvas.getContext('2d');
+		ctx.globalCompositeOperation = 'xor';
+		ctx.fillStyle = "rgb(1,1,1)";
+		notInterval = setInterval("draw();", 10);
+	}
+}
+
+</script>
+
+<script type="text/javascript">
+
+	getWidth = function(){
+		return innerWidth-32;
+	};
+
+	getHeight = function(){
+		return innerHeight-32;
+	};
+
+	var cx = Math.floor(getWidth()/2);
+	var cy = Math.floor(getHeight()/2);
+	var max_width  =cx-1;
+	var max_height  =cy-1;
+	var inc = 1;
+	var canvas;
+	var ctx;
+	var w=0;
+	var h=0;
+
+    gotoSprings = function(){
+      window.location.assign("springs.html")
+    }
+
+</script>
+
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+					(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+				m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-80268610-1', 'auto');
+		ga('send', 'pageview');
+
+	</script>
+</head>
+<!-- <body onload="init();"> -->
+<body>
+
+	<canvas id="notBoxMod" width="1280" height="1280" onClick=gotoSprings></canvas>
+
+</body>
+</html>

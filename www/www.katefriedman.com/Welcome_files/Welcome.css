@@ -1,0 +1,550 @@
+.paragraph_style {
+    color: rgb(194, 250, 0);
+    font-family: 'Futura-Medium', 'Futura', 'Trebuchet MS', sans-serif;
+    font-size: 12px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    letter-spacing:     0.27em;
+    line-height: 18px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-shadow: -4px 3px 10px rgb(202, 197, 170);
+    text-transform: none;
+}
+.paragraph_style_1 {
+    color: rgb(251, 239, 208);
+    font-family: 'Futura-Medium', 'Futura', 'Trebuchet MS', sans-serif;
+    font-size: 12px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    letter-spacing:     0.04em;
+    line-height: 18px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-shadow: -4px 3px 10px rgb(202, 197, 170);
+    text-transform: none;
+}
+.paragraph_style_2 {
+    color: rgb(191, 105, 6);
+    font-family: 'Futura-Medium', 'Futura', 'Trebuchet MS', sans-serif;
+    font-size: 12px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    letter-spacing:     0.04em;
+    line-height: 18px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-shadow: -4px 3px 10px rgb(202, 197, 170);
+    text-transform: none;
+}
+.paragraph_style_3 {
+    color: rgb(191, 105, 6);
+    font-family: 'Futura-Medium', 'Futura', 'Trebuchet MS', sans-serif;
+    font-size: 12px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    letter-spacing:     0.04em;
+    line-height: 18px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-shadow: -4px 3px 10px rgb(202, 197, 170);
+    text-transform: none;
+}
+.style {
+    padding: 4px;
+}
+.paragraph_style_4 {
+    color: rgb(251, 239, 208);
+    font-family: 'Futura-Medium', 'Futura', 'Trebuchet MS', sans-serif;
+    font-size: 12px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    letter-spacing:     0.27em;
+    line-height: 15px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.style_SkipStroke_2 {
+    background: transparent;
+    opacity: 1.00;
+}
+.style_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+.style_SkipStroke_1 {
+    background: transparent;
+    opacity: 1.00;
+}
+.paragraph_style_5 {
+    color: rgb(194, 250, 0);
+    font-family: 'Futura-Medium', 'Futura', 'Trebuchet MS', sans-serif;
+    font-size: 48px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    letter-spacing:     0.14em;
+    line-height: 57px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-shadow: 4px 2px 10px rgb(2, 2, 2);
+    text-transform: none;
+}
+.style_SkipStroke_3 {
+    background: transparent;
+    opacity: 1.00;
+}
+.style_SkipStroke_4 {
+    background: transparent;
+    opacity: 1.00;
+}
+.paragraph_style_6 {
+    color: rgb(255, 255, 255);
+    font-family: 'Futura-Bold', 'Futura';
+    font-size: 14px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 700;
+    letter-spacing:     0.21em;
+    line-height: 17px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-shadow: -2px 2px 5px rgb(2, 2, 2);
+    text-transform: none;
+}
+.style_External_942_30 {
+    position: relative;
+}
+.Body {
+    color: rgb(121, 121, 121);
+    font-family: 'HelveticaNeue-Bold', 'Helvetica Neue', 'Arial', sans-serif;
+    font-size: 20px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 25px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.Caption {
+    color: rgb(169, 169, 169);
+    font-family: 'HelveticaNeue-Bold', 'Helvetica Neue', 'Arial', sans-serif;
+    font-size: 12px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 15px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: center;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.Free_Form {
+    color: rgb(169, 169, 169);
+    font-family: 'HelveticaNeue', 'Helvetica Neue', 'Arial', sans-serif;
+    font-size: 14px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 19px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.Title {
+    color: rgb(255, 255, 255);
+    font-family: 'HelveticaNeue-Bold', 'Helvetica Neue', 'Arial', sans-serif;
+    font-size: 28px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 31px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.graphic_generic_title_textbox_style_default_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+.graphic_image_style_default_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+.graphic_shape_layout_style_default {
+    padding: 4px;
+}
+.graphic_shape_layout_style_default_External_464_207 {
+    position: relative;
+}
+.graphic_textbox_layout_style_default {
+    padding: 4px;
+}
+.graphic_textbox_layout_style_default_External_942_30 {
+    position: relative;
+}
+.graphic_textbox_layout_style_default_External_156_1156 {
+    position: relative;
+}
+.graphic_textbox_layout_style_default_External_100_100 {
+    position: relative;
+}
+.graphic_textbox_style_default_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+a {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class1 {
+    color: rgb(194, 250, 0);
+}
+a.class1:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class1:hover {
+    color: rgb(220, 152, 41);
+}
+a.class10 {
+    color: rgb(194, 250, 0);
+}
+a.class10:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class10:hover {
+    color: rgb(220, 152, 41);
+}
+a.class11 {
+    color: rgb(194, 250, 0);
+}
+a.class11:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class11:hover {
+    color: rgb(220, 152, 41);
+}
+a.class12 {
+    color: rgb(194, 250, 0);
+}
+a.class12:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class12:hover {
+    color: rgb(220, 152, 41);
+}
+a.class13 {
+    color: rgb(194, 250, 0);
+}
+a.class13:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class13:hover {
+    color: rgb(220, 152, 41);
+}
+a.class14 {
+    color: rgb(194, 250, 0);
+}
+a.class14:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class14:hover {
+    color: rgb(220, 152, 41);
+}
+a.class15 {
+    color: rgb(194, 250, 0);
+}
+a.class15:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class15:hover {
+    color: rgb(220, 152, 41);
+}
+a.class16 {
+    color: rgb(194, 250, 0);
+}
+a.class16:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class16:hover {
+    color: rgb(220, 152, 41);
+}
+a.class17 {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class17:visited {
+    color: rgb(251, 239, 208);
+}
+a.class17:hover {
+    color: rgb(194, 250, 0);
+    text-decoration: none;
+}
+a.class18 {
+    color: rgb(194, 250, 0);
+}
+a.class18:visited {
+    color: rgb(255, 255, 255);
+}
+a.class18:hover {
+    color: rgb(251, 175, 50);
+}
+a.class19 {
+    color: rgb(194, 250, 0);
+}
+a.class19:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class19:hover {
+    color: rgb(0, 253, 255);
+}
+a.class2 {
+    color: rgb(194, 250, 0);
+}
+a.class2:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class2:hover {
+    color: rgb(220, 152, 41);
+}
+a.class3 {
+    color: rgb(194, 250, 0);
+}
+a.class3:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class3:hover {
+    color: rgb(220, 152, 41);
+}
+a.class4 {
+    color: rgb(194, 250, 0);
+}
+a.class4:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class4:hover {
+    color: rgb(220, 152, 41);
+}
+a.class5 {
+    color: rgb(194, 250, 0);
+}
+a.class5:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class5:hover {
+    color: rgb(220, 152, 41);
+}
+a.class6 {
+    color: rgb(194, 250, 0);
+}
+a.class6:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class6:hover {
+    color: rgb(220, 152, 41);
+}
+a.class7 {
+    color: rgb(194, 250, 0);
+}
+a.class7:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class7:hover {
+    color: rgb(220, 152, 41);
+}
+a.class8 {
+    color: rgb(194, 250, 0);
+}
+a.class8:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class8:hover {
+    color: rgb(220, 152, 41);
+}
+a.class9 {
+    color: rgb(194, 250, 0);
+}
+a.class9:visited {
+    color: rgb(251, 239, 208);
+    text-decoration: none;
+}
+a.class9:hover {
+    color: rgb(220, 152, 41);
+}
+a:hover {
+    color: rgb(194, 250, 0);
+    text-decoration: none;
+}
+.bumper {
+    font-size: 1px;
+    line-height: 1px;
+}
+.spacer {
+    font-size: 1px;
+    line-height: 1px;
+}
+body { 
+    -webkit-text-size-adjust: none;
+}
+div { 
+    overflow: visible; 
+}
+img { 
+    border: none; 
+}
+.InlineBlock { 
+    display: inline; 
+}
+.InlineBlock { 
+    display: inline-block; 
+}
+.inline-block {
+    display: inline-block;
+    vertical-align: baseline;
+    margin-bottom:0.3em;
+}
+.inline-block.shape-with-text {
+    vertical-align: bottom;
+}
+.vertical-align-middle-middlebox {
+    display: table;
+}
+.vertical-align-middle-innerbox {
+    display: table-cell;
+    vertical-align: middle;
+}
+div.paragraph {
+    position: relative;
+}
+li.full-width {
+    width: 100;
+}
