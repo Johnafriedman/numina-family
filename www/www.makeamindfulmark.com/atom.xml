@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet href="atom.css" type="text/css"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:base="http://www.makeamindfulmark.com" xml:lang="en-us">
+  <link rel="self" href="http://www.makeamindfulmark.com/atom.xml" type="application/atom+xml" />
+  <title type="html">Site</title>
+  
+  <updated>2020-07-11T18:23:21-04:00</updated>
+  <link href="atom.xml" rel="alternate" type="text/html" xml:base="http://www.makeamindfulmark.com/"/>
+  <id>urn:syndication:</id>
+  <logo>http://www.makeamindfulmark.com/@@site-logo/MakeAMindfulMark.Masthead@0,25x.gif</logo>
+  <icon>http://www.makeamindfulmark.com/favicon.ico</icon>
+  <generator uri="http://www.plone.org" version="1.0">plone</generator>
+  
+  <author>
+    <name>Peter Fraterdeus</name>
+    <email>peterf@semiotx.com</email>
+  </author>
+
+  
+    <entry>
+      <title>August 2019 Exhibit in Washburn</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/august-2019-exhibit-in-washburn" />
+      
+      <id>urn:syndication:710970f9ec364943a42c6279a4b0aab6</id>
+      <summary>Opening August 8th at the Washburn Cultural Center, reception from 5-7pm</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2019-07-02T18:27:13-04:00</published>
+
+      <updated>2019-07-02T18:27:13-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Sacred Geometry with Donald Duck</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/videos/sacred-geometry-with-donald-duck" />
+      
+      <id>urn:syndication:610b7797290e47f1870e70a50e67a5a6</id>
+      <summary>Walt Disney was a master of visualization, and manifestation. His studies of the mathematical principles found in nature, and the potential of mental visualization are evident in this piece from the 1950s.</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2019-03-20T11:22:54-04:00</published>
+
+      <updated>2019-03-20T11:22:54-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Yoga Nidra</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/seminars-1/yoga-nidra" />
+      
+      <id>urn:syndication:ac7c81cf546c4996975effcc25b874c8</id>
+      <summary>RELAX, HEAL and TRANSFORM WITH YOGA NIDRA</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2019-02-08T11:49:00-04:00</published>
+
+      <updated>2019-07-28T17:00:12-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Seminars, Workshops, Events</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/seminars-1" />
+      
+      <id>urn:syndication:6bccb3a26e44464d9e631585c0cf2302</id>
+      <summary>We offer a range of programs to engage and enlighten!</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2019-02-08T11:45:00-04:00</published>
+
+      <updated>2019-07-28T16:50:35-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Our Tribe</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/our-tribe" />
+      
+      <id>urn:syndication:b77a95e9b648477ba0728957fa7b17a7</id>
+      <summary>About our mission and our playful tribe—founders, teachers and facilitators</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2019-01-18T20:08:34-04:00</published>
+
+      <updated>2019-02-05T16:01:12-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Our Tribe</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/our-tribe" />
+      
+      <id>urn:syndication:a33d8e95bfb0402a9ccec46cb02cb4bd</id>
+      
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2019-01-18T20:08:00-04:00</published>
+
+      <updated>2019-02-05T16:02:58-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>2020 Autumn Mindful Play and Tools for Resilience Retreat</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/2020-events" />
+      
+      <id>urn:syndication:f84b1447c9054d1caad927ee0daf5d6f</id>
+      <summary>Autumn 2020 at Wild Rice Retreat Center in Bayfield, Wisconsin!</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2018-12-27T12:51:00-04:00</published>
+
+      <updated>2019-10-18T13:12:56-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>ENSO9000™</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/enso9000" />
+      
+      <id>urn:syndication:8d2564e428904d54b59214a2b92e1d3d</id>
+      <summary>About ENSO9000</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2018-12-27T12:43:00-04:00</published>
+
+      <updated>2019-01-18T00:40:13-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Visioning with Kate Miller</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/seminars-1/visioning-with-kate-miller" />
+      
+      <id>urn:syndication:0cc2b63f644f47e0b9ce8ce5319db8c2</id>
+      <summary>Set your intentions for 2019 and beyond in this mindful vision practice!</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2018-12-11T01:35:00-04:00</published>
+
+      <updated>2019-01-17T22:21:31-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Seminars, Workshops, Events</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/seminars-1" />
+      
+      <id>urn:syndication:bd0c90b90e9642a581912823004c3259</id>
+      
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2018-12-10T20:19:27-04:00</published>
+
+      <updated>2019-02-08T11:48:43-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Workshops</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/workshops" />
+      
+      <id>urn:syndication:2171ce62345e41e4908acacb53be2283</id>
+      <summary>NB. The Brazil Workshops have been postponed until 2018. Dates to be announced.These workshops can be scheduled for your group! &amp;nbsp;Posters. Click to enlarge or download full size&amp;nbsp;</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2017-04-28T19:14:00-04:00</published>
+
+      <updated>2017-06-03T19:36:31-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Assets</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/workshops/assets" />
+      
+      <id>urn:syndication:4610bc0e4cd64657a25d0ff33d4e74c9</id>
+      
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2017-04-28T17:52:31-04:00</published>
+
+      <updated>2017-04-28T19:28:02-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>2018 Retreat Recap</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/2020-events/2018-retreat-at-sinsinawa-mound-recap" />
+      
+      <id>urn:syndication:e016a28d341f4e96be408cd039bebc4a</id>
+      <summary>Review of the October 2018 Event</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2017-04-19T00:35:00-04:00</published>
+
+      <updated>2018-12-19T13:03:19-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Peterf Full Bio</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/our-tribe/full-bio" />
+      
+      <id>urn:syndication:a0ed1ad2199e4d3eb7d55ab276c22972</id>
+      <summary>Teacher of Emptiness Design, "Make a Mindful Mark", non-linear non-verbal exercises to open space for creative innovation. Calligrapher, type designer, Irish musician, chef, photographer, humanistic optimist, nature lover. eternal student of whole systems and the nature of consciousness.</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2017-02-28T17:36:00-04:00</published>
+
+      <updated>2019-02-05T16:05:01-04:00</updated>
+
+      
+
+    </entry>
+
+  
+    <entry>
+      <title>Peter Bio Summary</title>
+      <link rel="alternate" type="text/html" href="http://www.makeamindfulmark.com/our-tribe/bio" />
+      
+      <id>urn:syndication:303b1c0e3e6344159d956879258237cf</id>
+      <summary>Bio of Emptiness Design founder Peter Fraterdeus</summary>
+      
+
+      <author>
+        
+        <name>admin</name>
+        
+      </author>
+
+      <published>2017-02-22T12:37:00-04:00</published>
+
+      <updated>2019-08-08T16:58:05-04:00</updated>
+
+      
+
+    </entry>
+
+  
+
+</feed>

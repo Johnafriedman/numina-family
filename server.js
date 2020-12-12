@@ -15,8 +15,8 @@ var vhost = require('vhost');
 var fraterdeusApp = express();
 fraterdeusApp.use(express.static("www/www.fraterdeus.com"))
 
-var numinaApp = express();
-numinaApp.use(express.static("www/www.numina.org"));
+var makeamindfulmarkApp = express();
+makeamindfulmarkApp.use(express.static("www/www.makeamindfulmark.org"));
 
 var katefriedmanApp = express();
 katefriedmanApp.use(express.static("www/www.katefriedman.com"));
@@ -36,9 +36,9 @@ var app = express();
 
 app.use(vhost("*.fraterdeus.com", fraterdeusApp));
 
-app.use(vhost("*.katefriedman.org", katefriedmanApp));
+app.use(vhost("*.katefriedman.com", katefriedmanApp));
 
-app.use(vhost("*.numina.org", numinaApp));
+app.use(vhost("*.makeamindfulmark.org", makeamindfulmarkApp));
 
 var port = process.env.PORT || 3000;
 app.listen(port);

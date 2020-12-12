@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:syn="http://purl.org/rss/1.0/modules/syndication/" xmlns="http://purl.org/rss/1.0/">
+
+
+<channel rdf:about="http://www.makeamindfulmark.com/search_rss">
+  <title>Site</title>
+  <link>http://www.makeamindfulmark.com</link>
+
+  <image rdf:resource="http://www.makeamindfulmark.com/@@site-logo/MakeAMindfulMark.Masthead@0,25x.gif" />
+
+  <items>
+    <rdf:Seq>
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat.jpg/view" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat-0-3x.jpg/view" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat-0-1x.jpg/view" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/contact/contact-info/replyto" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/seminars-1/yoga-nidra" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/workshops" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/seminars-1/visioning-with-kate-miller" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/videos" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/contact/contact-info/thank-you" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/contact/contact-info/topic" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/contact/sign-up-for-our-email-list" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/seminars-1" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/seminars-1" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/videos/sacred-geometry-with-donald-duck" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/our-tribe/full-bio" />
+      
+    </rdf:Seq>
+  </items>
+
+</channel>
+
+
+  <item rdf:about="http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat.jpg/view">
+    <title>Zen Shodo &amp; Western Composition-saopaulo-flat.jpg</title>
+    <link>http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat.jpg/view</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date></dc:date>
+    <dc:type>Image</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat-0-3x.jpg/view">
+    <title>Zen Shodo &amp; Western Composition-saopaulo-flat@0,3x.jpg</title>
+    <link>http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat-0-3x.jpg/view</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date></dc:date>
+    <dc:type>Image</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat-0-1x.jpg/view">
+    <title>Zen Shodo &amp; Western Composition-saopaulo-flat@0,1x.jpg</title>
+    <link>http://www.makeamindfulmark.com/workshops/assets/zen-shodo-western-composition-saopaulo-flat-0-1x.jpg/view</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date></dc:date>
+    <dc:type>Image</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/contact/contact-info/replyto">
+    <title>Your E-Mail Address</title>
+    <link>http://www.makeamindfulmark.com/contact/contact-info/replyto</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date></dc:date>
+    <dc:type>String Field</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/seminars-1/yoga-nidra">
+    <title>Yoga Nidra</title>
+    <link>http://www.makeamindfulmark.com/seminars-1/yoga-nidra</link>
+    <description>RELAX, HEAL and TRANSFORM WITH YOGA NIDRA</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/02/08 11:49:00 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/workshops">
+    <title>Workshops</title>
+    <link>http://www.makeamindfulmark.com/workshops</link>
+    <description>NB. The Brazil Workshops have been postponed until 2018. Dates to be announced.These workshops can be scheduled for your group! &amp;nbsp;Posters. Click to enlarge or download full size&amp;nbsp;</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2017/04/28 19:14:00 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/seminars-1/visioning-with-kate-miller">
+    <title>Visioning with Kate Miller</title>
+    <link>http://www.makeamindfulmark.com/seminars-1/visioning-with-kate-miller</link>
+    <description>Set your intentions for 2019 and beyond in this mindful vision practice!</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2018/12/11 01:35:00 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/videos">
+    <title>Video</title>
+    <link>http://www.makeamindfulmark.com/videos</link>
+    <description>Video examples and short introductions to the subjects at hand.</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2016/09/29 20:03:00 GMT-4</dc:date>
+    <dc:type>Folder</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/contact/contact-info/thank-you">
+    <title>Thank You</title>
+    <link>http://www.makeamindfulmark.com/contact/contact-info/thank-you</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date></dc:date>
+    <dc:type>Thanks Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/contact/contact-info/topic">
+    <title>Subject</title>
+    <link>http://www.makeamindfulmark.com/contact/contact-info/topic</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date></dc:date>
+    <dc:type>String Field</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/contact/sign-up-for-our-email-list">
+    <title>Sign up for our eMail List</title>
+    <link>http://www.makeamindfulmark.com/contact/sign-up-for-our-email-list</link>
+    <description>Please fill out the form, making sure that your email address is correct! You can also follow @amindfulmark on Twitter, or our Facebook Page, Make a Mindful Mark</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/01/18 00:15:03 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/seminars-1">
+    <title>Seminars, Workshops, Events</title>
+    <link>http://www.makeamindfulmark.com/seminars-1</link>
+    <description>We offer a range of programs to engage and enlighten!</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/02/08 11:45:00 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/seminars-1">
+    <title>Seminars, Workshops, Events</title>
+    <link>http://www.makeamindfulmark.com/seminars-1</link>
+    <description></description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2018/12/10 20:19:27 GMT-4</dc:date>
+    <dc:type>Folder</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/videos/sacred-geometry-with-donald-duck">
+    <title>Sacred Geometry with Donald Duck</title>
+    <link>http://www.makeamindfulmark.com/videos/sacred-geometry-with-donald-duck</link>
+    <description>Walt Disney was a master of visualization, and manifestation. His studies of the mathematical principles found in nature, and the potential of mental visualization are evident in this piece from the 1950s.</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019/03/20 11:22:54 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/our-tribe/full-bio">
+    <title>Peterf Full Bio</title>
+    <link>http://www.makeamindfulmark.com/our-tribe/full-bio</link>
+    <description>Teacher of Emptiness Design, "Make a Mindful Mark", non-linear non-verbal exercises to open space for creative innovation. Calligrapher, type designer, Irish musician, chef, photographer, humanistic optimist, nature lover. eternal student of whole systems and the nature of consciousness.</description>
+    
+    
+      <dc:publisher>No publisher</dc:publisher>
+      <dc:creator></dc:creator>
+    
+    <dc:rights></dc:rights>
+    
+    <dc:date>2017/02/28 17:36:00 GMT-4</dc:date>
+    <dc:type>Page</dc:type>
+  </item>
+
+
+
+</rdf:RDF>

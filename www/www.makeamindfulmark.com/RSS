@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:syn="http://purl.org/rss/1.0/modules/syndication/" xmlns="http://purl.org/rss/1.0/">
+
+
+
+<channel rdf:about="http://www.makeamindfulmark.com/RSS">
+  <title>Site</title>
+  <link>http://www.makeamindfulmark.com</link>
+  <description></description>
+  <image rdf:resource="http://www.makeamindfulmark.com/logo.png" />
+
+  <items>
+    <rdf:Seq>
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/august-2019-exhibit-in-washburn" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/videos/sacred-geometry-with-donald-duck" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/seminars-1/yoga-nidra" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/seminars-1" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/our-tribe" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/our-tribe" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/2020-events" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/enso9000" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/seminars-1/visioning-with-kate-miller" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/seminars-1" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/workshops" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/workshops/assets" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/2020-events/2018-retreat-at-sinsinawa-mound-recap" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/our-tribe/full-bio" />
+      
+        <rdf:li rdf:resource="http://www.makeamindfulmark.com/our-tribe/bio" />
+      
+    </rdf:Seq>
+  </items>
+
+</channel>
+
+
+  <item rdf:about="http://www.makeamindfulmark.com/august-2019-exhibit-in-washburn">
+    <title>August 2019 Exhibit in Washburn</title>
+    <link>http://www.makeamindfulmark.com/august-2019-exhibit-in-washburn</link>
+    <description>Opening August 8th at the Washburn Cultural Center, reception from 5-7pm</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019-07-02T22:27:13Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/videos/sacred-geometry-with-donald-duck">
+    <title>Sacred Geometry with Donald Duck</title>
+    <link>http://www.makeamindfulmark.com/videos/sacred-geometry-with-donald-duck</link>
+    <description>Walt Disney was a master of visualization, and manifestation. His studies of the mathematical principles found in nature, and the potential of mental visualization are evident in this piece from the 1950s.</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019-03-20T15:22:54Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/seminars-1/yoga-nidra">
+    <title>Yoga Nidra</title>
+    <link>http://www.makeamindfulmark.com/seminars-1/yoga-nidra</link>
+    <description>RELAX, HEAL and TRANSFORM WITH YOGA NIDRA</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019-02-08T15:49:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/seminars-1">
+    <title>Seminars, Workshops, Events</title>
+    <link>http://www.makeamindfulmark.com/seminars-1</link>
+    <description>We offer a range of programs to engage and enlighten!</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019-02-08T15:45:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/our-tribe">
+    <title>Our Tribe</title>
+    <link>http://www.makeamindfulmark.com/our-tribe</link>
+    <description>About our mission and our playful tribe—founders, teachers and facilitators</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019-01-19T00:08:34Z</dc:date>
+    <dc:type>Folder</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/our-tribe">
+    <title>Our Tribe</title>
+    <link>http://www.makeamindfulmark.com/our-tribe</link>
+    <description></description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2019-01-19T00:08:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/2020-events">
+    <title>2020 Autumn Mindful Play and Tools for Resilience Retreat</title>
+    <link>http://www.makeamindfulmark.com/2020-events</link>
+    <description>Autumn 2020 at Wild Rice Retreat Center in Bayfield, Wisconsin!</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2018-12-27T16:51:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/enso9000">
+    <title>ENSO9000™</title>
+    <link>http://www.makeamindfulmark.com/enso9000</link>
+    <description>About ENSO9000</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2018-12-27T16:43:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/seminars-1/visioning-with-kate-miller">
+    <title>Visioning with Kate Miller</title>
+    <link>http://www.makeamindfulmark.com/seminars-1/visioning-with-kate-miller</link>
+    <description>Set your intentions for 2019 and beyond in this mindful vision practice!</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2018-12-11T05:35:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/seminars-1">
+    <title>Seminars, Workshops, Events</title>
+    <link>http://www.makeamindfulmark.com/seminars-1</link>
+    <description></description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2018-12-11T00:19:27Z</dc:date>
+    <dc:type>Folder</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/workshops">
+    <title>Workshops</title>
+    <link>http://www.makeamindfulmark.com/workshops</link>
+    <description>NB. The Brazil Workshops have been postponed until 2018. Dates to be announced.These workshops can be scheduled for your group! &amp;nbsp;Posters. Click to enlarge or download full size&amp;nbsp;</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2017-04-28T23:14:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/workshops/assets">
+    <title>Assets</title>
+    <link>http://www.makeamindfulmark.com/workshops/assets</link>
+    <description></description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2017-04-28T21:52:31Z</dc:date>
+    <dc:type>Folder</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/2020-events/2018-retreat-at-sinsinawa-mound-recap">
+    <title>2018 Retreat Recap</title>
+    <link>http://www.makeamindfulmark.com/2020-events/2018-retreat-at-sinsinawa-mound-recap</link>
+    <description>Review of the October 2018 Event</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2017-04-19T04:35:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/our-tribe/full-bio">
+    <title>Peterf Full Bio</title>
+    <link>http://www.makeamindfulmark.com/our-tribe/full-bio</link>
+    <description>Teacher of Emptiness Design, "Make a Mindful Mark", non-linear non-verbal exercises to open space for creative innovation. Calligrapher, type designer, Irish musician, chef, photographer, humanistic optimist, nature lover. eternal student of whole systems and the nature of consciousness.</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2017-02-28T21:36:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+  <item rdf:about="http://www.makeamindfulmark.com/our-tribe/bio">
+    <title>Peter Bio Summary</title>
+    <link>http://www.makeamindfulmark.com/our-tribe/bio</link>
+    <description>Bio of Emptiness Design founder Peter Fraterdeus</description>
+    
+    <dc:publisher>No publisher</dc:publisher>
+    <dc:creator></dc:creator>
+    <dc:rights></dc:rights>
+    
+    <dc:date>2017-02-22T16:37:00Z</dc:date>
+    <dc:type>Document</dc:type>
+  </item>
+
+
+
+</rdf:RDF>
