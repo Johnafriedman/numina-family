@@ -7,7 +7,7 @@ console.log('Starting server in ' + process.env.NODE_ENV + ' mode');
 // app.listen(port);
 // console.log('Web server listening on port ' + port);
 
-// var sslRedirect = require('heroku-ssl-redirect');
+var sslRedirect = require('heroku-ssl-redirect');
 var express = require('express');
 var vhost = require('vhost');
 
@@ -32,14 +32,16 @@ var debugHandler = function handle (req, res, next) {
 
 
 var app = express();
-// app.use(sslRedirect());
+app.use(sslRedirect());
 
 app.use(vhost("*.fraterdeus.com", fraterdeusApp));
 app.use(vhost("fraterdeus.com", fraterdeusApp));
 
 app.use(vhost("*.katefriedman.com", katefriedmanApp));
+app.use(vhost("katefriedman.com", katefriedmanApp));
 
 app.use(vhost("*.makeamindfulmark.com", makeamindfulmarkApp));
+app.use(vhost("makeamindfulmark.com", makeamindfulmarkApp));
 
 var port = process.env.PORT || 3000;
 app.listen(port);
