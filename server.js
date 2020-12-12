@@ -16,7 +16,7 @@ var fraterdeusApp = express();
 fraterdeusApp.use(express.static("www/www.fraterdeus.com"))
 
 var makeamindfulmarkApp = express();
-makeamindfulmarkApp.use(express.static("www/www.makeamindfulmark.org"));
+makeamindfulmarkApp.use(express.static("www/www.makeamindfulmark.com"));
 
 var katefriedmanApp = express();
 katefriedmanApp.use(express.static("www/www.katefriedman.com"));
@@ -38,7 +38,7 @@ app.use(vhost("*.fraterdeus.com", fraterdeusApp));
 
 app.use(vhost("*.katefriedman.com", katefriedmanApp));
 
-app.use(vhost("*.makeamindfulmark.org", makeamindfulmarkApp));
+app.use(vhost("*.makeamindfulmark.com", makeamindfulmarkApp));
 
 var port = process.env.PORT || 3000;
 app.listen(port);
