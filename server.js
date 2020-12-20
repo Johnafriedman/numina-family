@@ -36,6 +36,8 @@ app.use(sslRedirect());
 
 app.use(vhost("*.fraterdeus.com", fraterdeusApp));
 app.use(vhost("fraterdeus.com", fraterdeusApp));
+app.use(vhost("*.ideaswords.com", fraterdeusApp));
+app.use(vhost("ideaswords.com", fraterdeusApp));
 
 app.use(vhost("*.katefriedman.com", katefriedmanApp));
 app.use(vhost("katefriedman.com", katefriedmanApp));
