@@ -21,6 +21,9 @@ makeamindfulmarkApp.use(express.static("www/www.makeamindfulmark.com"));
 var katefriedmanApp = express();
 katefriedmanApp.use(express.static("www/www.katefriedman.com"));
 
+var numinaApp = express();
+numinaApp.use(express.static("www/www.numina.org"));
+
 var debugHandler = function handle (req, res, next) {
     // for match of "foo.bar.example.com:8080" against "*.*.example.com":
     console.dir(req.vhost.host) // => 'foo.bar.example.com:8080'
@@ -45,6 +48,10 @@ app.use(vhost("katefriedman.com", katefriedmanApp));
 app.use(vhost("*.makeamindfulmark.com", makeamindfulmarkApp));
 app.use(vhost("makeamindfulmark.com", makeamindfulmarkApp));
 
+app.use(vhost("*.numina.org", numinaApp));
+app.use(vhost("numina.org", numinaApp));
+
+
 var port = process.env.PORT || 3000;
-app.listen(port);
+numinaApp.listen(port);
 console.log('Web server listening on port ' + port);
