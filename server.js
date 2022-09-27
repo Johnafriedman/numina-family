@@ -24,6 +24,9 @@ katefriedmanApp.use(express.static("www/www.katefriedman.com"));
 var numinaApp = express();
 numinaApp.use(express.static("www/www.numina.org"));
 
+var slowsolveApp = express();
+slowsolveApp.use(express.static("www/www.slowsolve.org"));
+
 var debugHandler = function handle (req, res, next) {
     // for match of "foo.bar.example.com:8080" against "*.*.example.com":
     console.dir(req.vhost.host) // => 'foo.bar.example.com:8080'
@@ -52,6 +55,8 @@ app.use(vhost("makeamindfulmark.com", makeamindfulmarkApp));
 app.use(vhost("*.numina.org", numinaApp));
 app.use(vhost("numina.org", numinaApp));
 
+app.use(vhost("*.slowsolve.org", slowsolveApp));
+app.use(vhost("slowsolve.org", slowsolveApp));
 
 var port = process.env.PORT || 3000;
 app.listen(port);

@@ -1,0 +1,1035 @@
+<!--
+//* All code herein (except where otherwise noted) and all associated graphics
+//* are created by Harriet Lurie, who retains all rights to this content.
+//* bubble v: 1.7 (c) Harriet Lurie 2015
+-->
+
+<html>
+<head>
+<!-- this section copied verbatim from Apache: -->
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<link rel="stylesheet" type="text/css" href="css/index.css" />
+<!-- end of Appache code. -->
+
+<title>bubbles</title> 
+
+<script type="text/javascript"> 
+	var canvas;
+	var ctx;		// the canvas "context"
+	var imageArray;
+	var imsLoaded;
+	var numPics;
+	
+	var puzzleHi;
+	var puzzleWi;
+	var puzzleWiHi;
+	var nextHi;
+	var nextWi;
+	var nextCo;
+	var pctObst;
+	var numObst;
+	var emptyRows;
+	
+	var minX;
+	var minY;
+	var xsize;
+	var ysize;
+	var puzArray;
+	var xArray;		// these store the screen coordinates of the tiles
+	var yArray;
+	var neighborArray;
+	var checkedArray;
+	
+	var tysize;
+	var txsize;
+	var xspacing;
+	var yspacing;
+	var yratio;
+
+	var nColors;
+	var lightedHex;
+	
+	var numMoves;
+	var numHits;
+	var groupSize;
+	var biggest;
+	var numFills;
+	var numSwaps;
+	var numDitches;
+	var numExtinct;
+	var countsArray;
+	var oldCountsArray;
+	var removedArray;
+	
+	var countDown;
+	var countDownMax;
+	var extinctions;
+	var fullUp;
+	var losses;
+	
+	var gaps;
+	var colorLag;
+	var xFill;
+	var obst;
+	var moreObs;
+	
+	var qlen;
+	var upandcomers;
+	
+	
+	function status() {
+		var cArray = new Array("ee3333", "eeee33", "33aa22", "3322ff", "aa55aa", "ee8833", "883333", "333333", "eeaaaa", "33aaaa");
+        game_txt = "now playing: " + puzzleWi + " x " + puzzleHi + "(-" + emptyRows + ")" + " x " + nColors + " & " + countDownMax;
+        game_txt = game_txt + " ~ " + (gaps + 0) + " ~ " + (colorLag + 0) + " ~ " + (xFill + 0) + " q:" + qlen + " & " + pctObst;
+        if (moreObs) { game_txt = game_txt + "+"; }
+        document.getElementById("gatext1").innerHTML = game_txt;
+        
+        game_txt = "moves: " + numMoves;
+        document.getElementById("gatext2").innerHTML = game_txt;
+
+        if (numMoves) { pcent = parseInt(numHits / numMoves * 100); }
+        else { pcent = 0; }
+        
+        game_txt = ". hits:" + numHits + " (" + pcent + "%)";
+        document.getElementById("gatext3").innerHTML = game_txt;
+        
+        game_txt = ". biggest goup:" + biggest;
+        document.getElementById("gatext4").innerHTML = game_txt;
+        
+        game_txt = ". latest goup:" + groupSize;
+        document.getElementById("gatext5").innerHTML = game_txt;
+        
+        if (numFills) { document.getElementById("gatext6").innerHTML = ". fills:" + numFills; }
+        else { document.getElementById("gatext6").innerHTML = ""; }
+        if (numSwaps) { document.getElementById("gatext7").innerHTML = ". swaps:" + numSwaps; }
+        else { document.getElementById("gatext7").innerHTML = ""; }
+        if (numDitches) { document.getElementById("gatext8").innerHTML = ". ditches:" + numDitches; }
+        else { document.getElementById("gatext8").innerHTML = ""; }
+        if (losses) { document.getElementById("gatext9").innerHTML = ". losses:" + losses}
+        else { document.getElementById("gatext9").innerHTML = ""; }
+        
+        status_txt = "<table border=1><tr><td id=";
+        status_txt = status_txt + String.fromCharCode(34) + "cdtext" + String.fromCharCode(34) + " ></td>";
+
+        for (aa = 0 ; aa < nColors ; aa ++) {
+        	status_txt = status_txt + "<td style = color:" + "444444" + ";background-color:" + cArray[aa] + ";width:14>";
+        	if (!countsArray[aa + 1]) { status_txt = status_txt + ".x."; }
+        	status_txt = status_txt + "</td>";
+        }
+        
+        if (numObst || moreObs) {status_txt = status_txt + "<td>X</td>"; }
+
+        status_txt = status_txt + "<td>total</td></tr><tr>";
+        status_txt = status_txt + "<td>remaining</td>";
+        
+        for (ii = 1 ; ii < nColors + 1 ; ii ++) {
+            status_txt = status_txt + "<td>" + countsArray[ii] + "</td>";
+        }
+        if (numObst || moreObs) {status_txt = status_txt + "<td>" + countsArray[nColors + 2] + "</td>"; }
+        status_txt = status_txt + "<td>" + countsArray[nColors + 1] + "</td>";
+
+        status_txt = status_txt + "</tr><tr><td>removed</td>";
+        for (ii = 1 ; ii < nColors + 1 ; ii ++) {
+            status_txt = status_txt + "<td>" + removedArray[ii] + "</td>";
+        }
+        if (numObst || moreObs) {status_txt = status_txt + "<td>" + removedArray[nColors + 2] + "</td>"; }
+        status_txt = status_txt + "<td>" + removedArray[nColors + 1] + "</td>";
+        
+        status_txt = status_txt + "</tr></table><p></p>";
+        
+        cArray = new Array("ee3333", "eebb55", "eeee55");
+        for (aa = 3 ; aa < countDown ; aa++) { cArray.push("44ee77"); }
+        if (countDown > 0) { aa = cArray[countDown - 1]; }
+        else { aa = "aa55ee"; }
+		count_txt = "<label style=font-size:16px;background-color:" + aa + ">count:  " + countDown + "</label>";
+		
+        document.getElementById("stext").innerHTML = status_txt;
+        document.getElementById("cdtext").innerHTML = count_txt;
+	}
+
+	function init() {
+		canvas = document.getElementById("canvas");
+        
+        numPics = 13; // the number of image files to load
+            
+        xArray = new Array();
+        yArray = new Array();
+        puzArray = new Array();
+        countsArray = new Array();
+        oldCountsArray = new Array();
+        removedArray = new Array();
+        upandcomers = new Array();
+
+		setDuds(5);
+		setQ(1);
+		gaps = true;
+		colorLag = false;
+		moreObs = false;
+		xFill = true;
+		obst = 12; // the place in the array for the obstacle graphic
+
+		setHi(8);
+		setWi(15);
+		setCols(7);
+		setObs(0);
+		setEmpty(2);
+		puzzleWi = nextWi;
+		puzzleHi = nextHi;
+		nColors = nextCo;
+		
+        imageArray = new Array();
+        imsLoaded = 0;
+        for ( izi = 0 ; izi < numPics ; izi++) {
+            imageArray[izi] = new Image();
+            
+            imageArray[izi].onload = function(){
+                // do NOT draw this now!
+                imsLoaded ++;
+                document.getElementById("stext").innerHTML = "number loaded: " + imsLoaded;
+                if(imsLoaded == numPics) {
+                    // make sure we do this only once
+                    imsLoaded = 99;
+                    newPuzzle();
+                }
+            }
+            imageArray[izi].onerror = function() {
+            	myalert("image #" + imsLoaded + " failed to load.", "quit");
+            }
+            imageArray[izi].src = "clumsy/hexC" + izi + ".png";
+        }
+        
+		if (canvas.getContext) {
+			ctx = canvas.getContext("2d");
+			xsize = innerWidth - 32;
+			ysize = innerHeight - 250;//200;
+			canvas.width = xsize;
+			canvas.height = ysize;
+		}
+		
+        window.onorientationchange = resizzle;		
+	}
+	
+	function resizzle() {
+            xsize = innerWidth - 32;
+            ysize = innerHeight - 250;//200;
+            canvas.width = xsize;
+            canvas.height = ysize;
+        	drawGrid();
+        	showWorkingHex();
+	}
+	
+	function newPuzzle() {
+		puzzleWi = nextWi;
+		puzzleHi = nextHi;
+		puzzleWiHi = puzzleWi * puzzleHi;
+		nColors = nextCo;
+		countDown = countDownMax;
+		
+		yratio = 3 / 4;
+		lightedHex = -1;
+		numMoves = 0;
+		groupSize = 0;
+		biggest = 0;
+		numHits = 0;
+		numFills = 0;
+		numSwaps = 0;
+		numDitches = 0;
+		numExtinct = 0;
+		fullUp = false;
+		losses = 0;
+		
+		// zero the arrays:
+		kk = 0;
+		puzArray = new Array();
+		for (jj = 0; jj < puzzleHi; jj++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+                xArray[kk] = 0;
+                yArray[kk] = 0;
+                puzArray[kk] = 0;
+				kk ++;
+			}
+		}
+		
+		// fill all but the last "emptyRows" rows of the puzzle array:
+		rf = puzzleHi - emptyRows;
+		for(jj = 0 ; jj < rf ; jj ++) {
+			for (ii = 0 ; ii < puzzleWi ; ii ++) {
+				puzArray[ii + (jj * puzzleWi)] = Math.floor(Math.random() * nColors) + 1;
+			}
+		}
+		
+		// place obstacles:
+		numObst = Math.floor((pctObst * puzzleWiHi) / 100);
+		for (ii = 0 ; ii < numObst ; ii ++) {
+			jj = Math.floor(Math.random() * puzzleWiHi);
+			if ((puzArray[jj]) && (puzArray[jj] < obst)) { puzArray[jj] = obst; }
+			else { ii--; }
+		}
+		
+		// empty the "removedArray":
+		for (ii = 0 ; ii < (nColors + 3); ii++ ) { removedArray[ii] = 0; }
+		
+		unalert();
+		
+		ctx.clearRect(0, 0, xsize, ysize);
+
+		upandcomers = new Array();
+		for (ii = 0 ; ii < (qlen + 1) ; ii++) {
+			upandcomers[ii] = Math.floor(Math.random() * nColors) + 1;
+		}
+		
+		drawGrid();
+		showWorkingHex();
+        
+		canvas.onmouseup = selectChoice;
+        canvas.onmousemove = hiHex;
+        
+        canvas.ontouchmove = hiHex;
+        canvas.ontouchend = selectChoice;
+
+        countHexes();
+		
+		status();
+	}
+	
+	function showWorkingHex() {
+		// changed to accomodate "upandcomers":
+		//ctx.drawImage(imageArray[nextHex], txsize * 2, ysize - tysize, txsize, tysize);
+		var ix, xplace, qs;
+		qs = 20;
+		for (ix = 1; ix < upandcomers.length; ix ++) {
+			xplace = Math.floor((xsize / 2) - (ix * qs * 1.5));
+			ctx.drawImage(imageArray[upandcomers[ix]], xplace, ysize - tysize, qs, qs);
+		}
+		ctx.drawImage(imageArray[upandcomers[0]], xsize / 2, ysize - (tysize * 1.5), txsize * 1.5, tysize * 1.5);
+	}
+	
+	function drawGrid() {
+		// fill the location arrays:
+		txsize = Math.floor(xsize / (puzzleWi + 2)  - 5);
+		tysize = Math.floor(ysize / (puzzleHi + 2));
+		
+		// added after app review:
+		txsize = Math.min(txsize, tysize);
+		tysize = txsize;
+		
+		xspacing = Math.floor(txsize / 8);
+		yspacing = Math.floor(tysize / 6);
+		
+		//minX = 50 - (txsize / 2);
+		minX = (xsize - (txsize * (puzzleWi + 2)) ) / 2;
+		minY = ysize / ((puzzleHi + 2) * tysize);
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			yp = minY + ((jj + 1) * tysize * yratio);
+			for (ii = 0; ii < puzzleWi; ii++) {
+				xp = minX + (ii + 1) * txsize;
+				xp += (jj % 2) * txsize / 2;
+				xArray[kk] = Math.floor(xp);
+				yArray[kk] = Math.floor(yp);
+				
+				kk ++;
+			}
+		}
+
+		ctx.globalAlpha = 1;
+		        
+        ctx.fillStyle = "rgb(248,248,240)";
+        ctx.fillRect(txsize / 4, tysize / 4, xsize - (txsize / 2), ysize - (tysize / 2));
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+				draw1(kk, puzArray[kk]);
+				kk ++;
+			}
+		}
+	}
+	
+	function removeOne(xh) {
+		// remove a single bubble
+		var cp = puzArray[xh];
+		if (cp == obst) { cp = nColors + 2;}
+			removedArray[cp] ++;
+			removedArray[nColors + 1] ++;
+			puzArray[xh] = 0;
+	}
+	
+	function isempty(nAr) {
+		// return true if the array is all zeros:
+		rv = 0;
+		for (ii = 0 ; (ii < nAr.length) && (!rv) ; ii ++) {
+			rv = nAr[ii];
+		}
+		return(!rv);
+	}
+	
+	function isin(nn, nAr) {
+		// return true if number(nn) is in the array
+		var rv = false;
+		for (ii = 0 ; (ii < nAr.length) && (!rv) ; ii ++) {
+			if (nAr[ii] == nn) {
+				rv = true;
+			}
+		}
+		return(rv);
+	}
+	
+	function isConnected(zt) {
+		if (zt < puzzleWi) { return(true); }
+		else { return(numNeighbors(zt)); }
+	}
+	
+	function numNeighbors(zz) {
+		// returns the number of occupied spaces surrounding zz
+		var rv = 0;
+		var nAr = new Array();
+		nAr = surroundingTileNums(zz);
+		while (nAr.length) {
+			if (puzArray[nAr.pop()] > 0) { rv ++; }
+		}
+		return(rv);
+	}
+	
+	function isFastened(hh) {
+		// returns true if tile nn is attatched to a top-row tile
+		var rv = false;		
+		var nAr = new Array();
+		nAr = surroundingTileNums(hh);
+		
+		while (nAr.length) {
+			cv = nAr.pop();			
+			// if the neighboring space is occupied, search its neighbors
+			if (puzArray[cv] > 0) {
+				if (!(isin(cv, neighborArray))) {
+					neighborArray.push(cv);
+					if (cv < puzzleWi){
+						rv = true;
+						break;
+					}
+					else {
+						if (isFastened(cv)) {
+							rv = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		return(rv);
+	}
+	
+	function falloff() {
+		// check all spaces except those at the top
+		for (jj = puzzleWi ; jj < puzzleWiHi ; jj ++) {
+			if (puzArray[jj]) {
+				neighborArray = new Array();
+				neighborArray.push(jj);
+				if (!(isFastened(jj))) {
+					//puzArray[jj] = 0;
+					removeOne(jj);
+					groupSize ++;
+				}
+			}
+		}
+	}
+	
+	function lastRowTotal() {
+		// returns the sum of the tiles in the last row (if empty this will be 0)
+		var total = 0;
+		for (i1 = (puzzleWiHi - puzzleWi) ; i1 < puzzleWiHi ; i1 ++) {
+			total += puzArray[i1];
+		}
+		return (total);
+	}
+	
+	function addToTop() {
+		if (lastRowTotal()) {
+			return(false);
+		}
+		else {
+			// move them all down one row:
+			for (iw = puzzleWiHi ; iw > (puzzleWi - 1) ; iw --) {
+				puzArray[iw] = puzArray[(iw - puzzleWi)];
+			}
+			// . . . and randomly fill the top row:
+			for (iw = 0 ; iw < puzzleWi ; iw ++) {
+				aRan = Math.floor(Math.random() * nColors) + 1;
+				if (!allobst()) {
+					while (!(isin(aRan, puzArray))) { aRan = Math.floor(Math.random() * nColors) + 1; }
+				}
+				puzArray[iw] = aRan;
+				// put in the gaps if that option is selected:
+				if ( (!(gaps)) && (!(puzArray[iw + puzzleWi])) ) { puzArray[iw] = 0; }
+			}
+			
+			// if we have continuing obstacles:
+			if (moreObs) {
+				// if there is only one color remaining, skip this to make the game winnable
+				zzc = false;
+				for (iw = 1 ; iw < puzzleWi ; iw ++) {
+					if (puzArray[iw] != puzArray[0]) { zzc = true; }
+				}
+				if (zzc) {
+					numberofnewobst = Math.floor(pctObst * puzzleWi / 100);
+					if (!numberofnewobst) { numberofnewobst = 1; } // always at least one
+					for (iw = 0; iw < numberofnewobst ; iw ++) {
+						aplace = Math.floor(Math.random() * puzzleWi);
+						if (puzArray[aplace] > 0) { // it's not a gap
+							puzArray[aplace] = obst;
+						}
+					}
+				}
+			}
+			
+			// remove stray tiles:
+			falloff();
+			numFills ++;
+			return(true);
+		}
+	}
+	
+	function surroundingTileNums(nn) {
+		// returns an array with the tiles surrounding nn
+		var trow = Math.floor(nn / puzzleWi);
+		var tcol = nn % puzzleWi;
+		var sAr = new Array(-1, -1, -1, -1, -1, -1); //left = 0,right = 1,above = 2,abovenext = 3,below = 4,belownext = 5
+		
+		// left:
+		if (tcol) { sAr[0] = nn - 1; }
+		// right:
+		if (tcol < (puzzleWi - 1)) { sAr[1] = nn + 1; } 
+		// above (2):
+		if (trow) { // we're not at the top
+			sAr[2] = nn - puzzleWi;
+			
+			// abovenext is to the left on even rows, to the right on odd rows:
+			if (trow % 2) {
+				// on an odd row there is no abovenext in the right column
+				if (tcol < (puzzleWi - 1)) { sAr[3] = nn - puzzleWi + 1; }
+			}
+			else {
+				// on an even row there is no abovenext in the left column
+				if (tcol) { sAr[3] = nn - puzzleWi - 1; }
+			}
+			
+		}
+		// below (2):
+		if (trow < (puzzleHi - 1)) { // we're not at the bottom
+			sAr[4] = nn + puzzleWi;
+			
+			// belownext is to the left on even rows, to the right on odd rows:
+			if (trow % 2) {
+				// on an odd row there's no belownext on the right column
+				if (tcol < (puzzleWi - 1)) { sAr[5] = nn + puzzleWi + 1; }
+			}
+			else {
+				// on an even row there is no belownext in the left column
+				if (tcol) { sAr[5] = nn + puzzleWi - 1; }
+			}
+		}
+		return(sAr);
+	}
+
+	function findImmediateNeighbors(ix) {
+		checkedArray.push(ix);
+
+		var neArray = new Array();
+		neArray = surroundingTileNums(ix);
+				
+		// if the neighbors are the same color and are not already in the array, add them to the array and check their neighbors
+		while (neArray.length) {
+			kk = neArray.pop();
+			if ( (kk + 1) && (puzArray[kk] == upandcomers[0]) ) {
+				if (!(isin(kk, neighborArray))) {
+					neighborArray.push(kk);
+				}
+				if (!(isin(kk, checkedArray))) {
+					findImmediateNeighbors(kk);
+				 }
+			}
+		}
+	}
+	
+	function clearNeighbors(ix) {
+		// if this is a group of three or more clear them away
+		// returns true if a group was cleared
+		neighborArray = new Array();
+		checkedArray = new Array();
+		neighborArray.push(ix);
+		
+		findImmediateNeighbors(ix);
+		if (neighborArray.length > 2) {
+			// clear away a group of three or more:
+			for (ii = 0 ; ii < neighborArray.length ; ii ++) {
+				//puzArray[neighborArray[ii]] = 0;
+				removeOne(neighborArray[ii]);
+				groupSize ++;
+			}
+
+			numHits ++;
+			return(true);
+		}
+		else { return(false); }
+	}
+	
+	function allobst() {
+		// returns true if the puzzle array contains only obstacles and empty spaces
+		var rv = true;
+		for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+			if ( (puzArray[ii] > 0) && (puzArray[ii] != obst) ) {
+				rv = false;
+				ii = puzzleWiHi;
+				}
+		}
+		return(rv);
+	}
+	
+	function advanceHex() {
+		var newhex = Math.floor(Math.random() * nColors) + 1;
+		var tmp;
+		
+		// if a color is no longer represented in the puzzle, don't put it in the array:
+		while (!(isin(newhex, puzArray))) { newhex = Math.floor(Math.random() * nColors) + 1; }
+		
+		tmp = upandcomers.shift();
+		upandcomers.push(newhex); 
+	}
+	
+	function placeCurrent(ix) {
+		// place the current tile at the selected place on the board
+		var continueGame = true;
+		var ii;
+		puzArray[ix] = upandcomers[0];
+		
+		if (clearNeighbors(ix)) { falloff(); }
+		else {
+			countDown --;
+			status();
+			if (countDown < 1) {
+				continueGame = false;
+				if (addToTop()) { countDown = countDownMax; }
+				else {
+					losses ++;
+					myalert("you lost", "continue", "new game");
+				}
+			}
+		}	
+		
+		if (isempty(puzArray)) {
+			continueGame = false;
+			status();
+			drawGrid();
+			myalert("you won", "continue", "new game");
+		}
+		else {
+			if (allobst()) {
+				upandcomers[0] = upandcomers[1];
+				for (ii = 2 ; ii < upandcomers.length ; ii ++) { upandcomers[ii] = upandcomers[0]; }
+			}
+			else {
+				// if a color is no longer represented in the puzzle, don't allow it for the next placeable hexagons:
+				advanceHex();
+				
+				if (!(colorLag)) {
+					for (ii = 0 ; ii < upandcomers.length ; ii ++) {
+						while (!(isin(upandcomers[ii], puzArray))) { upandcomers[ii] = Math.floor(Math.random() * nColors) + 1; }
+					}
+				}
+			}
+		}
+		
+		// do inventory and check for extinctions:
+		countHexes();
+		numExtinct += extinctions;
+		if (extinctions && xFill && continueGame) {
+			if (addToTop() == false)  {
+				losses ++;
+				myalert("you lost", "continue", "new game");
+			}
+		}
+		
+		if (fullUp) {
+			losses ++;
+			myalert("you lost", "continue", "new game");
+		}
+
+		drawGrid();
+		showWorkingHex();
+	}
+	
+    function selectChoice(event) {
+    	event.preventDefault();
+        var tile = lightedHex;
+        
+        if (tile != -1) {
+        	if ( (puzArray[tile] == 0) && (isConnected(tile)) ) {
+        		groupSize = 0;
+        		placeCurrent(tile);
+        		numMoves ++;
+        		if (groupSize > biggest) { biggest = groupSize; }
+        		//countHexes(); this has been moved to placeCurrent.
+        		status();
+        	}
+        }
+    }
+    
+    function getMyHex(xp, yp) {
+        // take the xp, yp and return the hex's number (or -1 if there is no tile there):        
+        xp -= minX;
+        yp -= minY;
+        
+        xp = Math.floor(xp / txsize) - 1;
+        yp = Math.floor(yp / tysize);        
+        
+        if ((xp > puzzleWi - 1) || (yp > puzzleHi - 1) || (xp < 0) || (yp < 0))  {
+            rv = -1;
+        }
+        else {
+            rv = xp;
+            rv += (puzzleWi * yp);
+        }
+        
+        return(rv);
+    }
+
+	function hiHex(event) {
+		event.preventDefault();
+        var tile = getMyHex(event.pageX, event.pageY);
+        if ((tile > -1) && (tile < puzzleWiHi)) {
+        	if (puzArray[tile] == 0) {
+            	hiLight(tile);
+        		}
+            }
+	}
+	
+	function hiLight(mm) {
+		if (puzArray[lightedHex] == 0) {
+			draw1(lightedHex, 0);
+		}
+		draw1(mm, 11);
+
+		lightedHex = mm;
+	}
+
+	function draw1(ll, pn) {
+		ctx.drawImage(imageArray[pn], xArray[ll], yArray[ll], txsize - xspacing, tysize - yspacing);
+	}
+	
+	function countHexes() {
+		// zero the countsArray and fill oldCountsArray with the old counts:
+		for (ii = 0 ; ii < nColors + 3 ; ii ++) {
+			oldCountsArray[ii] = countsArray[ii];
+			countsArray[ii] = 0;
+		}
+		
+		// fill countsArray with the number of each color of tile:
+		for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+			cc = puzArray[ii];
+			if (cc == obst) { countsArray[nColors + 2] ++; }
+			else { countsArray[cc] ++; }
+		}
+		
+		// countsArray[nColors + 1] will be the total:
+		countsArray[nColors + 1] = 0;
+		for (ii = 1 ; ii < nColors + 1 ; ii ++) { countsArray[nColors + 1] += countsArray[ii]; }
+		// include obstacles in the total:
+		countsArray[nColors + 1] += countsArray[nColors + 2];
+		
+		// check for extinctions:
+		extinctions = 0;
+		for (ii = 0 ; ii < nColors + 1 ; ii ++) {
+			if ( (!countsArray[ii]) && (oldCountsArray[ii]) ) { extinctions ++; }
+		}
+		
+		// if the total of all the counts = all the spaces:
+		if (countsArray[nColors + 1] > puzzleWiHi - 1) { fullUp = true; }
+	}
+	
+	function swapNext() {
+		// swap the current tile with the next tile:
+		var otherTile = upandcomers[0];
+		if (upandcomers[0] != upandcomers[1]) {
+			upandcomers[0] = upandcomers[1];
+			upandcomers[1] = otherTile;
+			numSwaps ++;
+			status();
+			showWorkingHex();
+		}
+	}
+	
+	function newNext() {
+		// ditch all the current tiles for new tiles:
+		var oldfirstup = upandcomers[0];
+		var cc;
+		var currentColors = 0;
+		// how many colors are there to work with?:
+		for (cc = 1 ; cc < nColors + 1; cc ++) {
+			if (countsArray[cc]) { currentColors ++; }
+		}
+		
+		if (currentColors > 1) {
+			for (cc = 0; cc < upandcomers.length ; cc ++) {
+				upandcomers[cc] = Math.floor(Math.random() * nColors) + 1;
+				while (!(isin(upandcomers[cc], puzArray))) { upandcomers[cc] = Math.floor(Math.random() * nColors) + 1; }
+			}
+			
+			if (upandcomers[0] == oldfirstup) {
+				while (!(isin(upandcomers[0], puzArray))) { upandcomers[0] = Math.floor(Math.random() * nColors) + 1; }
+			}
+			
+			numDitches ++;
+			status();
+			showWorkingHex();
+		}
+	}
+	
+	function forceFill() {
+		if (allobst()) { }
+		else {
+			if(addToTop()) {
+				drawGrid();
+				showWorkingHex();
+				countHexes();
+				status();
+				if (fullUp) {
+					losses ++;
+					myalert("you lost", "continue", "new game");
+				}
+			}
+		}
+	}
+	
+	function doGaps() {
+       if (gaps == true) { gaps = false; }
+        else { gaps = true; }
+ 	}
+
+	function doLag() {
+       if (colorLag == true) { colorLag = false; }
+        else { colorLag = true; }
+ 	}
+ 	
+ 	function doXfill() {
+ 		if (xFill == true) { xFill = false; }
+ 		else{ xFill = true; }
+ 	}
+    
+    function setWi(nWidth) {
+    	nextWi = nWidth;
+    	document.getElementById("nwidth").innerHTML = nWidth;
+    }
+    
+    function setHi(nHeight) {
+    	nextHi = nHeight;
+    	document.getElementById("nheight").innerHTML = nHeight;
+    }
+    
+    function setEmpty(nEmpty) {
+    	emptyRows = nEmpty;
+    	document.getElementById("nemptys").innerHTML = nEmpty;
+    }
+    
+    function setCols(nCols) {
+    	nextCo = nCols;
+    	document.getElementById("ncolors").innerHTML = nCols;
+    }
+    
+    function setDuds(nDuds) {
+    	countDownMax = nDuds;
+    	document.getElementById("nduds").innerHTML = nDuds;
+    }
+    
+    function setObs(nObs) {
+    	pctObst = nObs;
+    	document.getElementById("nobs").innerHTML = nObs + "%";
+    }
+    
+    function doContin() {
+       if (moreObs == true) { moreObs = false; }
+        else { moreObs = true; }
+    }
+    
+    function setQ(nq) {
+    	qlen = nq;
+    	document.getElementById("qlength").innerHTML = nq;
+    }
+    
+    function myalert(tstring, bstring1, bstring2) {
+    	document.getElementById("alerttext").innerHTML = tstring;
+    	document.getElementById("alertbutton1").value = bstring1;
+    	if (typeof bstring2 == "undefined") {
+    		document.getElementById("alertbutton2").style.visibility = "hidden";
+    	}
+    	else {
+    		document.getElementById("alertbutton2").style.visibility = "visible";
+    		document.getElementById("alertbutton2").value = bstring2;   
+    	} 	
+    	
+    	document.getElementById("alertLayer").style.left = (xsize / 2) - 150;
+    	document.getElementById("alertLayer").style.top = (ysize / 2) - 100;
+    	document.getElementById("alertLayer").style.visibility = "visible";
+       	document.getElementById("alertLayer").style.zIndex = "0";
+    	document.getElementById("gameLayer").style.zIndex = "-1";
+    }
+    
+    function unalert() {
+    	document.getElementById("gameLayer").style.zIndex = "0";
+    	document.getElementById("alertLayer").style.zIndex = "-1";
+    }
+
+</script>
+
+<style type="text/css"> 
+	canvas { border: 2px solid rgb(200, 120, 20);}
+	#alertLayer {
+    position: absolute;
+    visibility: hidden;
+    top: 130px;
+    left: 200px;
+    width: 300px;
+    height: 150px;
+    background-color: rgba(200,150,80,0.9);
+    border: 16px solid rgba(200,220,20,0.9);
+    z-index: -1;
+    font-size: 24px;
+    border-radius: 10px; }
+</style> 
+</head>
+
+<body onload="init();"> 
+	<div id="gameLayer">
+	<p style="color: white">x</p>
+	<canvas id="canvas" width = 600 height = 400></canvas>
+    <p id="stext"></p>
+	
+	<table border = 0><tr>
+	<td id="gatext2" style="font-size:11px"></td>
+	<td id="gatext3" style="font-size:11px"></td>
+	<td id="gatext4" style="font-size:11px"></td>
+	<td id="gatext5" style="font-size:11px"></td>
+	<td id="gatext6" style="font-size:11px"></td>
+	<td id="gatext7" style="font-size:11px"></td>
+	<td id="gatext8" style="font-size:11px"></td>
+	<td id="gatext9" style="font-size:11px"></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,2500);" value="options"></td>
+	</tr></table>
+
+	<table border = 0><tr>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="swapNext();" value="swap" /></td>
+	<td width = 10></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="newNext();" value="ditch" /></td>
+	<td width = 10></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="forceFill();" value="fill" /></td>
+	</tr></table>
+    
+	<p id="gatext1" style="font-size:11px"></p>
+	<input type="button" style="height:24px;font-size:16px" onclick="newPuzzle();" value="new game" />
+
+	<table border = 0 cellspacing = 0 cellpadding = 0><tr>
+	<td height = 50>options:</td>
+	<td width = 10></td>
+    <td><label style="height:24px;font-size:12px"><input type="checkbox" onclick="doGaps();" checked />gap fill</label></td>
+	<td width = 10></td>
+    <td><label style="height:24px;font-size:12px"><input type="checkbox" onclick="doLag();"/>color lag</label></td>
+	<td width = 10></td>
+    <td><label style="height:24px;font-size:12px"><input type="checkbox" onclick="doXfill();" checked />extinction fill</label></td>
+    </tr></table>
+	    	
+	<table border = 0 cellspacing = 0 cellpadding = 0><tr>
+    <td height = 30>width</td>
+    <td width = 8></td>
+    <td id="nwidth" width = 20></td>
+    <td><input type="radio" name="wid" value= "5" onclick="setWi(5);"/></td>
+    <td><input type="radio" name="wid" value= "7" onclick="setWi(7);"/></td>
+    <td><input type="radio" name="wid" value= "9" onclick="setWi(9);"/></td>
+    <td><input type="radio" name="wid" value= "11" onclick="setWi(11);"/></td>
+    <td><input type="radio" name="wid" value= "13" onclick="setWi(13);"/></td>
+    <td><input type="radio" name="wid" checked="checked" value= "15" onclick="setWi(15);"/></td>
+    <td><input type="radio" name="wid" value= "17" onclick="setWi(17);"/></td>
+    <td><input type="radio" name="wid" value= "19" onclick="setWi(19);"/></td>
+    <td><input type="radio" name="wid" value= "21" onclick="setWi(21);"/></td>
+	</tr><tr>
+	<td height = 30>height</td>
+    <td></td>
+    <td id="nheight"></td>
+    <td><input type="radio" name="hig" value= "5" onclick="setHi(5);"/></td>
+    <td><input type="radio" name="hig" value= "6" onclick="setHi(6);"/></td>
+    <td><input type="radio" name="hig" value= "7" onclick="setHi(7);"/></td>
+    <td><input type="radio" name="hig" checked="checked" value= "8" onclick="setHi(8);"/></td>
+    <td><input type="radio" name="hig" value= "9" onclick="setHi(9);"/></td>
+    <td><input type="radio" name="hig" value= "10" onclick="setHi(10);"/></td>
+    <td><input type="radio" name="hig" value= "11" onclick="setHi(11);"/></td>
+    <td><input type="radio" name="hig" value= "12" onclick="setHi(12);"/></td>
+	</tr><tr>
+	<td height = 30>empty rows</td>
+	<td></td>
+    <td id="nemptys"></td>
+	<td><input type="radio" name="space" value= "1" onclick="setEmpty(1);"/></td>
+	<td><input type="radio" name="space" checked="checked" value= "2" onclick="setEmpty(2);"/></td>
+	<td><input type="radio" name="space" value= "3" onclick="setEmpty(3);"/></td>
+	<td><input type="radio" name="space" value= "4" onclick="setEmpty(4);"/></td>
+	</tr><tr>
+	<td height = 30>colors</td>
+	<td></td>
+    <td id="ncolors"></td>
+	<td><input type="radio" name="hues" value= "2" onclick="setCols(2);"/></td>
+	<td><input type="radio" name="hues" value= "3" onclick="setCols(3);"/></td>
+	<td><input type="radio" name="hues" value= "4" onclick="setCols(4);"/></td>
+	<td><input type="radio" name="hues" value= "5" onclick="setCols(5);"/></td>
+	<td><input type="radio" name="hues" value= "6" onclick="setCols(6);"/></td>
+	<td><input type="radio" name="hues" checked="checked" value= "7" onclick="setCols(7);"/></td>
+	<td><input type="radio" name="hues" value= "8" onclick="setCols(8);"/></td>
+	<td><input type="radio" name="hues" value= "9" onclick="setCols(9);"/></td>
+	<td><input type="radio" name="hues" value= "10" onclick="setCols(10);"/></td>
+	</tr><tr>
+	<td height = 30>duds</td>
+	<td></td>
+    <td id="nduds"></td>
+	<td><input type="radio" name="duds" value= "2" onclick="setDuds(2);"/></td>
+	<td><input type="radio" name="duds" value= "3" onclick="setDuds(3);"/></td>
+	<td><input type="radio" name="duds" value= "4" onclick="setDuds(4);"/></td>
+	<td><input type="radio" name="duds" checked="checked" value= "5" onclick="setDuds(5);"/></td>
+	<td><input type="radio" name="duds" value= "6" onclick="setDuds(6);"/></td>
+	<td><input type="radio" name="duds" value= "7" onclick="setDuds(7);"/></td>
+	<td><input type="radio" name="duds" value= "8" onclick="setDuds(8);"/></td>
+	<td><input type="radio" name="duds" value= "9" onclick="setDuds(9);"/></td>
+	</tr><tr>
+	<td height = 30>queue</td>
+	<td></td>
+    <td id="qlength"></td>
+	<td><input type="radio" name="queue" value= "0" onclick="setQ(0);"/></td>
+	<td><input type="radio" name="queue" checked="checked" value= "1" onclick="setQ(1);"/></td>
+	<td><input type="radio" name="queue" value= "2" onclick="setQ(2);"/></td>
+	<td><input type="radio" name="queue" value= "3" onclick="setQ(3);"/></td>
+	<td><input type="radio" name="queue" value= "4" onclick="setQ(4);"/></td>
+	<td><input type="radio" name="queue" value= "5" onclick="setQ(5);"/></td>
+	</tr></table>
+	<table border = 0 cellspacing = 0 cellpadding = 0>
+	<td width = 30 height = 30>obstacles</td>
+	<td width = 20></td>
+    <td id="nobs" width = 20></td>
+	<td><input type="radio" name="obst" checked="checked" value= "0" onclick="setObs(0);"/></td>
+	<td><input type="radio" name="obst" value= "5" onclick="setObs(5);"/></td>
+	<td><input type="radio" name="obst" value= "10" onclick="setObs(10);"/></td>
+	<td><input type="radio" name="obst" value= "20" onclick="setObs(20);"/></td>
+	<td width = 8></td>
+	<td><label style="height:24px;font-size:12px"><input type="checkbox" onclick="doContin();"/>continuing</label></td>
+	</tr>
+	</table>
+	<p></p>
+	<input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,0);" value="play">
+	</div>
+	
+	<div id="alertLayer">
+	<p id="alerttext" align="center"></p>
+	<p align="center">
+	<input type="button" id="alertbutton1" style="font-size:16px;background-color:white;border-radius:10px" onclick="unalert();">
+	<input type="button" id="alertbutton2" style="font-size:16px;background-color:white;border-radius:10px" onclick="newPuzzle();">
+	</p>
+	</div>
+
+</body>

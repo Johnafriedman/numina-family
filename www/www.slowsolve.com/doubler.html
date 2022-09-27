@@ -1,0 +1,483 @@
+<html> 
+<head> 
+<title>doubler</title> 
+
+<script type="text/javascript"> 
+	var canvas;
+	var ctx;		// the canvas "context"
+	var imageArray;
+	var imsLoaded;
+	var numPics;
+	
+	var puzzleHi;
+	var puzzleWi;
+	var puzzleWiHi;
+	var nextHi;
+	var nextWi;
+	
+	var minX;
+	var minY;
+	var xsize;
+	var ysize;
+	var puzArray;
+	var xArray;		// these store the screen coordinates of the tiles
+	var yArray;
+	
+	var tysize;
+	var txsize;
+	var xspacing;
+	var yspacing;
+
+	var zless;
+	var turns;
+	var combos;
+	var best;
+	var ccounts;
+	var ins;
+	var lastLtr;
+	var dowrap;
+	var wraps;
+	
+	function status() {
+		s_tx = puzzleWi + "x" + puzzleHi + " ~~~~~~~~  turns: " + turns + " ~~~ combinations: " + combos;
+		if (wraps) { s_tx = s_tx + " ~~~ wraps: " + wraps; }
+		document.getElementById("stext").innerHTML = s_tx;
+		
+		tally();
+		
+		c_tx = "<table border = 1><tr><td></td><td>--</td>";		
+		for (ii = 0 ; ii < best ; ii ++) {
+			c_tx = c_tx + "<td>" + String.fromCharCode(65 + ii) + "</td>";
+		}
+		
+		c_tx = c_tx + "</tr><tr><td>current</td>";
+		for (ii = 0 ; ii < best + 1 ; ii ++) {
+			c_tx = c_tx + "<td>" + ccounts[ii] + "</td>";
+		}
+		
+		c_tx = c_tx + "</tr></table>";
+		document.getElementById("ctext").innerHTML = c_tx;
+	}
+
+	function init() {
+		canvas = document.getElementById("canvas");
+        
+        numPics = 27; // the number of image files to load
+            
+        xArray = new Array();
+        yArray = new Array();
+        puzArray = new Array();
+        
+		nextHi = 5;
+		nextWi = 5;
+		ins = 1;
+		dowrap = 0;
+		dlast(26);
+		
+        imageArray = new Array();
+        imsLoaded = 0;
+        for ( izi = 0 ; izi < numPics ; izi++) {
+            imageArray[izi] = new Image();
+            
+            imageArray[izi].onload = function(){
+                // do NOT draw this now!
+                imsLoaded ++;
+                document.getElementById("stext").innerHTML = "number loaded: " + imsLoaded;
+                if(imsLoaded == numPics) {
+                    // make sure we do this only once
+                    imsLoaded = 99;
+                    newPuzzle();
+                }
+            }
+            imageArray[izi].onerror = function() {
+            	alert("image #" + imsLoaded + " failed to load.");
+            }
+            imageArray[izi].src = "doubler/tile" + izi + ".png";
+        }
+        
+		if (canvas.getContext) {
+			ctx = canvas.getContext("2d");
+			xsize = innerWidth - 32;
+			ysize = innerHeight - 128;
+			canvas.width = xsize;
+			canvas.height = ysize;
+		}
+	}
+	
+	function newPuzzle() {
+		puzzleWi = nextWi;
+		puzzleHi = nextHi;
+		puzzleWiHi = puzzleWi * puzzleHi;
+		
+		// zero the arrays:
+		kk = 0;
+		for (jj = 0; jj < puzzleHi; jj++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+                xArray[kk] = 0;
+                yArray[kk] = 0;
+                puzArray[kk] = 0;
+				kk ++;
+			}
+		}
+		
+		// plant two pieces:
+		kk = Math.floor(Math.random() * puzzleWiHi);
+		puzArray[kk] = 1;
+		kk = (kk + (puzzleWi * 2) + 2) % puzzleWiHi;
+		puzArray[kk] = 1;
+		
+		// fill the location arrays:
+		txsize = Math.floor(xsize / (puzzleWi + 2)  - 5);
+		tysize = Math.floor(ysize / (puzzleHi + 2));
+		xspacing = Math.floor(txsize / 8);
+		yspacing = Math.floor(tysize / 6);
+		minX = 50;
+		minY = ysize / ((puzzleHi + 2) * tysize);
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			yp = minY + ((jj + 1) * tysize);
+			for (ii = 0; ii < puzzleWi; ii++) {
+				xp = minX + (ii + 1) * txsize;
+				xArray[kk] = Math.floor(xp);
+				yArray[kk] = Math.floor(yp);
+				
+				kk ++;
+			}
+		}
+		
+		ctx.clearRect(0, 0, xsize, ysize);
+		drawArrows();
+		
+		drawGrid();
+		
+		canvas.onmouseup = selectChoice;
+		
+		turns = 0;
+		combos = 0;
+		best = 1;
+		wraps = 0;
+		status();
+	}
+	
+	function tally() {
+		ccounts = new Array();
+		for (ii = 0 ; ii < numPics ; ii ++) { ccounts.push(0); }
+		for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+			best = Math.max(puzArray[ii], best);
+			ccounts[puzArray[ii]] ++;
+		}
+	}
+	
+    function selectChoice(event) {
+    	event.preventDefault();
+    	var xp = event.pageX;
+    	var yp = event.pageY;
+    	
+    	if (xp < xArray[0]) { slide(0); }
+    	else {
+    		if (xp > xArray[puzzleWi - 1] + txsize) { slide(1); }
+    		else {
+    			if (yp < yArray[0]) { slide(2); }
+    			else {
+    				if (yp > yArray[puzzleWiHi - 1] + tysize) { slide(3); }
+    			}
+    		}
+    	}
+    }
+    
+    function drawArrows() {
+    	var lx = xArray[puzzleWi - 1] + txsize - xspacing;
+    	var ly = yArray[0] - yspacing;
+    	var la = (xArray[0] + lx) / 2;
+    	
+    	ctx.globalAlpha = 1;
+		ctx.fillStyle = "#eecc66";
+		ctx.lineWidth = 2;
+		
+		anArrow(xArray[0], ly, lx, ly, la, yspacing);
+		
+		ly = yArray[puzzleWiHi - 1] + tysize;
+		anArrow(xArray[0], ly, lx, ly, la, ysize - yspacing);
+		
+		lx = xArray[0] - xspacing;
+		ly = yArray[puzzleWiHi - 1] + tysize - yspacing;
+		la = (ly + yArray[0]) / 2;
+		anArrow(lx, yArray[0], lx, ly, xspacing, la);
+		
+		lx = xArray[puzzleWi - 1] + txsize;
+		anArrow(lx, yArray[0], lx, ly, xsize - xspacing, la);		
+    }
+    
+    function anArrow(x1, y1, x2, y2, x3, y3) {
+		ctx.beginPath();
+		ctx.moveTo(x1, y1);
+		ctx.lineTo(x2, y2);
+		ctx.lineTo(x3, y3);
+		ctx.closePath();
+		ctx.fill();		
+    }
+    
+	function drawGrid() {
+		ctx.globalAlpha = 1;
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+				xp = xArray[kk];
+				yp = yArray[kk];
+				ctx.drawImage(imageArray[puzArray[kk]], xp, yp, txsize - xspacing, tysize - yspacing);
+				kk ++;
+			}
+		}
+	}
+	
+	function plant1() {
+		// first make a list of the empty spaces:
+		var p_in;
+		var empties = new Array();
+		for (kk = 0 ; kk < puzzleWiHi ; kk ++) {
+			if (puzArray[kk] == 0) { empties.push(kk); }
+		}
+		
+		// choose from the list:
+		if (empties.length) {
+			kk = Math.floor(Math.random() * empties.length);
+			if (ins > 1) {
+				if (ins > 3) {
+					switch (ins) {
+						case 4:
+							// choose from the lower half of the current tiles:
+							p_in = Math.floor(Math.random() * (best / 2)) + 1;
+							break;
+						case 5:
+							// choose any type that is currently in the puzzle:
+							p_in = Math.floor(Math.random() * best) + 1;
+							break;
+						case 6:
+							// choose from the higher half of the current tiles:
+							p_in = Math.floor( (Math.random() * (best / 2)) + (best / 2) ) + 1;
+							break;
+						case 7:
+							// higest current type:
+							p_in = best;
+							break;
+						case 8:
+							// choose any type that is allowed for this puzzle:
+							p_in = Math.floor(Math.random() * lastLtr) + 1;
+							break;
+					}
+				}
+				else { p_in = Math.floor(Math.random() * ins) + 1; }
+			}
+			else { p_in = 1; }
+			puzArray[empties[kk]] = p_in;
+			return(true);
+		}
+		// return "false" if the puzzle is full:
+		else { return(false); }
+	}
+	
+	function crunch() {
+		for (zz = 1; zz < zless.length ; zz ++) {
+			if (zless[zz] == zless[zz - 1]) {
+				if (zless[zz] > (lastLtr - 1)) {
+					if (dowrap) {
+						zless[zz] = 1;
+						zless.splice((zz - 1), 1);
+						combos ++;
+						wraps ++;
+					}
+				}
+				else {
+					zless[zz] ++;
+					zless.splice((zz - 1), 1);
+					combos ++;
+				}
+			}
+		}
+	}
+    
+    function slide(dd) {
+    	// dd is the direction
+    	switch (dd) {
+    		case 0:
+    			sLeft();
+    			break;
+    		case 1:
+    			sRight();
+    			break;
+    		case 2:
+    			sUp();
+    			break;
+    		case 3:
+    			sDown();
+    			break;
+    	}
+    	if (plant1()) {
+	    	drawGrid();
+    		turns ++;
+    		status();
+    	}
+    	else { alert("game over"); }
+    }
+    
+    function sLeft() {
+    	for (jj = 0 ; jj < puzzleHi ; jj ++) {
+    		zless = new Array();
+    		for (ii = 0 ; ii < puzzleWi ; ii ++) {
+    			kk = ii + (jj * puzzleWi);
+    			if (puzArray[kk]) {
+    				zless.push(puzArray[kk]);
+    				puzArray[kk] = 0;
+    			}
+    		}
+    		crunch();
+    		for (ii = 0 ; ii < zless.length ; ii ++) {
+    			kk = ii + (jj * puzzleWi);
+    			puzArray[kk] = zless[ii];
+    		}
+    	}
+    }
+    
+    function sRight() {
+    	for (jj = 0 ; jj < puzzleHi ; jj ++) {
+    		zless = new Array();
+    		for (ii = 0 ; ii < puzzleWi ; ii ++) {
+    			kk = ii + (jj * puzzleWi);
+    			if (puzArray[kk]) {
+    				zless.push(puzArray[kk]);
+    				puzArray[kk] = 0;
+    			}
+    		}
+    		zless.reverse();
+    		crunch();
+    		zless.reverse();
+    		for (ii = 0 ; ii < zless.length ; ii ++) {
+    			kk = ii + (jj * puzzleWi) + (puzzleWi - zless.length);
+    			puzArray[kk] = zless[ii];
+    		}
+    	}
+    }
+    
+    function sUp() {
+    	for (ii = 0 ; ii < puzzleWi ; ii ++) {
+    		zless = new Array();
+    		for (jj = 0 ; jj < puzzleHi ; jj ++) {
+    			kk = ii + (jj * puzzleWi);
+    			if (puzArray[kk]) {
+    				zless.push(puzArray[kk]);
+    				puzArray[kk] = 0;
+    			}
+    		}
+    		crunch();
+    		for (jj = 0 ; jj < zless.length ; jj ++) {
+    			kk = ii + (jj * puzzleWi);
+    			puzArray[kk] = zless[jj];
+    		}
+    	}
+    }
+    
+    function sDown() {
+    	for (ii = 0 ; ii < puzzleWi ; ii ++) {
+    		zless = new Array();
+    		for (jj = 0 ; jj < puzzleHi ; jj ++) {
+    			kk = ii + (jj * puzzleWi);
+    			if (puzArray[kk]) {
+    				zless.push(puzArray[kk]);
+    				puzArray[kk] = 0;
+    			}
+    		}
+    		zless.reverse();
+    		crunch();
+    		zless.reverse();
+    		for (jj = 0 ; jj < zless.length ; jj ++) {
+    			kk = ii + ( (puzzleHi - zless.length + jj) * puzzleWi);
+    			puzArray[kk] = zless[jj];
+    		}
+    	}
+    }
+    
+    function dlast(nn) {
+    	lastLtr = nn;
+    	document.getElementById("lastxt").innerHTML = String.fromCharCode(64 + nn);
+    }
+
+</script>
+
+<style type="text/css"> 
+	canvas { border: 2px solid rgb(20, 120, 200);}
+</style> 
+</head>
+
+<body onload="init();"> 
+	<canvas id="canvas" width = 600 height = 400></canvas>
+    <p id="stext"></p>
+    <p id="ctext"></p>
+    <table border = 0>
+    <td>introduced pieces:</td>
+    <td><label>A <input type="radio" name="ins" checked="checked" value= "1" onclick="ins = 1;"/></label></td>
+    <td><label>A,B <input type="radio" name="ins" value= "2" onclick="ins = 2;"/></label></td>
+    <td><label>A,B,C <input type="radio" name="ins" value= "3" onclick="ins = 3;"/></label></td>
+    <td><label>first half <input type="radio" name="ins" value= "4" onclick="ins = 4;"/></label></td>
+    <td><label>any current <input type="radio" name="ins" value= "5" onclick="ins = 5;"/></label></td>
+    <td><label>last half <input type="radio" name="ins" value= "6" onclick="ins = 6;"/></label></td>
+    <td><label>highest current <input type="radio" name="ins" value= "7" onclick="ins = 7;"/></label></td>
+    <td><label>any <input type="radio" name="ins" value= "8" onclick="ins = 8;"/></label></td>
+    </table>
+    
+	<table border = 1><tr>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="newPuzzle()" value="new game" /></td><td></td><td></td>
+    <td>width</td>
+    <td><label>2 <input type="radio" name="wid" value= "2" onclick="nextWi = 2;"/></label></td>
+    <td><label>3 <input type="radio" name="wid" value= "3" onclick="nextWi = 3;"/></label></td>
+    <td><label>4 <input type="radio" name="wid" value= "4" onclick="nextWi = 4;"/></label></td>
+    <td><label>5 <input type="radio" name="wid" checked="checked" value= "5" onclick="nextWi = 5;"/></label></td>
+    <td><label>6 <input type="radio" name="wid" value= "6" onclick="nextWi = 6;"/></label></td>
+    <td><label>7 <input type="radio" name="wid" value= "7" onclick="nextWi = 7;"/></label></td>
+    <td><label>8 <input type="radio" name="wid" value= "8" onclick="nextWi = 8;"/></label></td>
+ 	<td></td>
+	<td>height</td>
+    <td><label>2 <input type="radio" name="hig" value= "2" onclick="nextHi = 2;"/></label></td>
+    <td><label>3 <input type="radio" name="hig" value= "3" onclick="nextHi = 3;"/></label></td>
+    <td><label>4 <input type="radio" name="hig" value= "4" onclick="nextHi = 4;"/></label></td>
+    <td><label>5 <input type="radio" name="hig" checked="checked" value= "5" onclick="nextHi = 5;"/></label></td>
+    <td><label>6 <input type="radio" name="hig" value= "6" onclick="nextHi = 6;"/></label></td>
+    <td><label>7 <input type="radio" name="hig" value= "7" onclick="nextHi = 7;"/></label></td>
+    <td><label>8 <input type="radio" name="hig" value= "8" onclick="nextHi = 8;"/></label></td>
+	<td></td>
+	</tr></table>
+	<table border = 0><tr>
+	<td>last letter:</td>
+	<td><p id="lastxt"></p></td>
+	<td><input type="radio" name="last" value= "2" onclick="dlast(2);"/></td>
+	<td><input type="radio" name="last" value= "3" onclick="dlast(3);"/></td>
+	<td><input type="radio" name="last" value= "4" onclick="dlast(4);"/></td>
+	<td><input type="radio" name="last" value= "5" onclick="dlast(5);"/></td>
+	<td><input type="radio" name="last" value= "6" onclick="dlast(6);"/></td>
+	<td><input type="radio" name="last" value= "7" onclick="dlast(7);"/></td>
+	<td><input type="radio" name="last" value= "8" onclick="dlast(8);"/></td>
+	<td><input type="radio" name="last" value= "9" onclick="dlast(9);"/></td>
+	<td><input type="radio" name="last" value= "10" onclick="dlast(10);"/></td>
+	<td><input type="radio" name="last" value= "11" onclick="dlast(11);"/></td>
+	<td><input type="radio" name="last" value= "12" onclick="dlast(12);"/></td>
+	<td><input type="radio" name="last" value= "13" onclick="dlast(13);"/></td>
+	<td><input type="radio" name="last" value= "14" onclick="dlast(14);"/></td>
+	<td><input type="radio" name="last" value= "15" onclick="dlast(15);"/></td>
+	<td><input type="radio" name="last" value= "16" onclick="dlast(16);"/></td>
+	<td><input type="radio" name="last" value= "17" onclick="dlast(17);"/></td>
+	<td><input type="radio" name="last" value= "18" onclick="dlast(18);"/></td>
+	<td><input type="radio" name="last" value= "19" onclick="dlast(19);"/></td>
+	<td><input type="radio" name="last" value= "20" onclick="dlast(20);"/></td>
+	<td><input type="radio" name="last" value= "21" onclick="dlast(21);"/></td>
+	<td><input type="radio" name="last" value= "22" onclick="dlast(22);"/></td>
+	<td><input type="radio" name="last" value= "23" onclick="dlast(23);"/></td>
+	<td><input type="radio" name="last" value= "24" onclick="dlast(24);"/></td>
+	<td><input type="radio" name="last" value= "25" onclick="dlast(25);"/></td>
+	<td><input type="radio" name="last" checked="checked" value= "26" onclick="dlast(26);"/></td>
+	</tr></table>
+	<table><tr>
+	<td><label>wrap <input type="radio" name="worp" value="1" onclick="dowrap = 1;"></label></td>
+	<td><label>plateau <input type="radio" name="worp" checked="checked" value="0" onclick="dowrap = 0;"></label></td>
+	</tr></table>
+</body>

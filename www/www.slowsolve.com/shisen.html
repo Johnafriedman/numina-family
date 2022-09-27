@@ -1,0 +1,1056 @@
+<!--
+//* All code herein (except where otherwise noted) and all associated graphics
+//* are created by Harriet Lurie, who retains all rights to this content.
+//* shisen v: 1.5 (c) Harriet Lurie 2015
+-->
+
+<html>
+<head>
+<!-- this section copied verbatim from Apache: -->
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<link rel="stylesheet" type="text/css" href="css/index.css" />
+<!-- end of Appache code. -->
+
+<title>shisen</title>
+   
+<script type="text/javascript">
+	var canvas;
+	var ctx;        // the canvas "context"
+	var xsize;
+	var ysize;
+    var gameWidth;
+    var gameHeight;
+    var tReps;
+    var styTy;
+    var numTiles;
+    var nameArray;  // contains the file names of the tile graphics
+    var puzzleArray;
+    var imageArray;
+    var picArray;
+    var usedArray;
+    var currentTile;
+    var select1;
+    var select2;
+    var awayX;
+    var awayY;
+    var cheating;
+    var numCheats;
+    var lines;
+    var lineCount;
+    var lens;
+    var lengthCount;
+    var doubles;
+    var hints;
+    var hintArray;
+    var tileXsize;
+    var tileYsize;
+    var minX;
+    var minY;
+    var movesRemainText;
+    var tmoves;
+    var endpointsArray;
+    var previousEndpointsArray;
+    var distance;
+    var spX;
+    var spY;
+    
+    var imsLoaded;
+    var gloArray;
+    var gloHelp;
+    var redoArray;
+    var isxtern;
+    var xterns;
+    var isDoub;
+    var consecDoubs;
+    var maxconsec;
+    var numremoved;
+    var german;
+    
+    
+    function status() {
+    	var ixx;
+    	var lray = new Array();
+    	for (ixx = 0 ; ixx < 8 ; ixx++) { lray[ixx] = " "; }
+    	
+    	if (german) {
+        	document.getElementById("ntex1").innerHTML = "zahl von jeder fliese:";
+        	document.getElementById("ntex2").innerHTML = "zahl von fliesenmuster:";
+    		document.getElementById("chx").innerHTML = "betrügen";
+    		document.getElementById("glow").innerHTML = "glühen";
+    		lray[0] = movesRemainText.replace("moves remaining", "verfügbaren bewegt");
+    		lray[1] = "linien: " + lineCount;
+        	lray[2] = "länge: " + lengthCount;
+        	if (doubles) {
+        	    lray[3] = "doppel: " + doubles;
+        	    lray[4] = "konsekutiv: " + maxconsec;
+        	}
+        	if (xterns) { lray[5] = "äußerlichkeiten: " + xterns; }
+        	if (hints) { lray[6] = "hinweise: " + hints; }
+        	if (numCheats > 0) { lray[7] = "betrügen: " + numCheats; }
+    	}
+    	
+    	else {
+        	document.getElementById("ntex1").innerHTML = "number of each tile:";
+        	document.getElementById("ntex2").innerHTML = "number of tile styles:";
+    		document.getElementById("chx").innerHTML = "cheat";
+    		document.getElementById("glow").innerHTML = "glow";
+    		lray[0] = movesRemainText;
+        	lray[1] = "lines: " + lineCount;
+        	lray[2] = "length: " + lengthCount;
+        	if (doubles) {
+        	    lray[3] = "doubles: " + doubles;
+        	    lray[4] = "in-a-row: " + maxconsec;
+        	}
+        	if (xterns) { lray[5] = "externals: " + xterns; }
+        	if (hints) { lray[6] = "hints: " + hints; }
+        	if (numCheats > 0) { lray[7] = "cheats: " + numCheats; }
+    	}
+    	
+        for (ixx = 0 ; ixx < 8 ; ixx++) { document.getElementById("ltex" + ixx).innerHTML = lray[ixx]; }
+    }
+
+    function selectTile(event) {
+        // If you clicked on a tile select it.
+		unhilight();
+		unglow();
+       select1 = getMyTile(event.pageX, event.pageY);
+        if (select1 != -1) {
+            hilight(select1);
+            if (gloHelp) { glow(select1); }
+            canvas.onmouseup = selectMatch;
+            canvas.ontouchend = selectMatch; 
+        }
+    }
+    
+    function selectMatch(event) {
+        select2 = getMyTile(event.pageX, event.pageY);
+        if (select2 == select1) {
+            select2 = -1;
+        }
+        else {
+            unglow();
+            if (puzzleArray[select1] == puzzleArray[select2]) {
+                if ((linesWork(select1, select2)) || cheating) {
+                    if (usedArray[usedArray.length - 4] == puzzleArray[select1]) {
+                    	// it's doubles
+                    	isDoub = true;
+                    	doubles ++;
+                    	if (usedArray[usedArray.length - 9] + (usedArray[usedArray.length - 1])) {
+                    		// the previous match was doubles also
+                    		consecDoubs ++;
+                    		maxconsec = Math.max(consecDoubs, maxconsec);
+                    	}
+                    	else {
+                    		consecDoubs = 1;
+                    		maxconsec = Math.max(consecDoubs, maxconsec);
+                    		}
+                    }
+                    else {
+                    	// it's not doubles
+                    	isDoub = false;
+                    }
+                    usedArray.push(lengthCount, lineCount, select1, select2, puzzleArray[select1], isxtern, consecDoubs, isDoub);
+                    remove(select1);
+                    remove(select2);
+                    drawLine();
+                    lineCount += lines;
+                    lengthCount += lens;
+                    if (isxtern) { xterns ++; }
+                    remains();
+                    status();
+                    select1 = -1;
+                    select2 = -1;
+                }
+            }
+            else {
+                // a non-matching tile was clicked
+                unhilight();
+            }
+            canvas.onmouseup = selectTile;
+            canvas.ontouchend = selectTile;
+        }
+    }
+
+
+	function init() {
+		canvas = document.getElementById("canvas");
+				
+        dtReps(4); // four, six, eight, ten, twelve
+        gameWidth = tReps * 3;
+        dstyTy(36); // multiples of three from 6 to 54
+        gameHeight = styTy / 3; //12;
+        numTiles = 54; // the total number of unique tyles
+        tileXsize = 20;
+        tileYsize = 20;
+        awayX = tileXsize;
+        awayY = tileYsize;
+        gloHelp = true;
+        german = false;
+        
+        nameArray = new Array();
+        for (i = 0 ; i < 9 ; i++) {nameArray[i] = "dots" + (i + 1)}
+        for (i = 0 ; i < 9 ; i++) {nameArray[i + 9] = "echs" + (i + 1)}
+        for (i = 0 ; i < 9 ; i++) {nameArray[i + 18] = "ohs" + (i + 1)}
+        for (i = 0 ; i < 9 ; i++) {nameArray[i + 27] = "ball" + (i + 1)}
+        for (i = 0 ; i < 9 ; i++) {nameArray[i + 36] = "pie" + (i + 1)}
+        for (i = 0 ; i < 9 ; i++) {nameArray[i + 45] = "dash" + (i + 1)}
+
+        if (canvas.getContext) {
+            ctx = canvas.getContext("2d");            
+            xsize = innerWidth - 32;
+            ysize = innerHeight - 72; //- 128;
+            canvas.width = xsize;
+            canvas.height = ysize;
+            //setInterval(draw, 10);
+        }
+        
+        imageArray = new Array();
+        imsLoaded = 0;
+        for ( ii = 0 ; ii < numTiles ; ii++) {
+            imageArray[ii] = new Image();
+            
+            imageArray[ii].onload = function(){
+                // do NOT draw this now!
+                imsLoaded ++;
+                document.getElementById("ltex0").innerHTML = "number loaded: " + imsLoaded;
+                if(imsLoaded == numTiles) {
+                    // make sure we do this only once
+                    imsLoaded = 99;
+                    newPuzzle();
+                }
+            }
+            
+            imageArray[ii].src = "tiles/" + nameArray[ii] + ".png";
+        }
+        
+        //window.onresize = resizzle;
+        //window.onorientationchange = oresizzle;
+        window.onorientationchange = resizzle;
+	}
+	
+	function oresizzle() {
+		window.onresize = false;
+		window.onorientationchange = resizzle;
+	}
+	
+	function resizzle() {
+            xsize = innerWidth - 32;
+            ysize = innerHeight - 128;
+            canvas.width = xsize;
+            canvas.height = ysize;
+            previousEndpointsArray = new Array();
+        	drawPuzzle();
+        	undo();
+        	redo();
+	}
+    
+    function newPuzzle() {
+        gameWidth = tReps * 3;
+        gameHeight = styTy / 3;
+        numTiles = styTy;
+        
+        puzzleArray = new Array();
+        // empty the puzzle:
+        for (j = 0 ; j  < gameHeight ; j ++) {
+            for (i = 0 ; i < gameWidth ; i ++) {
+                puzzleArray[j * gameWidth + i] = -1;
+            }
+        }
+        
+        // fill the puzzle with four (or six or eight or ten or twelve) of each tile: //
+        usedArray = new Array();
+        for (i = 0 ; i < numTiles ; i ++) { usedArray[i] = 0; }
+        for (j = 0 ; j < gameHeight ; j ++) {
+            for (i = 0 ; i < gameWidth ; i ++) {
+                currentTile = Math.floor(Math.random()*numTiles);
+                if (usedArray[currentTile] < tReps) {
+                    usedArray[currentTile] ++;
+                    puzzleArray[j * gameWidth + i] = currentTile;
+                }
+                else {
+                    i --;
+                }
+            }
+        }
+        usedArray = new Array();
+        previousEndpointsArray = new Array();
+        gloArray = new Array();
+        redoArray = new Array();
+        //ctx.clearRect(0, 0, xsize, ysize);
+        
+        picArray = new Array();
+        for (k = 0 ; k < gameHeight * gameWidth ; k++) {
+        	picArray[k] = imageArray[puzzleArray[k]];
+        }
+        
+        drawPuzzle();
+        
+        select1 = -1;
+        select2 = -1;
+        numremoved = 0;
+        uncheat();
+        numCheats = 0;
+        doubles = 0;
+        consecDoubs = 0;
+        maxconsec = 0;
+        lineCount = 0;
+        lengthCount = 0;
+        lens = 0;
+        xterns = 0;
+        hints = 0;
+        remains();
+        status();
+        unalert();
+        canvas.onmouseup = selectTile;
+        canvas.ontouchend = selectTile;
+    }
+    
+    function drawPuzzle() {
+        ctx.clearRect(0, 0, xsize, ysize);
+        
+        var xz = Math.floor(xsize / (gameWidth + 2));
+        var yz = Math.floor(ysize / (gameHeight + 2));
+        
+        // to avoid disproportional tiles:
+        if (Math.abs(xz - yz) > Math.min(xz, yz)) {
+        	if (xz > yz) { xz = yz * 2; }
+        	else { yz = xz * 2; }
+        }
+        
+        //minX = xsize / ((gameWidth + 2) * xz);
+        //minY = ysize / ((gameHeight + 2) * yz);
+        
+        minX = xsize - ((gameWidth + 2) * xz);
+        minX = Math.floor(minX / 2);
+        minY = ysize - ((gameHeight + 2) * yz);
+        minY = Math.floor(minY / 2);
+        
+        tileXsize = xz;
+        tileYsize = yz;
+        
+        ctx.fillStyle = "rgb(120,100,50)";
+        ctx.fillRect(tileXsize / 4, tileYsize / 4, xsize - (tileXsize / 2), ysize - (tileYsize / 2));
+        ctx.clearRect(minX + xz, minY + yz, gameWidth * xz, gameHeight * yz);
+
+        var k = 0;
+        var j, i, n, xp, yp; // keep them local
+        for (j = 0 ; j < gameHeight ; j++) {
+            yp = minY + ((j + 1) * yz);
+            for (i = 0 ; i < gameWidth ; i++) {
+                xp = minX + ((i + 1) * xz);
+                n = puzzleArray[j * gameWidth + i];
+                if (n > -1) { // this in neccessary for redrawing after window resizing
+                    // picArray[k] = imageArray[n];
+                    ctx.drawImage(picArray[k], xp, yp, tileXsize, tileYsize);
+                }
+                else { // redraw the spaces too:
+            		ctx.fillStyle = "rgb(255,255,255)";
+            		ctx.fillRect(xp, yp, tileXsize, tileYsize);
+                }
+                k ++;
+            }
+        }
+    }
+    
+    function getMyX(tnum) {
+        // take they tile's number and return it's x position:
+        xp = Math.floor(minX + ((tnum % gameWidth) + 1) * tileXsize);
+        return(xp);
+    }
+    function getMyY(tnum) {
+        // take they tile's number and return it's y position:
+        yp = Math.floor(minY + (Math.floor(tnum / gameWidth) + 1) * tileYsize);
+        return(yp);
+    }
+    
+    function getMyTile(xpos, ypos) {
+        // take the xpos and ypos and return what tile is there: returns the tile's number or -1 (if there is no tile there)
+        // fix the centering:
+        xpos -= (tileXsize / 4) + minX;
+        ypos -= (tileYsize / 4) + minY;
+        
+        // round off the position:
+        xpos = (Math.floor(xpos / tileXsize)) * tileXsize + minX;
+        ypos = (Math.floor(ypos / tileYsize)) * tileYsize + minY;
+        
+        rv = -1;
+        for (i = 0; i < gameWidth ; i ++) {
+            if (getMyX(i) == xpos) {
+                for (j = 0; j < gameHeight ; j ++) {
+                    if (getMyY(gameWidth * j) == ypos) {
+                        rv = i;
+                        rv += (gameWidth * j);
+                        if (puzzleArray[rv] == -1) { rv = -1; }
+                    }
+                }
+            }
+        }
+        return(rv);
+    }
+    
+        
+    function remains() { // this counts the moves remaining
+        hintArray = new Array();
+        tmoves = 0;
+        for (i = puzzleArray.length ; i > -1 ; i--) {
+            if (puzzleArray[i] != -1) {
+                cval = puzzleArray[i];
+                for (j= puzzleArray.length ; j > i ; j--) {
+                    if (puzzleArray[j] == cval) {
+                        // the tiles match
+                        if (linesWork(i, j)) {
+                            tmoves ++;
+                            hintArray.push(i,j);
+                        }
+                    }
+                }
+            }
+        }
+        movesRemainText = "moves remaining: " + tmoves;
+        //document.getElementById("mtex").innerHTML = movesRemainText;
+        if (!tmoves) {
+        	if (numremoved < puzzleArray.length) {
+        		// no remaining moves
+        		if (german) { myalert("keine züge bleiben", "fortsetzen", "neu spiel"); }
+        		else { myalert("no moves remain", "continue", "new game"); }
+        	}
+        	else {
+        		// color the last line:
+        		drawLine();
+        		if (german) { myalert("sie gewann", "fortsetzen", "neu spiel"); }
+        		else { myalert("you won", "continue", "new game"); }
+        	}
+        }
+    }
+    
+    function linesWork(n1, n2) {
+        // check to see if these tiles can meet in three or fewer lines:
+        endpointsArray = new Array();
+        isxtern = false;
+        
+        // ... unless cheating is on:
+        if (cheating) {
+            numCheats ++;
+            endpointsArray.push(getMyX(n1), getMyY(n1));
+            endpointsArray.push(getMyX(n2), getMyY(n2));
+            return(false);
+        }
+        else {
+            endpointsArray.push(getMyX(n1), getMyY(n1));
+            // check for 1-line connections:
+            lines = check1l(n1, n2);
+            
+            // check for 2-line connections:
+            if (lines == 0) {
+                lines = check2l(n1, n2);
+            }
+            
+            // check for 3-line connections:
+            if (lines == 0) {
+                lines = check3l(n1, n2);
+            }
+            
+            if (lines > 0) {
+                if (spY > -1) {
+                    endpointsArray.push(spX, spY);
+                    spY = -1;
+                }
+                endpointsArray.push(getMyX(n2), getMyY(n2));
+                return(true);
+            }
+            else {
+                // not adjacent:
+                endpointsArray = new Array();
+                return(false);
+            }
+        }
+    }
+    
+    function check1l(n3, n4) {
+        ll = 0;
+        for (z = 0 ; z < 4 ; z ++) {
+            if (neighbor(n3, z) == n4) {
+                ll = 1;
+                z = 5;
+            }
+        }
+        return(ll);
+    }
+    
+    function check2l(n5, n6) {
+        ll = 0;
+        for (z = 0 ; z < 4 ; z ++) {
+            nn = neighbor(n5, z);
+            for (dd = distance - 1; dd > 0 ; --dd) {
+                // what direction to increment:
+                inc5 = dd;
+                if ((z % 2) == 0) { inc5 = inc5 * gameWidth; }
+                if ((z % 3) == 0) { inc5 = (-1) * inc5; }
+                // which sides to look at:
+                if (neighbor((n5 + inc5), ((z + 1) % 4)) == n6 ) {
+                    ll = 2;
+                    spX = getMyX(n5 + inc5);
+                    spY = getMyY(n5 + inc5);
+                }
+                else {
+                    if (neighbor((n5 + inc5), ((z + 3) % 4)) == n6 ) {
+                        ll = 2;
+                        spX = getMyX(n5 + inc5);
+                        spY = getMyY(n5 + inc5);
+                    }
+                }
+            }
+        }
+        return(ll);
+    }
+    
+    function check3l(n7, n8) {
+        ll = 0;
+        
+        for (zz = 0 ; zz < 4 ; zz ++) {
+            n7z = neighbor(n7, zz); // This is only needed to calculate "distance".
+            ldd = distance; // "distance" will be reset by "check2l", so we need to keep this number.
+            
+            for (ds = 1 ; ds < ldd ; ++ds) {
+                if (ll == 0) {                    
+                    inc7 = ds;
+                    if ((zz % 2) == 0) { inc7 = inc7 * gameWidth; }
+                    if ((zz % 3) == 0) { inc7 = (-1) * inc7; }
+                    
+                    if (check2l((n7 + inc7), n8) > 0) {
+                        endpointsArray.push(getMyX(n7 + inc7), getMyY(n7 + inc7));
+                        ll = 3;
+                        ds = 0;
+                    }
+                    
+                }
+            } // end for loop (direction)
+        } // end for loop (distance)
+
+
+        // If no internal 3-line matches were found, look at the sides of the puzzle:
+        for (zz = 0 ; zz < 4 ; zz ++) {
+            n8z = neighbor(n8, zz);
+            n7z = neighbor(n7, zz);
+            if ( (ll == 0) && (n7z == -1) && (n8z == -1) ) {
+                // The tiles both face this side with no obstructions.
+                switch (zz) {
+                    case 0:
+                        // top
+                        endpointsArray.push(getMyX(n7), getMyY(0) - tileYsize);
+                        endpointsArray.push(getMyX(n8), getMyY(0) - tileYsize);
+                        break;
+                    case 1:
+                        // right
+                        endpointsArray.push(getMyX(gameWidth - 1) + tileXsize, getMyY(n7));
+                        endpointsArray.push(getMyX(gameWidth - 1) + tileXsize, getMyY(n8));
+                        break;
+                    case 2:
+                        // bottom
+                        endpointsArray.push(getMyX(n7), getMyY(gameWidth * gameHeight - 1) + tileYsize);
+                        endpointsArray.push(getMyX(n8), getMyY(gameWidth * gameHeight - 1) + tileYsize);
+                        break;
+                    case 3:
+                        // left
+                        endpointsArray.push(getMyX(0) - tileXsize, getMyY(n7));
+                        endpointsArray.push(getMyX(0) - tileXsize, getMyY(n8));
+                        break;
+                    }
+                ll = 3;
+                isxtern = true;
+                spX = -1;
+            }
+        } // end of the sidelong glance
+
+        return(ll);
+    }
+
+    function neighbor(tnum, compass) {
+        // return the closest tile to the "compass" side of tile "tnum", or -1 if there isn't one
+        // "distance" will contain the distance from tile "tnum" to the closest neighbor in that direction.
+        // compass sides are: 0 = up, 1 = right, 2 = down, 3 = left
+        distance = 1;
+        iq = tnum % gameWidth;
+        jq = (Math.floor(tnum / gameWidth)) * gameWidth;
+        rv = -1;
+        switch (compass) {
+            case 0:
+                jq -= gameWidth;
+                while((puzzleArray[jq + iq] == -1) && (jq > -1)) {
+                    jq -= gameWidth;
+                    ++ distance;
+                }
+                if (jq > -1) { rv = iq + jq; }
+                break;
+            case 1:
+                iq ++;
+                while((puzzleArray[jq + iq] == -1) && (iq < gameWidth)) {
+                    ++ iq;
+                    ++ distance;
+                }
+                if (iq < gameWidth) { rv = iq + jq; }
+                break;
+            case 2:
+                jq += gameWidth;
+                while ((puzzleArray[jq + iq] == -1) && (jq < puzzleArray.length)) {
+                    jq += gameWidth;
+                    ++ distance;
+                }
+                if (jq < puzzleArray.length) { rv = iq + jq; }
+                break;
+            case 3:
+                iq --;
+                while ((puzzleArray[jq + iq] == -1) && (iq > -1)) {
+                    -- iq;
+                    ++ distance;
+                }
+                if (iq > -1) { rv = iq + jq; }
+                break;
+        }
+        return(rv);
+    }
+    
+    function remove(tnum) {
+        if (puzzleArray[tnum] > -1) {
+            ctx.fillStyle = "rgb(255,255,255)";
+            ctx.fillRect(getMyX(tnum), getMyY(tnum), tileXsize, tileYsize);
+
+            puzzleArray[tnum] = -1;
+            numremoved ++;
+        }
+    }
+    
+    function replace(anum, pnum) {
+        puzzleArray[anum] = pnum;
+        ctx.drawImage(picArray[anum], getMyX(anum), getMyY(anum), tileXsize, tileYsize);
+        numremoved --;
+    }
+    
+    function drawLine() {
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        
+    	if (cheating) {
+    		while (endpointsArray.length) {
+    			ay = endpointsArray.pop() + (tileYsize / 2);
+    			ax = endpointsArray.pop() + (tileXsize / 2);
+    			ctx.beginPath();
+    			ctx.arc(ax, ay, Math.min((tileXsize / 4), (tileYsize / 4)), 0, (Math.PI * 2), false);
+    			ctx.strokeStyle = "rgb(" + (180 + (lens * 5)) + "," + (150 + (lines * 30)) + "," + (150 + (doubles * 8)) + ")";
+    			ctx.stroke();
+    			}
+    		uncheat();
+    	}
+    	else {        
+        if (previousEndpointsArray.length) {
+            ctx.beginPath();
+            ctx.moveTo(previousEndpointsArray.pop() + (tileXsize / 2), previousEndpointsArray.pop() + (tileYsize / 2));
+            while (previousEndpointsArray.length) {
+                ctx.lineTo(previousEndpointsArray.pop() + (tileXsize / 2), previousEndpointsArray.pop() + (tileYsize / 2));
+            }
+            ctx.strokeStyle = "rgb(" + (180 + (lens * 5)) + "," + (150 + (lines * 30)) + "," + (150 + (doubles * 8)) + ")";
+            ctx.stroke();
+        }
+        
+        if (endpointsArray.length) {
+            lens = 0;
+            ay = endpointsArray.pop();
+            ax = endpointsArray.pop();
+            previousEndpointsArray.push(ay, ax);
+            ctx.beginPath();
+            ctx.moveTo(ax + (tileXsize / 2), ay + (tileYsize / 2));
+
+        
+            while (endpointsArray.length) {
+                bx = ax;
+                by = ay;
+                ay = endpointsArray.pop();
+                ax = endpointsArray.pop();
+                previousEndpointsArray.push(ay, ax);
+                ctx.lineTo(ax + (tileXsize / 2), ay + (tileYsize / 2));
+                lens += Math.max((Math.abs(ax - bx) / tileXsize), (Math.abs(ay - by) / tileYsize));
+            }
+        
+            ctx.strokeStyle = "rgb(240,120,32)";
+            ctx.stroke();
+        }
+    	}
+    }
+    
+    function hilight(tnum) {
+        var bdr = 2;
+		ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = "rgb(30,128,30)";
+        ctx.fillRect(getMyX(tnum) + bdr, getMyY(tnum) + bdr, tileXsize - (bdr * 2), tileYsize - (bdr * 2));
+		ctx.globalCompositeOperation = 'source-over';
+    }
+    
+    function lolight(tnum) {
+        ctx.drawImage(picArray[tnum], getMyX(tnum), getMyY(tnum), tileXsize, tileYsize);
+    }
+    
+    function unhilight() {
+        if (select1 > -1) {
+            lolight(select1);
+            select1 = -1;
+            if (select2 > -1) {
+                lolight(select2);
+                select2 = -1;
+            }
+        }
+    }
+    
+    function glow(tnum) {
+        var val = puzzleArray[tnum];
+        if (val != -1) {
+            var bdr = 2;
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = "rgb(30,30,128)";
+            gloArray = new Array();
+            for (j = 0 ; j < gameHeight ; j++) {
+                for (i = 0 ; i < gameWidth ; i++) {
+                    n = j * gameWidth + i;
+                    if (puzzleArray[n] == val) {
+                        gloArray.push(n);
+                        ctx.fillRect(getMyX(n) + bdr, getMyY(n) + bdr, tileXsize - (bdr * 2), tileYsize - (bdr * 2));
+                    }
+                }
+            }
+            ctx.globalCompositeOperation = 'source-over';
+        }
+    }
+    
+    function unglow() {
+        while (gloArray.length > 0) {
+            lolight(gloArray.pop());
+        }
+    }
+    
+    function doGlo() {
+        if (gloHelp == true) { gloHelp = false; }
+        else { gloHelp = true; }
+    }
+    
+    function hint() {
+        if (hintArray.length > 1) {
+            unglow();
+            unhilight();
+            ranEvn = Math.floor(Math.random() * hintArray.length);
+            if (ranEvn % 2) {ranEvn --; }
+            matchable = hintArray[ranEvn];
+            also = hintArray[ranEvn + 1];
+            select1 = matchable;
+            select2 = also;
+            hilight(matchable);
+            hilight(also);
+            hints ++;
+            status();
+        }
+    }
+    
+    function doMove() {
+        // This is for debugging purposes. It makes a random, legal move.
+        if (hintArray.length > 1) {
+            unhilight();
+            ranEvn = Math.floor(Math.random() * hintArray.length);
+            if (ranEvn % 2) {ranEvn --; }
+            matchable = hintArray[ranEvn];
+            also = hintArray[ranEvn + 1];
+            linesWork(matchable, also); // This fills the endpointsArray for line drawing.
+
+			isDoub = false;
+            if ( usedArray[usedArray.length] ) {
+            	doubles ++;
+            	isDoub = true;
+            	}
+            if (isxtern) { xterns ++; }
+            usedArray.push(lengthCount, lineCount, matchable, also, puzzleArray[matchable], isxtern, consecDoubs, isDoub);
+            remove(matchable);
+            remove(also);
+            drawLine();
+
+            lineCount += lines;
+            lengthCount += lens;
+
+            remains();
+            status();
+        }
+    }
+    
+    function cheat() {
+        if (document.getElementById("cheat").checked == true) {
+            cheating = true;
+            lines = 0;
+            lens = 0;
+        }
+        else { cheating = false; }
+    }
+    
+    function uncheat() {
+        cheating = false;
+        document.getElementById("cheat").checked = false;
+    }
+    
+    function dstyTy(tnum) {
+    	styTy = tnum;
+    	document.getElementById("lstyty").innerHTML = styTy;
+    }
+    
+    function dtReps(rnum) {
+    	tReps = rnum;
+    	document.getElementById("ltreps").innerHTML = tReps;
+    }
+    
+    function transG() {
+    	if (document.getElementById("langG").checked) {
+    		german = true;
+    		// change the button text:
+    		document.getElementById("bu1").value = "hinweis";
+    		document.getElementById("bu2").value = "neu";
+    		document.getElementById("bu3").value = "optionen";
+    		document.getElementById("bu4").value = "spielen";
+    		document.getElementById("bu5").value = "rücksetzen";
+    	}
+    	else {
+    		german = false;
+    		// change the button text:
+    		document.getElementById("bu1").value = "hint";
+    		document.getElementById("bu2").value = "new";
+    		document.getElementById("bu3").value = "options";
+    		document.getElementById("bu4").value = "play";
+    		document.getElementById("bu5").value = "reset";
+    	}
+    	status();
+    }
+    
+    function resetPuzzle() {
+        while (usedArray.length > 0) {
+            isDoub = usedArray.pop();
+            consecDoubs = usedArray.pop();
+            var wasxtern = usedArray.pop();
+            var lVal = usedArray.pop();
+            var lPo1 = usedArray.pop();
+            var lPo2 = usedArray.pop();
+            lineCount = usedArray.pop();
+            lengthCount = usedArray.pop();
+            
+            redoArray.push(lengthCount, lineCount, lPo2, lPo1, lVal, wasxtern, consecDoubs, isDoub);
+
+            replace(lPo1, lVal);
+            replace(lPo2, lVal);
+        }
+        
+        previousEndpointsArray = new Array();
+        endpointsArray = new Array();
+        
+        select1 = -1;
+        select2 = -1;
+        numremoved = 0;
+        uncheat();
+        numCheats = 0;
+        doubles = 0;
+        consecDoubs = 0;
+        maxconsec = 0;
+        lineCount = 0;
+        lengthCount = 0;
+        lens = 0;
+        xterns = 0;
+        hints = 0;
+        
+        drawPuzzle();
+        status();
+    }
+    
+    function redo() {
+        if (redoArray.length > 0) {
+            unhilight();
+            isDoub = redoArray.pop();
+            consecDoubs = redoArray.pop();
+            wasxtern = redoArray.pop();
+            lVal = redoArray.pop();
+            lPo1 = redoArray.pop();
+            lPo2 = redoArray.pop();
+            lineCount = redoArray.pop();
+            lengthCount = redoArray.pop();
+            
+            cheating = !(linesWork(lPo1, lPo2)); // This fills the endpointsArray for line drawing, and flags cheated moves.
+            // to redo a cheat, refill the "endpoints"
+            if (cheating) { linesWork(lPo1, lPo2); }
+            
+			if (isDoub) { doubles ++; }
+            if (wasxtern) { xterns ++; }
+            
+            usedArray.push(lengthCount, lineCount, lPo1, lPo2, puzzleArray[lPo1], wasxtern, consecDoubs, isDoub);
+            remove(lPo1);
+            remove(lPo2);
+            drawLine();
+
+            lineCount += lines;
+            lengthCount += lens;
+            remains();
+            status();
+        }
+    }
+    
+    function undo() {
+        if (usedArray.length > 0) {
+            unhilight();
+            isDoub = usedArray.pop();
+            consecDoubs = usedArray.pop();
+            var wasxtern = usedArray.pop();
+            var lVal = usedArray.pop();
+            var lPo1 = usedArray.pop();
+            var lPo2 = usedArray.pop();
+            lineCount = usedArray.pop();
+            lengthCount = usedArray.pop();
+            
+            redoArray.push(lengthCount, lineCount, lPo2, lPo1, lVal, wasxtern, consecDoubs, isDoub);
+        
+            endpointsArray = new Array();
+            drawLine();
+            replace(lPo1, lVal);
+            replace(lPo2, lVal);
+        
+            if (lineCount == undefined) { lineCount = 0; }
+            if (isDoub) { doubles --; }
+            if (wasxtern) { xterns --; }
+            remains();
+            status();
+        }
+    }
+
+    //function testAlert() {
+    //	if (german) { myalert("testen mein alert", "drücken"); }
+    //	else { myalert("testing the alert", "continue", "new game"); }
+    //}
+    
+    function myalert(tstring, bstring1, bstring2) {
+    	document.getElementById("alerttext").innerHTML = tstring;
+    	document.getElementById("alertbutton1").value = bstring1;
+    	if (typeof bstring2 == "undefined") {
+    		document.getElementById("alertbutton2").style.visibility = "hidden";
+    	}
+    	else {
+    		document.getElementById("alertbutton2").style.visibility = "visible";
+    		document.getElementById("alertbutton2").value = bstring2;   
+    	} 	
+    	
+    	document.getElementById("alertLayer").style.left = (xsize / 2) - 150;
+    	document.getElementById("alertLayer").style.top = (ysize / 2) - 100;
+    	document.getElementById("alertLayer").style.visibility = "visible";
+       	document.getElementById("alertLayer").style.zIndex = "0";
+    	document.getElementById("gameLayer").style.zIndex = "-1";
+    }
+     function unalert() {
+    	document.getElementById("gameLayer").style.zIndex = "0";
+    	document.getElementById("alertLayer").style.zIndex = "-1";
+     }
+
+
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+</script>
+
+<style type="text/css">
+	canvas { border: 2px solid rgb(200, 120, 20);}
+	
+#alertLayer {
+    position: absolute;
+    visibility: hidden;
+    top: 130px;
+    left: 200px;
+    width: 300px;
+    height: 150px;
+    background-color: rgba(100,180,150,0.9);
+    border: 16px solid rgba(120,80,20,0.9);
+    z-index: -1;
+    font-size: 24px;
+    border-radius: 10px;
+}
+</style>
+
+</head>
+
+<body onload="init();">
+<div id="gameLayer">
+	<canvas id="canvas" width = 400 height = 400></canvas>
+	<table border = 0><tr>
+	<td><p id="ltex0"></p></td><td width = 8></td>
+	<td><p id="ltex1"></p></td><td width = 2></td>
+	<td><p id="ltex2"></p></td>
+	<td width = 60></td>
+	<td><input type="button" id="bu3" style="height:24px;font-size:16px" onclick="window.scroll(0,2500);" value="options"></td>
+	</tr><tr></table>
+	<table border = 0><tr><td><p id="ltex3"></p></td><td width = 2></td>
+	<td><p id="ltex4"></p></td><td width = 4></td>
+	<td><p id="ltex5"></p></td><td width = 4></td>
+	<td><p id="ltex6"></p></td><td width = 4></td>
+	<td><p id="ltex7"></p></td>
+	</tr></table>
+
+    <table border = 0><tr>
+    <td><input type="button" id="bu1" style="font-size:14px;background-color:white;border-radius:10px" onclick="hint()" value="hint" /></td>
+	<td><label style="font-size:16px;padding:0;border:0px"><input type="checkbox" onclick="cheat()" id="cheat" ><t id="chx"></t></label></td>
+	<td><input type="button" style="font-size:14px;background-color:white;border-radius:10px" onclick="undo()" value="undo" /></td>
+	<td><input type="button" style="font-size:14px;background-color:white;border-radius:10px" onclick="redo()" value="redo" /></td></tr>
+	<tr><td height=10></td></tr>
+	<tr><td><label style="font-size:16px;padding:0;border:0px"><input type="checkbox" onclick="doGlo()" checked="checked" /><t id="glow"></t></label></td>
+	<td><input type="button" id="bu5" style="font-size:14px;background-color:white;border-radius:10px" onclick="resetPuzzle();" value="reset" /></td>
+	<td><input type="button" id="bu2" style="font-size:14px;background-color:white;border-radius:10px" onclick="newPuzzle();" value="new" /></td></tr>
+    <tr><td height=10></td></tr>
+    </table>
+    
+    <p id="ntex1"></p>
+    <table border = 0 cellspacing = 0 cellpadding = 0><tr>
+    <td id="ltreps"></td><td></td>
+    <td><input type="radio" name="treps" value= "2" onclick="dtReps(2);"/></td>
+    <td><input type="radio" name="treps" checked="checked" value= "4" onclick="dtReps(4);"/></td>
+    <td><input type="radio" name="treps" value= "6" onclick="dtReps(6);"/></td>
+    <td><input type="radio" name="treps" value= "8" onclick="dtReps(8);"/></td>
+    <td><input type="radio" name="treps" value= "10" onclick="dtReps(10);"/></td>
+    <td><input type="radio" name="treps" value= "12" onclick="dtReps(12);"/></td>
+    <td><input type="radio" name="treps" value= "14" onclick="dtReps(14);"/></td>
+    <td><input type="radio" name="treps" value= "16" onclick="dtReps(16);"/></td></tr></table>
+    
+    <p id="ntex2"></p>
+    <table border = 0 cellspacing = 0 cellpadding = 0><tr>
+    <td id="lstyty"></td><td></td>
+    <td><input type="radio" name="styty" value = "6" onclick="dstyTy(6);"/></td>
+    <td><input type="radio" name="styty" value = "9" onclick="dstyTy(9);"/></td>
+    <td><input type="radio" name="styty" value = "12" onclick="dstyTy(12);"/></td>
+    <td><input type="radio" name="styty" value = "15" onclick="dstyTy(15);"/></td>
+    <td><input type="radio" name="styty" value = "18" onclick="dstyTy(18);"/></td>
+    <td><input type="radio" name="styty" value = "21" onclick="dstyTy(21);"/></td>
+    <td><input type="radio" name="styty" value = "24" onclick="dstyTy(24);"/></td>
+    <td><input type="radio" name="styty" value = "27" onclick="dstyTy(27);"/></td>
+    <td><input type="radio" name="styty" value = "30" onclick="dstyTy(30);"/></td>
+    <td><input type="radio" name="styty" value = "33" onclick="dstyTy(33);"/></td>
+    <td><input type="radio" name="styty" checked="checked" value = "36" onclick="dstyTy(36);"/></td>
+    <td><input type="radio" name="styty" value = "39" onclick="dstyTy(39);"/></td>
+    <td><input type="radio" name="styty" value = "42" onclick="dstyTy(42);"/></td>
+    <td><input type="radio" name="styty" value = "45" onclick="dstyTy(45);"/></td>
+    <td><input type="radio" name="styty" value = "48" onclick="dstyTy(48);"/></td>
+    <td><input type="radio" name="styty" value = "51" onclick="dstyTy(51);"/></td>
+    <td><input type="radio" name="styty" value = "54" onclick="dstyTy(54);"/></td></tr></table>
+    
+    <table border = 0>
+    <tr><td>deutsch</td>
+    <td><input type="checkbox" id="langG" onclick="transG();"/></td>
+    </tr>
+    </table>
+    <p></p>
+    <td><input type="button" id="bu4" style="height:24px;font-size:16px" onclick="window.scroll(0,0);" value="play"></td>
+</div>
+<div id="alertLayer">
+	<p id="alerttext" align="center"></p>
+	<p align="center">
+	<input type="button" id="alertbutton1" style="font-size:16px;background-color:white;border-radius:10px" onclick="unalert();">
+	<input type="button" id="alertbutton2" style="font-size:16px;background-color:white;border-radius:10px" onclick="newPuzzle();">
+	</p>
+</div>
+</body>
+
+</html>
+

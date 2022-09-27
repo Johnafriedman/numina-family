@@ -1,0 +1,1874 @@
+<!--
+//* All code herein (except where otherwise noted) and all associated graphics
+//* are created by Harriet Lurie, who retains all rights to this content.
+//* match3 v: 1.0 (c) Harriet Lurie 2015
+-->
+
+<html>
+<head>
+<!-- this section copied verbatim from Apache: -->
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<link rel="stylesheet" type="text/css" href="css/index.css" />
+<!-- end of Appache code. -->
+<title>match3</title> 
+
+<script type="text/javascript"> 
+	var canvas;
+	var ctx;		// the canvas "context"
+	var canvaho;
+	var ctx2;
+	var canvari;
+	var ctx3;
+	var canvali;
+	var ctx4;
+	
+	var imageArray;
+	var imsLoaded;
+	var numPics;	// the number of image files to load
+	
+	var nColors;
+	var puzzleHi;
+	var puzzleWi;
+	var puzzleWiHi;
+	var nextHi;
+	var nextWi;
+	var nextCo;
+	var maxCo;
+	var cArray; // colors
+	var voffs;
+	var hoffs;
+	var boffs;
+	var directoinals;
+	var doTwo;
+	var l1offs;
+	var l2offs;
+	var nlocks;
+	var plocks;
+	var refillocks;
+	var unlocked;
+	var anchored;
+	var fallock;
+	var colock;
+	
+	var drops;
+	var dropPic;
+	var nextDrop;
+	var newdrops;
+	var zaps;
+	var zapts;
+	var extractions;
+	var remainingMoves;
+	var availableMoves;
+	var hints;
+	
+	var ringArray;
+	var rings;
+	var ringLevel;
+	var nextRlevel;
+	var ringStats;
+	
+	var holes;
+	var holePlug;
+	
+	var framePic;
+	
+	var minX;
+	var minY;
+	var xsize;
+	var ysize;
+
+	var tysize;
+	var txsize;
+	
+	var lightedTile;
+	var firstSelectedTile;
+	var legit;
+	var doNull;
+	var specialPair;
+	
+	var aniArray; // an array of arrays
+	var ividArray; // the interval id's for the animations
+	//var destinationsArray; // tile numbers for the endpoints of animations
+	
+	var turns;
+	var recentRemoved;
+	var totalRemoved;
+	var mostRemoved;
+	var nullMoves;
+	var shuffles;
+	
+	var puzArray;
+	var xArray;		// these store the screen coordinates of the tiles
+	var yArray;
+	var countsArray;
+	var rCountsArray;
+	
+	
+	function status() {
+		var zz;		
+		n_txt = "";
+		f_txt = "";
+		z_txt = "";
+		x_txt = "";
+		
+		if (nullMoves) { n_txt = " ~~~ null moves: " + nullMoves; }
+		if (shuffles) { f_txt = " ~~~ shuffles: " + shuffles; }
+		if (zaps) { z_txt = " ~~~ color zaps: " + zaps + " (" + zapts + ")"; }
+		if (extractions) { x_txt = " ~~~ extractions: " + extractions; }
+		
+		t_txt = "<table border=1><tr>";
+		t_txt = t_txt + "<td>" + puzzleWi + " x " + puzzleHi + " x " + nColors + "</td>";
+		for (zz = 0 ; zz < nColors ; zz ++) {
+			t_txt = t_txt + "<td style = background-color:" + cArray[zz] + " width = 24></td>";
+		}
+		if (nlocks) { t_txt = t_txt + "<td style = color:bb3366;width:24px;text-align:center>X</td>"; }
+		if (nlocks > 1) { t_txt = t_txt + "<td style = color:bb3366;width:24px;text-align:center>XX</td>"; }
+		if (drops) { t_txt = t_txt + "<td style = background-color:" + cArray[maxCo] + ";width:24px;text-align:center>";
+			t_txt = t_txt + String.fromCharCode(212) + "</td>"; }
+		if (directionals) {
+			t_txt = t_txt + "<td style = color:ee3333;width:24px;text-align:center> || </td>";
+			t_txt = t_txt + "<td style = color:ee3333;width:24px;text-align:center> = </td>";
+			t_txt = t_txt + "<td style = color:ee3333;width:24px;text-align:center> # </td>"; }
+		if (rings) {
+			switch (ringLevel) {
+			 case 4: t_txt = t_txt + "<td style = width:24px;font-size:20px;text-align:center>O</td>";
+			 case 3: t_txt = t_txt + "<td style = width:24px;font-size:16px;text-align:center>O</td>";
+			 case 2: t_txt = t_txt + "<td style = width:24px;font-size:12px;text-align:center>O</td>";
+			 case 1:
+			 	t_txt = t_txt + "<td style = color:" + "2222ff" + ";width:24px;font-size:8px;text-align:center>O</td>";
+			 	break;
+			}
+		}
+		if (holes) { t_txt = t_txt + "<td style = width:24px;outline:dotted;outline-width:1px></td>"; }
+		t_txt = t_txt + "<td>total</td>";
+		t_txt = t_txt + "</tr><tr><td>current</td>";
+		for (zz = 0 ; zz < nColors ; zz ++) {
+			t_txt = t_txt + "<td>" + countsArray[(zz + 1)] + "</td>";
+		}
+		if (nlocks) { t_txt = t_txt + "<td>" + countsArray[nColors + 1] + "</td>"; }
+		if (nlocks > 1) { t_txt = t_txt + "<td>" + countsArray[nColors + 2] + "</td>"; }
+		if (drops) { t_txt = t_txt + "<td>" + countsArray[nColors + 3] + "</td>"; }
+		if (directionals) {
+			t_txt = t_txt + "<td>" + countsArray[nColors + 4] + "</td>";
+			t_txt = t_txt + "<td>" + countsArray[nColors + 5] + "</td>";
+			t_txt = t_txt + "<td>" + countsArray[nColors + 6] + "</td>"; }
+		if (rings) {
+			for (zz = ringLevel ; zz > 0 ; zz --) {
+				t_txt = t_txt + "<td>" + ringStats[zz] + "</td>";
+			}
+		}
+		tsp = puzzleWiHi;
+		if (holes) {
+			t_txt = t_txt + "<td>" + countsArray[nColors + 7] + "</td>";
+			tsp -= countsArray[nColors + 7];
+		}
+		t_txt = t_txt + "<td>" + tsp + "</td>"
+		if (turns) { rte = Math.floor(totalRemoved / turns); }
+		else { rte = 0; }
+		t_txt = t_txt + "</tr><tr><td>removed</td>";
+		for (zz = 0 ; zz < nColors ; zz ++) {
+			t_txt = t_txt + "<td>" + rCountsArray[(zz + 1)] + "</td>";
+		}
+		if (nlocks) { t_txt = t_txt + "<td>" + rCountsArray[nColors + 1] + "</td>"; }
+		if (nlocks > 1) { t_txt = t_txt + "<td>" + rCountsArray[nColors + 2] + "</td>"; }
+		if (drops) { t_txt = t_txt + "<td>" + rCountsArray[nColors + 3] + "</td>"; }
+		if (directionals) {
+			t_txt = t_txt + "<td>" + rCountsArray[nColors + 4] + "</td>";
+			t_txt = t_txt + "<td>" + rCountsArray[nColors + 5] + "</td>";
+			t_txt = t_txt + "<td>" + rCountsArray[nColors + 6] + "</td>"; }
+		if (rings) {
+			for (zz = 1 ; zz < ringLevel ; zz ++) {
+				t_txt = t_txt + "<td>.</td>";
+			}
+			t_txt = t_txt + "<td>" + ringStats[0] + "</td>";
+		}
+		if (holes) { t_txt = t_txt + "<td>" + rCountsArray[nColors + 7] + "</td>"; }
+		t_txt = t_txt + "<td>" + totalRemoved + "</td>";
+		t_txt = t_txt + "</tr></table>";
+		
+		document.getElementById("stab1").innerHTML = "available moves:" + remainingMoves;
+		document.getElementById("stab2").innerHTML = "turns: " + turns;
+		document.getElementById("stab3").innerHTML = "last move: " + recentRemoved;
+		document.getElementById("stab4").innerHTML = "(most removed:" + mostRemoved + ")";
+		document.getElementById("stab5").innerHTML = "rate:" + rte;
+		
+		s_txt = "hints: " + hints;
+		s_txt = s_txt + n_txt;
+		s_txt = s_txt + x_txt;
+		s_txt = s_txt + z_txt;
+		s_txt = s_txt + f_txt;		
+		
+        document.getElementById("ttext").innerHTML = t_txt;
+        document.getElementById("stext").innerHTML = s_txt;
+        document.getElementById("wtext").innerHTML = nextWi;
+        document.getElementById("htext").innerHTML = nextHi;
+	}
+	
+	function init() {
+		canvas = document.getElementById("canvas");
+		canvaho = document.getElementById("canvaho");
+		canvari = document.getElementById("canvari");
+		canvali = document.getElementById("canvali");
+        
+        maxCo = 7;  // the maximun number of colors
+        // colors used in table, etc:
+		cArray = new Array("ee3333", "3366ee", "33aa33", "eeee44", "aa55aa", "aaaaaa", "33aaaa", "ee9944");
+        voffs = 8;  // add to tile number for vertical special tile
+        hoffs = 15; // add to tile number for horizontal special tile
+        boffs = 22; // add to tile number for both special tile
+        l1offs = 29; // add to tile number for lock 1 special tile
+        l2offs = 36; // add to tile number for lock 2 special tile
+        
+		nextHi = 8;
+		nextWi = 15;
+		nextCo = 6;
+		tLocks(0);
+		plocks = 1.10;
+		anchored = true;
+		fallock = true;
+		colock = false;
+		
+		dropset(0);
+		ringset(0);
+		nextRlevel = 1;
+		ringLevel = 1;
+		holes = 1;
+		holePlug = true;
+
+        numPics = (maxCo * 6) + 3; // 6 versions of each possible color, one blank, one border, one drop
+        framePic = 8;
+		dropPic = 44;
+		
+		ividArray = new Array();
+        
+        imageArray = new Array();
+        
+        var izi;
+        imsLoaded = 0;
+        for ( izi = 0 ; izi < numPics ; izi++) {
+            imageArray[izi] = new Image();
+            
+            imageArray[izi].onload = function(){
+                // do NOT draw this now!
+                imsLoaded ++;
+                if(imsLoaded == numPics) {
+                    // make sure we do this only once
+                    imsLoaded = 99;
+                    newPuzzle();
+                }
+            }
+            imageArray[izi].onerror = function() {
+            	alert("image #" + imsLoaded + " failed to load.");
+            }
+            imageArray[izi].src = "match3/tile" + izi + ".png";
+        }
+        
+		if (canvas.getContext) {
+			ctx = canvas.getContext("2d");
+			ctx2 = canvaho.getContext("2d");
+			ctx3 = canvari.getContext("2d");
+			ctx4 = canvali.getContext("2d");
+			xsize = innerWidth - 32;
+			ysize = innerHeight - 180; //128;
+			canvas.width = xsize;
+			canvas.height = ysize;
+			canvaho.width = xsize;
+			canvaho.height = ysize;
+			canvari.width = xsize;
+			canvari.height = ysize;
+			canvali.width = xsize;
+			canvali.height = ysize;
+			ctx4.globalAlpha = 0.25;
+		}
+        window.onorientationchange = resizzle;        
+	}
+	
+	function resizzle() {
+            xsize = innerWidth - 32;
+            ysize = innerHeight - 180;
+            canvas.width = xsize;
+            canvas.height = ysize;
+			canvaho.width = xsize;
+			canvaho.height = ysize;
+			canvari.width = xsize;
+			canvari.height = ysize;
+			canvali.width = xsize;
+			canvali.height = ysize;
+            fillLocArrays();
+        	drawGrid();
+	}
+	
+	function newPuzzle() {
+		puzzleWi = nextWi;
+		puzzleHi = nextHi;
+		puzzleWiHi = puzzleWi * puzzleHi;
+		nColors = nextCo;
+		lightedTile = -1;
+		turns = 0;
+		nullMoves = 0;
+		shuffles = 0;
+		zaps = 0;
+		zapts = 0;
+		extractions = 0;
+		legit = true;
+		doNull = false;
+		unlocked = 0;
+		remainingMoves = 0;
+		hints = 0;
+		ringLevel = nextRlevel;
+		directionals = false; // just for while the puzzle is being filled
+		newdrops = false; // just for while the puzzle is being filled
+
+        xArray = new Array();
+        yArray = new Array();
+        puzArray = new Array();
+        countsArray = new Array();
+        rCountsArray = new Array();
+        ringArray = new Array();
+        ringStats = new Array();
+        
+        if (ividArray.length) { stopAni(); }
+
+		// zero the arrays:
+		kk = 0;
+		for (jj = 0; jj < puzzleHi; jj++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+                xArray[kk] = 0;
+                yArray[kk] = 0;
+                puzArray[kk] = 0;
+				kk ++;
+			}
+		}
+		
+		// fill location arrays:
+		fillLocArrays();
+		
+		// fill the puzzle array:
+		for(jj = 0 ; jj < puzzleHi ; jj ++) {
+			for (ii = 0 ; ii < puzzleWi ; ii ++) {
+				puzArray[ii + (jj * puzzleWi)] = Math.floor(Math.random() * nColors) + 1;
+			}
+		}
+		
+		// remove any groups of three or more:
+		ividArray = new Array();
+		aniArray = new Array();
+		//destinationsArray = new Array();
+		pairup();
+		removeSpecials();
+		
+		// zero the removed counts:
+		for (ii = 0 ; ii < nColors + 8 ; ii ++) { rCountsArray[ii] = 0; }
+		
+		// lock some pieces:
+		colEn();
+		if (nlocks) {
+			if (colock) {
+				// this will lock pieces of a color(s), instead of any color
+				var halfmarker = 0;
+				var halfmarker2 = 0;
+				for (ii = 0; ii < puzzleWiHi ; ii ++) {
+					switch (plocks)
+					{
+						case (3.00):
+							// all the pieces of two colors
+							if (puzArray[ii] == 2) { lock1(ii); }
+						case (1.50):
+							// all the pieces of one color
+							if (puzArray[ii] == 1) { lock1(ii); }
+							break;
+						case (2.00):
+							// half the pieces of two colors
+							if (puzArray[ii] == 2) {
+								halfmarker2 ++;
+								if (halfmarker2 % 2) { lock1(ii); }
+							}
+						case (1.10):
+							// half the pieces of one color
+							if (puzArray[ii] == 1) {
+								halfmarker ++;
+								if (halfmarker % 2) { lock1(ii); }
+							}
+							break;
+						case (2.50):
+							// all the pieces of one color + half the pieces of another
+							if (puzArray[ii] == 2) {
+								halfmarker ++;
+								if (halfmarker % 2) { lock1(ii); }
+							}
+							if (puzArray[ii] == 1) { lock1(ii); }
+							break;
+					}
+				}
+			}
+			else {
+				for (ii = 0; ii < puzzleWiHi ; ii ++) {
+					if (Math.floor(Math.random() * (plocks))) { lock1(ii); }
+				}
+			}
+		}
+		dorlocks();
+		anchorEn();
+		
+		// put drops on the top row:
+		if (drops) {
+			for (nextDrop = 0 ; nextDrop < puzzleWi ; nextDrop ++) {
+				if (!(nextDrop % (drops / 2))) { puzArray[nextDrop] = dropPic; }
+			}
+		}
+		else { nextDrop = 0; }
+		dropmore();
+		
+		// fill the ringArray:
+		if (rings > 9) { rings = puzzleWiHi + 1; }
+		if (rings) {
+			for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+				if ((ii + 1) % rings) { ringArray.push(ringLevel); }
+				else { ringArray.push(0); }
+			}
+		}
+		// zero out the ring stats
+		if (rings) {
+			for (ii = ringLevel; ii > -1; ii --) { ringStats.push(0); }
+		}
+		
+		// make holes:
+		if (holes) {
+			for (jj = holes * puzzleWi ; jj ; jj--) {
+				ii = Math.floor(Math.random() * puzzleWiHi);
+				kk = puzArray[ii];
+				puzArray[ii] = -9;
+				if (rings) { ringArray[ii] = 0; }
+			}
+		}
+		plugHoles();
+		
+		inventory();
+		
+		recentRemoved = 0;
+		totalRemoved = 0;
+		mostRemoved = 0;
+		
+		unalert();
+		ctx.clearRect(0, 0, xsize, ysize);
+		ctx2.clearRect(0, 0, xsize, ysize);
+		ctx3.clearRect(0, 0, xsize, ysize);
+		ctx4.clearRect(0, 0, xsize, ysize);
+		
+		drawGrid();
+		drawRings();
+		doDirs();
+		doAnyTwo();
+		
+		firstSelectedTile = -1;
+		lightedTile = -1;
+		
+       canvali.onmousemove = hiLight;
+       canvali.onmouseup = selectFirst;
+       
+       canvali.ontouchstart = hiLight;
+       canvali.ontouchmove = hiLight;
+       canvali.ontouchend = selectFirst;
+       
+       // enable zap buttons for the colors in this puzzle:
+       for (ii = 0 ; ii < nColors ; ii ++) {
+       	document.getElementById("zap" + (ii + 1)).disabled = false;
+       }
+       //... and disable those that are not in this puzzle:
+       while (ii < maxCo) {
+		document.getElementById("zap" + (ii + 1)).disabled = true;
+       	ii ++;
+       }
+       if (drops) { document.getElementById("zap0").disabled = false; }
+       else { document.getElementById("zap0").disabled = true; }
+       
+       status();
+	}
+	
+	function fillLocArrays() {
+		// fill the location arrays:
+		txsize = Math.floor(xsize / (puzzleWi + 2)  - 5);
+		tysize = Math.floor(ysize / (puzzleHi + 2));
+		
+		// these should not be overly distorted:
+		if (txsize > (tysize * 1.5)) { txsize = Math.floor(tysize * 1.5); }
+		if (tysize > (txsize * 1.5)) { tysize = Math.floor(txsize * 1.5); }
+		
+		minX = 50;
+		minY = ysize / ((puzzleHi + 2) * tysize);
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			yp = minY + ((jj + 1) * tysize);
+			for (ii = 0; ii < puzzleWi; ii++) {
+				xp = minX + (ii + 1) * txsize;
+				xArray[kk] = Math.floor(xp);
+				yArray[kk] = Math.floor(yp);
+				
+				kk ++;
+			}
+		}
+	}
+	
+	function bId(cpc) {
+		// returns the base color for a (potentially special) tile:
+		if (cpc < dropPic) { 
+			if (cpc > l2offs) { cpc -= l2offs; }
+			if (cpc > l1offs) { cpc -= l1offs; }
+			if (cpc > boffs) { cpc -= boffs; }
+			if (cpc > hoffs) { cpc -= hoffs; }
+			if (cpc > voffs) { cpc -= voffs; }
+		}
+		return(cpc);
+	}
+	
+	function removeSpecials() {
+		var ii;
+		for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+			puzArray[ii] = bId(puzArray[ii]);
+		}
+	}
+	
+	function inventory() {
+		var kk, tt;
+		// zero counts:
+		for (kk = 0 ; kk < nColors + 8 ; kk ++) { countsArray[kk] = 0; }
+		if (rings) { for (kk = ringLevel; kk > 0 ; kk --) { ringStats[kk] = 0; } }
+		
+		for (kk = 0 ; kk < puzzleWiHi ; kk ++) {
+			tt = bId(puzArray[kk]);
+			if (tt == dropPic) { countsArray[nColors + 3] ++; }
+			else{
+				if (tt > -1) {
+					countsArray[tt] ++;
+					if (puzArray[kk] > l1offs) {
+						if (puzArray[kk] > l2offs) { countsArray[nColors + 2] ++; }
+						else {countsArray[nColors + 1] ++; }
+					}
+				}
+				else { countsArray[nColors + 7] ++; }
+			if (puzArray[kk] ==  (tt + boffs)) { countsArray[nColors + 6] ++; }
+			if (puzArray[kk] ==  (tt + hoffs)) { countsArray[nColors + 5] ++; }
+			if (puzArray[kk] ==  (tt + voffs)) { countsArray[nColors + 4] ++; }
+			}
+		}
+		
+		findAvailableMoves();
+		
+		for (kk = 0 ; kk < puzzleWiHi ; kk++) {
+			if (ringArray[kk]) { ringStats[(ringArray[kk])] ++; }
+		}
+		
+       // enable zap buttons for the colors currently in the puzzle and disable those that are not represented:
+       for (kk = 1 ; kk < (nColors + 1) ; kk ++) {
+       	if (countsArray[kk]) {
+       		document.getElementById("zap" + kk).disabled = false;
+       	}
+       	else {
+       		document.getElementById("zap" + kk).disabled = true;
+       	}
+       }
+      if (countsArray[nColors + 3]) { document.getElementById("zap0").disabled = false; }
+       else { document.getElementById("zap0").disabled = true; }
+	}
+	
+	function sumElements(fe, le, a2s) {
+		// return the sum of entries from first element(fe) to last element(le) in array (a2s)
+		var rv;
+		for ( rv = 0 ; fe < (le + 1) ; fe ++) { rv += a2s[fe]; }
+		return(rv);
+	}
+	
+	function drawGrid() {
+		ctx.globalAlpha = 1;
+		ctx3.globalAlpha = 0.5;
+		ctx4.globalAlpha = 0.25;
+		ctx2.clearRect(0, 0, xsize, ysize);
+		for (kk = 0; kk < puzzleWiHi ; kk ++) {
+			draw1(kk, puzArray[kk]);
+		}
+		
+		ctx2.fillStyle = "rgb(255, 255, 255)";
+		ctx2.fillRect(0, 0, xsize, tysize + 1);
+	}
+	
+	function draw1(lll, pn) {
+		// lll = location in puzzle array, pn = type of tile
+		if (pn > -1) {
+			ctx.drawImage(imageArray[pn], xArray[lll], yArray[lll], txsize, tysize);
+			if (rings) { draw1ring(lll); }
+			if (fallock && isLocked(lll)) {
+				ctx2.drawImage(imageArray[pn], xArray[lll], yArray[lll], txsize, tysize);
+			}
+		}
+		else { drawHole(lll); }
+	}
+	
+	function blackTile(ll) {
+		// tint a tile that has been removed from the puzzle array
+		// ll = location in puzzle array
+		if (ll > -1) {
+			ctx.fillStyle = "rgb(200,100,0)";
+			ctx.globalAlpha = 0.5;
+			ctx.fillRect(xArray[ll], yArray[ll], txsize, tysize);
+			ctx.globalAlpha = 1;
+		}
+	}
+	
+	function drawHole(ll) {
+		ctx2.fillStyle = "rgb(255, 255, 255)";
+		ctx2.fillRect(xArray[ll], yArray[ll], txsize, tysize);
+	}
+	
+	function undrawHole(ll) {
+		// removes a hole or a locked piece
+		ctx2.clearRect(xArray[ll], yArray[ll], txsize, tysize);
+	}
+	
+	function getMyTile(xp, yp) {
+        // take the xp, yp and return the tile's number (or -1 if there is no tile there):        
+        xp -= minX;
+        yp -= minY;
+        
+        xp = Math.floor(xp / txsize) - 1;
+        yp = Math.floor(yp / tysize) - 1;        
+        
+        if ((xp > puzzleWi - 1) || (yp > puzzleHi - 1) || (xp < 0) || (yp < 0))  {
+            rv = -1;
+        }
+        else {
+            rv = xp;
+            rv += (puzzleWi * yp);
+        }
+        
+        return(rv);
+	}
+	
+	function bold() {
+		// indicate the first selected tile
+		if (firstSelectedTile > -1) {
+			draw1(firstSelectedTile, puzArray[firstSelectedTile]);
+			//ctx.globalAlpha = .5;
+    	    //draw1(firstSelectedTile, framePic);
+			//ctx.globalAlpha = 1;
+			ctx4.fillStyle = "rgb(200,200,25)";
+    	    ctx4.fillRect(xArray[firstSelectedTile], yArray[firstSelectedTile], txsize, tysize);
+		}
+	}
+	
+	function loLight() {
+		// un-highlight the lighted tile
+		//if (lightedTile > -1) {
+			//draw1(lightedTile, puzArray[lightedTile]);
+			//ctx4.clearRect(xArray[lightedTile], yArray[lightedTile], txsize, tysize);
+			ctx4.clearRect(0, 0, xsize, ysize);
+			lightedTile = -1;
+		//}
+	}
+	
+	function hiLight(event) {
+		event.preventDefault();
+        var tile = getMyTile(event.pageX, event.pageY);
+        if ((tile > -1) && (tile < puzzleWiHi)) {
+        	loLight();
+        	bold();
+        	lightedTile = tile;
+        	//ctx.globalAlpha = .25;
+        	//draw1(lightedTile, 0);
+        	//ctx.globalAlpha = 1;
+        	ctx4.fillStyle = "rgb(20,200,200)";
+        	ctx4.fillRect(xArray[lightedTile], yArray[lightedTile], txsize, tysize);
+        }
+	}
+	
+	function selectFirst(event) {
+		event.preventDefault();
+        firstSelectedTile = lightedTile;
+        lightedTile = -1;
+        bold();
+        
+		canvali.onmouseup = selectSecond;
+		canvali.ontouchend = selectSecond;
+	}
+	
+	function selectSecond(event) {
+		event.preventDefault();
+        if ( (neighbors(lightedTile, firstSelectedTile)) && (Math.min(puzArray[lightedTile], puzArray[firstSelectedTile]) > -1) ) {
+        	swap(lightedTile, firstSelectedTile);
+        	firstSelectedTile = -1;
+			canvali.onmouseup = selectFirst;
+			canvali.ontouchend = selectFirst;
+        }
+        else {
+        	// this tile is not next to the first (or one of the selected tiles is a hole), so make this the first tile:
+        	firstSelectedTile = lightedTile;
+        	loLight();
+        	// lightedTile = -1; // loLight already did this.
+        	bold();
+        }
+    }
+    
+    function neighborArray(tt) {
+    	// returns the neighboring spaces of tt as an array
+		var tneighbors = new Array();
+		// up:
+		if (tt > (puzzleWi - 1)) { tneighbors.push(tt - puzzleWi); }
+		// down:
+		if ((tt + puzzleWi) < puzzleWiHi) { tneighbors.push(tt + puzzleWi); }
+		// left:
+		if (tt % puzzleWi) { tneighbors.push(tt - 1); }
+		// right:
+		if (tt % puzzleWi < puzzleWi - 1) { tneighbors.push(tt + 1); }
+		return(tneighbors);
+    }
+    
+    function nVals(ct) {
+    	// the types of tiles in the neighbors
+    	var ix;
+    	var bAr = neighborArray(ct);
+    	for (ix = 0 ; ix < bAr.length ; ix ++) {
+    		bAr[ix] = bId(puzArray[(bAr[ix])]);
+    	}
+    	return(bAr);
+    }
+    
+	function neighbors(t1, t2) {
+		// returns true if the tiles are toching either vertically or horizontally
+		var nAr = neighborArray(t1);
+		return(isin(t2, nAr));
+	}
+	
+	function lock1(tu) {
+		// put the appropriate lock on a tile
+		if (puzArray[tu] < l1offs + 1) { // make sure it's a plain tile
+			if (nlocks > 1) { puzArray[tu] += l2offs; }
+			else { puzArray[tu] += l1offs; }
+		}
+	}
+	
+	function isLocked(tn) {
+		// returns true if tile "tn" has a lock
+		if ( (puzArray[tn] > l1offs) && (puzArray[tn] < dropPic) ) { return(true); }
+		else { return(false); }
+	}
+	
+	function goodtogo(tt) {
+		// returns true if this tile can fall
+		if (puzArray[tt] > -1) {
+			if (fallock && nlocks && isLocked(tt)) {
+				return(false);
+			}
+			else { return(true); }
+		}
+		else { // this is a hole
+			return(false);
+		}
+	}
+	
+	function isdir(tn) {
+		// returns true if this tile is a directional
+		if ( (puzArray[tn] > voffs) && (puzArray[tn] < l1offs + 1) ) { return(true); }
+		else { return(false); }
+	}
+	
+	function swap(t1, t2) {
+		var th = puzArray[t1];
+		puzArray[t1] = puzArray[t2];
+		puzArray[t2] = th;
+		draw1(t1, puzArray[t1]);
+		draw1(t2, puzArray[t2]);
+		
+		if ( ( (isLocked(t1) || isLocked(t2)) && anchored ) || (Math.min(puzArray[t1], puzArray[t2]) < -1) ) {
+			//undo the move:
+			puzArray[t2] = puzArray[t1];
+			puzArray[t1] = th;
+			draw1(t1, puzArray[t1]);
+			draw1(t2, puzArray[t2]);
+		}
+		else {
+			recentRemoved = 0;
+			unlocked = 0;
+			aniArray = new Array();
+			//destinationsArray = new Array();
+			
+			if (isdir(t1) && isdir(t2) && doTwo) { specialPair = true; }
+			else { specialPair = false; }
+			
+			pairup();
+			// with continuing encumbered pieces, pairup misses some, so ...
+			if (refillocks) { while (checkfor3s(puzArray)) { pairup(); } }
+			
+			sortAni();
+			runAni();
+		
+			if (recentRemoved || unlocked) { inventory(); }
+			else {
+				if (doNull) {
+					nullMoves ++;
+					document.getElementById("nullmove").checked = false;
+					doNull = false;
+					inventory();
+					status();
+				}
+				else {
+					//undo the null move:
+					puzArray[t2] = puzArray[t1];
+					puzArray[t1] = th;
+					draw1(t1, puzArray[t1]);
+					draw1(t2, puzArray[t2]);
+					// don't count this as a turn:
+					turns --;
+				}
+			}
+		
+			turns ++;
+			mostRemoved = Math.max(mostRemoved, recentRemoved);
+			totalRemoved = sumElements(1, nColors, rCountsArray);
+			status();
+		}
+		
+		// if there are no moves remaining, alert:
+		if (remainingMoves < 1) { myalert("no moves remain", "continue", "new game"); }
+	}
+	
+	function specialRemove(tn) {
+		// returns an array of removables
+		var bb, kk, ii;
+		var remlist = new Array();
+		
+		if (puzArray[tn] < (l1offs + 1)) { // if it's not encumbered or a drop
+			bb = 1;
+			if (puzArray[tn] > boffs) {
+				// remove both its row and its column:
+				puzArray[tn] = bId(puzArray[tn]) + hoffs + voffs;
+				rCountsArray[nColors + 6] ++;
+				bb = 0;
+			}
+			
+			if (puzArray[tn] > hoffs) {
+				//remove its row:
+				kk = (Math.floor(tn / puzzleWi)) * puzzleWi;
+				for (ii = kk; ii < (kk + puzzleWi); ii ++) {
+					if ( (!(isin(ii, remlist))) && (!(ii == tn)) ) { remlist.push(ii); }
+				}
+				puzArray[tn] -= hoffs;
+				if (bb) { rCountsArray[nColors + 5] ++; }
+			}
+			
+			if (puzArray[tn] > voffs) {
+				//remove its column:
+				for(ii = tn % puzzleWi ; ii < puzzleWiHi ; ii += puzzleWi) {
+					if ( (!(isin(ii, remlist))) && (!(ii == tn)) ) { remlist.push(ii); }
+				}
+				puzArray[tn] -= voffs;
+				if (bb) { rCountsArray[nColors + 4] ++; }
+			}
+		}
+		return(remlist);
+	}
+	
+	function pairup() {
+		// remove all the groups of 3 or more:
+		var toberemoved = new Array();
+		var slist = new Array();
+		var aAr, kval, jj, ii, kk, bb;
+		var extrax, extraspecialArray;
+		
+		if (doTwo && specialPair) {
+			// for pairing any two directionals
+			toberemoved = specialRemove(lightedTile);
+			extraspecialArray = specialRemove(firstSelectedTile);
+			extraspecialArray.push(lightedTile, firstSelectedTile);
+			while (extraspecialArray.length) {
+				extrax = extraspecialArray.pop();
+				if (isin(extrax, toberemoved) == 0) { toberemoved.push(extrax); }
+			}
+			specialPair = false;
+		}
+		
+		for (jj = 0 ; jj < puzzleHi ; jj ++) {
+			for (ii = 0 ; ii < puzzleWi ; ii ++) {
+				kk = (jj * puzzleWi) + ii;
+				aAr = nVals(kk);
+				kval = bId(puzArray[kk]); 
+				if ( (kval > 0) && (kval < dropPic) && (isin(kval, aAr) > 1) ) {
+					// more than one neighbor matches this tile, check to see if they're in a row:
+					if ( (ii > 0) && (ii < (puzzleWi - 1)) ) {
+						if ( (bId(puzArray[kk - 1]) == kval) && (kval == bId(puzArray[kk + 1])) ) {
+							toberemoved.push(kk - 1, kk, kk + 1); } }
+					// and check the column:
+					if ( (jj > 0) && (jj < (puzzleHi - 1)) ) {
+						if ( (bId(puzArray[kk - puzzleWi]) == kval) && (kval == bId(puzArray[kk + puzzleWi])) ) {
+							toberemoved.push(kk - puzzleWi, kk, kk + puzzleWi); } }
+				}
+			} // for ii...
+		} // for jj ...
+		
+		while (toberemoved.length) {
+			jj = toberemoved.pop();
+			
+			if (puzArray[jj] != 0) { // this is already gone
+			if (puzArray[jj] == -9) {
+				if (holePlug) {  // for removing a hole
+					undrawHole(jj);
+					rCountsArray[nColors + 7] ++;
+				}
+				else { // holes are not removeable, so treat them like drops
+					jj = dropPic;
+				}
+			}
+			if (legit && (jj != dropPic)) {
+				if (directionals) {
+					kval = isin(jj, toberemoved);
+					if (kval > 1) {
+						// this number was in the array more than twice - make it doubly special:
+						for (kval = 2 ; kval ; kval --) { slist.pop(); }
+						slist.push(jj, bId(puzArray[jj]) + boffs + puzzleWiHi);
+						slist.push(jj, bId(puzArray[jj]) + boffs + puzzleWiHi);
+						// and remove the extra entries from the array:
+						for (kval = 3 ; kval ; kval --) { toberemoved.pop(); }
+						removesomethings(jj, toberemoved);
+					}
+					if (kval) {
+						// this number was in the array more than once - make it special:
+						if (isin(jj - 1, toberemoved)) { slist.push(jj, bId(puzArray[jj]) + voffs + puzzleWiHi); }
+						else { slist.push(jj, bId(puzArray[jj]) + hoffs + puzzleWiHi); }
+					}
+				
+					// if we are removing an already special tile, do something special:
+					extraspecialArray = specialRemove(jj);
+					while (extraspecialArray.length) {
+						extrax = extraspecialArray.pop();
+						if (isin(extrax, toberemoved) == 0) { toberemoved.push(extrax); }
+					}
+					
+				} // directionals...
+			} // legit...
+			
+			if (ringArray[jj]) {
+				ringArray[jj]--;
+				draw1ring(jj);
+				if (!ringArray[jj]) { ringStats[0] ++; }
+			}
+			
+			if ( (puzArray[jj] > l2offs) && (puzArray[jj] != dropPic) ) {
+				unlocked ++;
+				puzArray[jj] = bId(puzArray[jj]) + l1offs;
+				draw1(jj, puzArray[jj]);
+				rCountsArray[nColors + 2] ++;
+				}
+			else {
+				if (puzArray[jj] > l1offs) {
+					// where a single-locked tile becomes a plain tile:
+					unlocked ++;
+					puzArray[jj] = bId(puzArray[jj]);
+					undrawHole(jj);
+					draw1(jj, puzArray[jj]);
+					rCountsArray[nColors + 1] ++;
+					}
+				else {
+					if (puzArray[jj]) { recentRemoved ++; }
+					rCountsArray[bId(puzArray[jj])] ++;
+					puzArray[jj] = 0;
+					blackTile(jj);
+				}
+			} // not > l2offs…
+			}
+		} // toberemoved.length…
+		
+		while (slist.length) {
+			ii = slist.pop(); // special tile
+			jj = slist.pop(); // location
+			slist.pop();
+			slist.pop();
+			puzArray[jj] = ii - puzzleWiHi;
+			draw1(jj, puzArray[jj]);
+		}
+		
+		// if any drops have made it to the bottom, remove them:
+		if (drops) {
+			for (ii = puzzleWiHi - puzzleWi ; ii < puzzleWiHi ; ii ++) {
+				if (puzArray[ii] == dropPic) {
+					puzArray[ii] = 0;
+					blackTile(ii);
+					rCountsArray[nColors + 3]++;
+				}
+			}
+		}
+		
+		while (refill()) { pairup(); }
+	}
+	
+	function refill() {
+		// returns the number of newly introduced tiles
+		var nextup, kk, kstart, rv;
+		var mcount = 0;
+		var ncount = 0;
+		rv = 0;
+		for (kk = puzzleWiHi ; kk > -1 ; kk--) {
+			if (puzArray[kk] < 1) {
+				nextup = kk - puzzleWi;
+				while ( (nextup > -1) && (puzArray[kk] > -9) ) {
+					if ( (puzArray[nextup] > 0) && (goodtogo(nextup)) ) {
+						puzArray[kk] = puzArray[nextup];
+						
+						// experimental: in case of duplicate destinations, remove the previous one:
+						//if (isin(kk, destinationsArray)) { remove1ani(kk); }
+						//else { destinationsArray.push(kk); }
+						
+						animation(nextup, kk);
+						puzArray[nextup] = 0;
+						nextup = 0;
+					}
+					nextup -= puzzleWi;
+				}
+				if ( (puzArray[kk] < 1) && (puzArray[kk] > -9) ){
+					puzArray[kk] = Math.floor(Math.random() * nColors) + 1;
+					
+					if (refillocks) {
+						if (colock) {
+							if ( (puzArray[kk] > 0) && (puzArray[kk] < 3) ) {
+								if (plocks < 2) {
+									if (puzArray[kk] == 1) {
+										if (plocks == 1.10) {
+											mcount ++;
+											if (mcount % 2) { lock1(kk); }
+										}
+										else { lock1(kk); }
+									}
+								}
+								else { // plocks is 2 or more
+									if (puzArray[kk] == 1) {
+										if (plocks == 2.00) { // half
+											mcount ++;
+											if (mcount % 2) { lock1(kk); }
+										}
+										else { lock1(kk); }
+									}
+									else { // puzArray[kk] == 2
+										if (plocks == 3.00) { lock1(kk); }
+										else { // half
+											ncount ++;
+											if (ncount % 2) { lock1(kk); }
+										}
+									}
+								}
+							}
+						}
+						else {
+							if (Math.floor(Math.random() * plocks)) {
+								lock1(kk);
+							}
+						}
+					}
+					
+					if (newdrops) {
+						if (!(nextDrop % drops)) {
+							puzArray[kk] = dropPic;
+						}
+						nextDrop ++;
+					}
+					
+					kstart = Math.floor(kk / puzzleWi) - puzzleHi + 1;
+					
+					//if (isin(kk, destinationsArray)) { remove1ani(kk); }
+					//else { destinationsArray.push(kk); }
+					
+					animation(kstart, kk);
+
+					rv ++;
+				}
+			}
+		}
+		return(rv);
+	}
+	
+	function animation(sp, ep) {
+		// make an animation for a tile from starting point(sp) to ending point(ep)
+		var pp, spy;
+		var anAr = new Array();
+		
+		anAr.push(ep);
+
+		if (sp > -1) {
+			spy = yArray[sp];
+		}
+		else {
+			spy = (sp + 1) * tysize;
+		}
+		
+		// animate vertically:
+		for (pp = yArray[ep] ; pp > spy; pp --) {
+			anAr.push(pp);
+		}
+		aniArray.push(anAr);
+	}
+	
+	function aniFrame() {
+		var ii, pzp, ani1;
+		if (aniArray.length) {
+			for (ii = 0 ; ii < aniArray.length ; ii ++) {
+				ani1 = aniArray[ii];
+				if (ani1.length > 1) {
+					pzp = puzArray[ani1[0]];
+					ctx.drawImage(imageArray[pzp], xArray[ani1[0]], ani1.pop(), txsize, tysize);
+				}
+				else {
+					aniArray.splice(ii, 1); // remove this empty array from the list
+				}
+			}
+			
+			// these are now on a different layer:
+			//if (fallock && nlocks) { drawEncumbered(); }
+			//if (holes) { drawHoles(); }
+			//ctx.clearRect(0, 0, xsize, tysize + 1);
+		}
+		else {
+			stopAni();
+		}
+	}
+	
+	function remove1ani(dtn) {
+		// remove the animation that ends at destination tile (dtn) from aniArray
+		// this returns the removed animation.
+		var ix, aAn, rv;
+		
+		for (ix = 0 ; ix < aniArray.length ; ix ++) {
+			aAn = aniArray[ix];
+			if (aAn[0] == dtn) {
+				rv = aniArray.splice(ix, 1);
+				sortAni();
+				return(rv);
+			}
+		}
+	}
+	
+	function l0comp(aA, bA) {
+		// customized sort function for sorting the animation array in decending order, by first element
+		if (aA[0] > bA[0]) { return(-1); }
+		if (aA[0] < bA[0]) { return(1); }
+		return(0);
+	}
+	
+	function sortAni() {
+		// sort the animation array so that lower pieces fall first:
+		// aniArray[anim[0]] = end tile of animation
+		aniArray = aniArray.sort(l0comp);
+	}
+	
+	function runAni() {
+		loLight()
+		stopAni();
+		
+		canvali.onmousemove = false;
+		canvali.onmouseup = false;
+		canvali.ontouchstart = false;
+		canvali.ontouchmove = false;
+		canvali.ontouchend = false;
+		
+		ividArray.push(setInterval(aniFrame, 1));
+		//window.requestAnimationFrame(aniFrame);
+	}
+	
+	function stopAni() {
+		while (ividArray.length) {
+			clearInterval(ividArray.pop());
+		}
+		canvali.onmousemove = hiLight;
+		canvali.onmouseup = selectFirst;
+		canvali.ontouchstart = hiLight;
+		canvali.ontouchmove = hiLight;
+		canvali.ontouchend = selectFirst;
+	}
+	
+	function findAvailableMoves() {
+		var kk;
+		availableMoves = new Array();
+		for (kk = 0 ; kk < puzzleWiHi - 1 ; kk ++) {
+			legalMove(kk);
+		}
+		remainingMoves = availableMoves.length / 2;
+	}
+	
+	function legalMove(tn) {
+		// looks for moves to the right and below for this tile:
+		var testAr;
+		var xx = tn % puzzleWi;
+		var yy = Math.floor(tn / puzzleWi);
+		var ix;
+		
+		if (xx < (puzzleWi - 1)) {
+			if (mobilePair(tn, tn + 1)) {
+				if (bId(tn) != bId(tn + 1)) {
+					// there is a tile to the right of tn, and it's not the same color
+					testAr = new Array();
+					for (ix = 0 ; ix < puzzleWiHi ; ix ++) { testAr.push(puzArray[ix]); }
+					testAr[tn] = puzArray[tn + 1];
+					testAr[tn + 1] = puzArray[tn];
+					if (checkfor3s(testAr)) {
+						availableMoves.push(tn, tn + 1);
+					}
+				}
+			}
+		}
+		
+		if (yy < (puzzleHi - 1)) {
+			if (mobilePair(tn, tn + puzzleWi)) {
+				if (bId(tn) != bId(tn + puzzleWi)) {
+					// there is a tile below tn, and it's not the same color
+					testAr = new Array();
+					for (ix = 0 ; ix < puzzleWiHi ; ix ++) { testAr.push(puzArray[ix]); }
+					testAr[tn] = puzArray[tn + puzzleWi];
+					testAr[tn + puzzleWi] = puzArray[tn];
+					if (checkfor3s(testAr)) {
+						availableMoves.push(tn, tn + puzzleWi);
+					}
+				}
+			}
+		}
+	}
+	
+	function mobilePair(t1, t2) {
+		// returns true if these two tiles can be legally moved
+		var rv = true;
+		if (anchored) {
+			if (isLocked(t1) || isLocked(t2)) { rv = false; }
+		}
+		if ( Math.min(puzArray[t1], puzArray[t2]) < -1 ) { rv = false; }
+		
+		return(rv);
+	}
+	
+	function checkfor3s(cAr) {
+		// check the array (cAr) for groups of 3 or more:
+		var found = 0;
+		var kval, jj, ii, kk;
+		for (jj = 0 ; jj < puzzleHi ; jj ++) {
+			for (ii = 0 ; ii < puzzleWi ; ii ++) {
+				kk = (jj * puzzleWi) + ii;
+				kval = bId(cAr[kk]); 
+				if ( (kval > 0) && (kval < dropPic) ) {
+					// check to see if it's between two like tiles in the row:
+					if ( (ii > 0) && (ii < (puzzleWi - 1)) ) {
+						if ( (bId(cAr[kk - 1]) == kval) && (kval == bId(cAr[kk + 1])) ) {
+							found++; } }
+					// and check the column:
+					if ( (jj > 0) && (jj < (puzzleHi - 1)) ) {
+						if ( (bId(cAr[kk - puzzleWi]) == kval) && (kval == bId(cAr[kk + puzzleWi])) ) {
+							found++; } }
+				}
+			} // for ii...
+		} // for jj ...
+		return(found);
+	}
+	
+	function shuffle() {
+		// construct a shuffled array while emptying puzArray:
+		var rel, kk;
+		var rti = 0;
+		var nAr = new Array();
+		if (holes) {
+			for (kk = 0 ; kk < puzzleWiHi ; kk ++) { nAr.push(puzArray[kk]); }
+			for (kk = 0 ; kk < puzzleWiHi ; kk ++) {
+				while (nAr[kk] == -9) { kk ++; }
+				rel = Math.floor(Math.random() * puzzleWiHi);
+				rti = puzArray[rel];
+				while ( (rti < 1) && (kk < puzzleWiHi) ) {
+					rel = (rel + 1) % puzzleWiHi;
+					rti = puzArray[rel];
+				}
+				if (kk < puzzleWiHi) {
+					nAr[kk] = rti;
+					puzArray[rel] = 0;
+				}
+			}
+		}
+		else {
+			for (kk = 0 ; kk < puzzleWiHi ; kk ++) {
+				rel = Math.floor(Math.random() * puzzleWiHi);
+				rti = puzArray[rel];
+				while (!rti) {
+					rel = (rel + 1) % puzzleWiHi;
+					rti = puzArray[rel];
+				}
+				nAr.push(rti);
+				puzArray[rel] = 0;
+			}
+		}
+		// refill puzArray:
+		for (kk = 0 ; kk < puzzleWiHi ; kk ++) {
+			puzArray[kk] = nAr[kk];
+		}
+		
+		legit = false; // Don't include any tiles removed (if this makes pairs) in the totals.
+		aniArray = new Array();
+		//destinationsArray = new Array();
+		pairup();
+		aniArray = new Array();
+		//destinationsArray = new Array();
+				
+		drawGrid();
+		
+		legit = true;
+		inventory();
+		
+		shuffles ++;
+		status();
+	}
+	
+	function isin(nn, nAr) {
+		// return the number of times nn appears in the array
+		var rv = 0;
+		var ix;
+		for (ix = 0 ; (ix < nAr.length) ; ix ++) {
+			if (nAr[ix] == nn) {
+				rv ++;
+			}
+		}
+		return(rv);
+	}
+	
+	function removesomethings(nx, rAr) {
+		// remove all instances of nx from array rAr:
+		var ix;
+		for (ix = 0; ix < rAr.length ; ix++) {
+			if (rAr[ix] == nx) { rAr.splice(ix, 1); }
+		}
+	}
+	
+	function colorZap(ac) {
+		// remove all instances of color ac, refill puzzle:
+		var ix, ozt;
+		var ozt = zapts;
+		var oinv = new Array; // Don't include any tiles removed (if this makes pairs) in the totals.
+		for (ix = 0; ix < rCountsArray.length ; ix ++) { oinv[ix] = rCountsArray[ix]; }
+		
+		for (ix = 0 ; ix < puzzleWiHi ; ix ++) {
+			if (bId(puzArray[ix]) == ac) {
+				// if this is an encumbered piece, remove an encumbrance:
+				if ( (puzArray[ix] > l1offs) && (puzArray[ix] < dropPic) ){
+					if (puzArray[ix] > l2offs) { puzArray[ix] = bId(puzArray[ix]) + l1offs; }
+					else {
+						puzArray[ix] = bId(puzArray[ix]);
+						undrawHole(ix);
+					}
+				}
+				// . . . otherwise remove it:
+				else { puzArray[ix] = 0; }
+				zapts ++;
+			}
+		}
+		pairup();		
+		drawGrid();
+		if (ozt < zapts) { zaps++; }
+		
+		for (ix = 0; ix < rCountsArray.length ; ix ++) { rCountsArray[ix] = oinv[ix]; }
+
+		inventory();
+		status();
+	}
+	
+	function remove1(event) {
+		event.preventDefault();
+		
+		var ix;
+		var oinv = new Array;
+		for (ix = 0; ix < rCountsArray.length ; ix ++) { oinv[ix] = rCountsArray[ix]; } // save the counts
+
+        // lightedTile is now removed
+        puzArray[lightedTile] = 0;
+        undrawHole(lightedTile);
+		pairup();		
+		drawGrid();
+		
+		for (ix = 0; ix < rCountsArray.length ; ix ++) { rCountsArray[ix] = oinv[ix]; } // restore the counts
+		extractions ++;
+
+		inventory();
+		status();
+        
+        firstSelectedTile = -1;
+        lightedTile = -1;
+        
+        document.getElementById("erase").checked = false;
+		canvali.onmouseup = selectFirst;
+		canvali.ontouchend = selectFirst;
+	}
+	
+	function nextW(ww) {
+		nextWi = ww;
+		document.getElementById("wtext").innerHTML = ww;
+	}
+	
+	function nextH(hh) {
+		nextHi = hh;
+		document.getElementById("htext").innerHTML = hh;
+	}
+	
+	function allowNull() {
+		if (document.getElementById("nullmove").checked) { doNull = true; }
+		else { doNull = false; }
+	}
+	
+	function erase1() {
+		if (document.getElementById("erase").checked) {
+			loLight();
+			canvali.onmouseup = remove1;
+			canvali.ontouchend = remove1;
+		}
+		else {
+			canvali.onmouseup = selectFirst;
+			canvali.ontouchend = selectFirst;
+		}
+	}
+	
+	function doDirs() {
+		if (document.getElementById("directionals").checked) { directionals = true; }
+		else { directionals = false; }
+	}
+	
+	function doHint() {
+		var reven = (Math.floor(Math.random() * (availableMoves.length / 2))) * 2;
+		var rodd = availableMoves[reven + 1];
+		reven = availableMoves[reven];
+
+		//ctx.globalAlpha = .5;
+        //draw1(availableMoves[reven], 0);
+        //draw1(availableMoves[reven + 1], 0);
+		//ctx.globalAlpha = 1;
+		
+		loLight();
+       	ctx4.fillStyle = "rgb(200,20,200)";
+       	ctx4.fillRect(xArray[reven], yArray[reven], txsize, tysize);
+       	ctx4.fillRect(xArray[rodd], yArray[rodd], txsize, tysize);
+        
+		hints ++;
+		status();
+	}
+	
+	function tLocks(lln) {
+		if (nlocks > lln) {
+			nlocks = lln;
+			// you have reduced encumberances during a game, so remove them from the board, or downgrade from doubles to singles:
+			if (nlocks) {
+				for (lln = 0 ; lln < puzzleWiHi ; lln ++) {
+					if ( (puzArray[lln] > l1offs) && (puzArray[lln] < dropPic) ) { puzArray[lln] = bId(puzArray[lln]) + l1offs; }
+				}
+			}
+			else {
+				for (lln = 0 ; lln < puzzleWiHi ; lln ++) {
+					if ( (puzArray[lln] > l1offs) && (puzArray[lln] < dropPic) ) {
+						puzArray[lln] = bId(puzArray[lln]);
+						undrawHole(lln); // take it off the hole layer
+					}
+				}
+				
+				// we've removed some locks, so update the remaining moves:
+				inventory();
+				status();
+			}
+			drawGrid();
+		}
+		else { nlocks = lln; }
+		if (nlocks) {
+			for (lln = 2 ; lln < 7 ; lln ++) {
+				document.getElementById("pctl" + lln).disabled = false;
+			}
+			document.getElementById("dorls").disabled = false;
+			document.getElementById("anchor").disabled = false;
+			document.getElementById("faller").disabled = false;
+			document.getElementById("cbaselock").disabled = false;
+		}
+		else {
+			for (lln = 2 ; lln < 7 ; lln ++) {
+				document.getElementById("pctl" + lln).disabled = true;
+			}
+			document.getElementById("dorls").disabled = true;
+			document.getElementById("anchor").disabled = true;
+			document.getElementById("faller").disabled = true;
+			document.getElementById("cbaselock").disabled = true;
+			
+			// make sure not to refill with them either:
+			document.getElementById("dorls").checked = false;
+			refillocks = false;
+		}
+	}
+	
+	function dorlocks() {
+		if (document.getElementById("dorls").checked) { refillocks = true; }
+		else { refillocks = false; }
+	}
+	
+	function anchorEn() {
+		if (document.getElementById("anchor").checked) { anchored = false; }
+		else { anchored = true; }
+	}
+	
+	function fallEn() {
+		if (document.getElementById("faller").checked) { fallock = false; }
+		else { fallock = true; }
+	}
+	
+	function colEn() {
+		if (document.getElementById("cbaselock").checked) { colock = true; }
+		else { colock = false; }
+	}
+	
+	function dropset(ds) {
+		drops = ds;
+		if (drops) {
+			document.getElementById("droplus").disabled = false;
+			}
+		else {
+			document.getElementById("droplus").checked = false;
+			document.getElementById("droplus").disabled = true;
+			newdrops = false;
+		}
+	}
+	
+	function dropmore() {
+		if (document.getElementById("droplus").checked) { newdrops = true; }
+		else { newdrops = false; }
+	}
+	
+	function ringset(rs) {
+		var lxln;
+		if (document.getElementById("ringnum0").checked) {
+			// if there are rings on the board, remove them:
+			if (rings) {
+				ringArray = new Array();
+				for (lxln = 0; lxln < puzzleWiHi ; lxln ++) { ringArray.push(0); }
+				inventory();
+				status();
+				drawGrid();
+			}
+			rings = false;
+			for (lxln =  1; lxln < 5; lxln ++) { document.getElementById("ringLev" + lxln).disabled = true; }	
+		}
+		else {
+			rings = rs;
+			for (lxln =  1; lxln < 5; lxln ++) {
+			document.getElementById("ringLev" + lxln).disabled = false; }
+		}
+	}
+	
+	function levelRings(rs) {
+		nextRlevel = rs;
+	}
+
+	function drawRings() {
+		var jj;
+		ctx3.clearRect(0, 0, xsize, ysize);
+		ctx3.globalAlpha = 0.5;
+		for (jj = 0; jj < puzzleWiHi ; jj ++) {
+			draw1ring(jj);
+		}
+	}
+	
+	function remove1ring(lxl) {
+		ctx3.clearRect(xArray[lxl], yArray[lxl], txsize, tysize);
+	}
+
+	function draw1ring(rnum) {
+		remove1ring(rnum);
+		// draw the ring at position "rnum"
+		if (ringArray[rnum]) {
+			var xs = txsize / 6;
+			var ys = tysize / 6;
+			var xc = xs * 3;
+			var yc = ys * 3;
+			var rco = "#2222ff";
+			if (ringArray[rnum] > 1) {
+				xs = txsize / 4;
+				ys = tysize / 4;
+				xc = xs * 2;
+				yc = ys * 2;
+				rco = "#222200";
+			}
+			if (ringArray[rnum] > 2) {
+				xs = txsize / 2;
+				ys = tysize / 2;
+				xc = xs;
+				yc = ys;
+			}
+			if (ringArray[rnum] > 3) {
+				xs = txsize - 10;
+				ys = tysize - 10;
+				xc = xs / 2 + 5;
+				yc = ys / 2 + 5;
+			}
+			ctx3.lineWidth = 4;
+			ctx3.strokeStyle = "#eeee22";
+			ctx3.beginPath();
+			ctx3.arc(xArray[rnum] + xc, yArray[rnum] + yc, Math.min((xs / 2), (ys / 2)), 0, (Math.PI * 2), false);
+			ctx3.stroke();
+			ctx3.lineWidth = 2;
+			ctx3.strokeStyle = rco;
+			ctx3.stroke();
+		}
+	}
+	
+	function plugHoles() {
+		if (document.getElementById("plug").checked) { holePlug = true; }
+		else { holePlug = false; }
+	}
+	
+	function doAnyTwo() {
+		if (document.getElementById("anyTwo").checked) { doTwo = true; }
+		else { doTwo = false; }
+	}
+	
+	function emergencyReset() {
+		doNull = false;
+		document.getElementById("nullmove").checked = false;
+		stopAni();
+		inventory();
+		status();
+		drawGrid();
+	}
+    
+    function myalert(tstring, bstring1, bstring2) {
+    	document.getElementById("alerttext").innerHTML = tstring;
+    	document.getElementById("alertbutton1").value = bstring1;
+    	if (typeof bstring2 == "undefined") {
+    		document.getElementById("alertbutton2").style.visibility = "hidden";
+    	}
+    	else {
+    		document.getElementById("alertbutton2").style.visibility = "visible";
+    		document.getElementById("alertbutton2").value = bstring2;   
+    	} 	
+    	
+    	document.getElementById("alertLayer").style.left = (xsize / 2) - 150;
+    	document.getElementById("alertLayer").style.top = (ysize / 2) - 100;
+    	document.getElementById("alertLayer").style.visibility = "visible";
+       	document.getElementById("alertLayer").style.zIndex = "4";
+    	//document.getElementById("gameLayer").style.zIndex = "-1";
+    	document.getElementById("canvas").style.zIndex = "0";
+    	document.getElementById("canvaho").style.zIndex = "1";
+    	document.getElementById("canvari").style.zIndex = "2";
+    	document.getElementById("canvali").style.zIndex = "3";
+    }
+    
+    function unalert() {
+    	document.getElementById("canvas").style.zIndex = "1";
+    	document.getElementById("canvaho").style.zIndex = "2";
+    	document.getElementById("canvari").style.zIndex = "3";
+    	document.getElementById("canvali").style.zIndex = "4";
+    	document.getElementById("alertLayer").style.zIndex = "-1";
+    	document.getElementById("alertLayer").style.visibility = "hidden";
+    	document.getElementById("alertbutton2").style.visibility = "hidden";
+    }
+    
+</script>
+
+<style type="text/css"> 
+	#canvas {
+	border: 2px solid rgb(20, 120, 200);
+	z-index:1}
+	
+	#canvaho {
+	border: 2px solid rgb(120, 120, 20);
+	position:absolute;
+	left: 8px;
+	top 0px;
+	z-index:2}
+	
+	#canvari {
+	border: 2px solid rgb(120, 120, 20);
+	position:absolute;
+	left: 8px;
+	top 0px;
+	z-index:3}
+	
+	#canvali {
+	border: 2px solid rgb(120, 120, 20);
+	position:absolute;
+	left: 8px;
+	top 0px;
+	z-index:4}
+	
+	#alertLayer {
+    position: absolute;
+    visibility: hidden;
+    top: 130px;
+    left: 200px;
+    width: 300px;
+    height: 120px;
+    background-color: rgba(200,150,80,0.9);
+    border: 16px solid rgba(140,200,100,0.9);
+    z-index: -1;
+    font-size: 20px;
+    border-radius: 10px; }
+</style> 
+</head>
+
+<body onload="init();"> 
+	<div id="gameLayer">
+	<p style="color: white; height: 2">x</p>
+	<canvas id="canvas" width = 600 height = 400></canvas>
+	<canvas id="canvaho" width = 600 height = 400></canvas>
+	<canvas id="canvari" width = 600 height = 400></canvas>
+	<canvas id="canvali" width = 600 height = 400></canvas>
+	<table border = 0><tr>
+	<td id="stab1" style="color:rgb(250,50,100);font-size:16px"></td>
+	<td  width=30></td>
+	<td id="stab2" style="color:rgb(150,150,50);font-size:12px"></td>
+	<td  width=30></td>
+	<td id="stab3" style="color:rgb(50,150,50);font-size:12px"></td>
+	<td  width=10></td>
+	<td id="stab4" style="color:rgb(50,150,50);font-size:12px"></td>
+	<td  width=30></td>
+	<td id="stab5" style="color:rgb(250,150,50);font-size:16px"></td>
+	<td  width=30></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,2500);" value="options"></td>
+	</tr></table>
+	<p id="ttext"></p>
+	
+    <table border = 0><tr style="height: 50">
+    <td><input type="button" style="height:24px;font-size:16px" onclick="newPuzzle();" value="new game" /></td>
+    <td width = 20></td>
+    <td><input type="button" style="height:24px;font-size:16px" onclick="shuffle();" value="shuffle" /></td>
+    <td width = 20></td>
+    <td><input type="button" style="height:24px;font-size:16px" onclick="doHint();" value="hint" /></td>
+    <td width = 20></td>
+    <td><label><input type="checkbox" style="font-size:16px" onclick="allowNull();" id = "nullmove"/>null move <label></td>
+    <td width = 20></td>
+    <td><label><input type="checkbox" style="font-size:16px" onclick="erase1();" id = "erase"/>extract one <label></td>
+    <td width = 20></td>
+    <td><input type="button" style="height:24px;font-size:16px;color:ff4444" onclick="emergencyReset();" value="fix" /></td>
+    <td width = 20></td>
+	</tr></table>
+	<p id="stext" style="color:rgb(150,150,150);font-size:12px"></p>
+	
+   	<table><tr style="height: 30"><td>zap:</td>
+    <td width = 20></td>
+    <td><input type="button" id = "zap1" style="height:24px;font-size:16px;background-color:ee3333" onclick="colorZap(1);" value="*" /></td>
+    <td><input type="button" id = "zap2" style="height:24px;font-size:16px;background-color:3366ee" onclick="colorZap(2);" value="*" /></td>
+    <td><input type="button" id = "zap3" style="height:24px;font-size:16px;background-color:33aa33" onclick="colorZap(3);" value="*" /></td>
+    <td><input type="button" id = "zap4" style="height:24px;font-size:16px;background-color:eeee44" onclick="colorZap(4);" value="*" /></td>
+    <td><input type="button" id = "zap5" style="height:24px;font-size:16px;background-color:aa55aa" onclick="colorZap(5);" value="*" /></td>
+    <td><input type="button" id = "zap6" style="height:24px;font-size:16px;background-color:aaaaaa" onclick="colorZap(6);" value="*" /></td>
+    <td><input type="button" id = "zap7" style="height:24px;font-size:16px;background-color:33aaaa" onclick="colorZap(7);" value="*" /></td>
+    <td><input type="button" id = "zap0" style="height:24px;font-size:16px;background-color:ee9944" onclick="colorZap(dropPic);" value="*" /></td>	
+    </tr></table>
+    
+	<table border = 0><tr style="height: 30">
+    <td>width:</td>
+    <td><p id = "wtext"></p></td>
+    <td width = 10></td>
+    <td><input type="radio" name="wid" value= "3" onclick="nextW(3);"/></td>
+    <td><input type="radio" name="wid" value= "4" onclick="nextW(4);"/></td>
+    <td><input type="radio" name="wid" value= "5" onclick="nextW(5);"/></td>
+    <td><input type="radio" name="wid" value= "6" onclick="nextW(6);"/></td>
+    <td><input type="radio" name="wid" value= "7" onclick="nextW(7);"/></td>
+    <td><input type="radio" name="wid" value= "8" onclick="nextW(8);"/></td>
+    <td><input type="radio" name="wid" value= "9" onclick="nextW(9);"/></td>
+    <td><input type="radio" name="wid" value= "10" onclick="nextW(10);"/></td>
+    <td><input type="radio" name="wid" value= "11" onclick="nextW(11);"/></td>
+    <td><input type="radio" name="wid" value= "12" onclick="nextW(12);"/></td>
+    <td><input type="radio" name="wid" value= "13" onclick="nextW(13);"/></td>
+    <td><input type="radio" name="wid" value= "14" onclick="nextW(14);"/></td>
+    <td><input type="radio" name="wid" checked="checked" value= "15" onclick="nextW(15);"/></td>
+    <td><input type="radio" name="wid" value= "16" onclick="nextW(16);"/></td>
+    <td><input type="radio" name="wid" value= "17" onclick="nextW(17);"/></td>
+    <td><input type="radio" name="wid" value= "18" onclick="nextW(18);"/></td>
+    <td><input type="radio" name="wid" value= "19" onclick="nextW(19);"/></td>
+    <td><input type="radio" name="wid" value= "20" onclick="nextW(20);"/></td>
+    <td><input type="radio" name="wid" value= "21" onclick="nextW(21);"/></td>
+    <td><input type="radio" name="wid" value= "22" onclick="nextW(22);"/></td>
+    <td><input type="radio" name="wid" value= "23" onclick="nextW(23);"/></td>
+    <td><input type="radio" name="wid" value= "24" onclick="nextW(24);"/></td>
+    </tr><tr style="height: 30">
+	<td>height:</td>
+	<td><p id = "htext"></p></td>
+    <td width = 10></td>
+    <td><input type="radio" name="hig" value= "3" onclick="nextH(3);"/></td>
+    <td><input type="radio" name="hig" value= "4" onclick="nextH(4);"/></td>
+    <td><input type="radio" name="hig" value= "5" onclick="nextH(5);"/></td>
+    <td><input type="radio" name="hig" value= "6" onclick="nextH(6);"/></td>
+    <td><input type="radio" name="hig" value= "7" onclick="nextH(7);"/></td>
+    <td><input type="radio" name="hig" checked="checked" value= "8" onclick="nextH(8);"/></td>
+    <td><input type="radio" name="hig" value= "9" onclick="nextH(9);"/></td>
+    <td><input type="radio" name="hig" value= "10" onclick="nextH(10);"/></td>
+    <td><input type="radio" name="hig" value= "11" onclick="nextH(11);"/></td>
+    <td><input type="radio" name="hig" value= "12" onclick="nextH(12);"/></td>
+    <td><input type="radio" name="hig" value= "13" onclick="nextH(13);"/></td>
+    <td><input type="radio" name="hig" value= "14" onclick="nextH(14);"/></td>
+    <td><input type="radio" name="hig" value= "15" onclick="nextH(15);"/></td>
+    <td><input type="radio" name="hig" value= "16" onclick="nextH(16);"/></td>
+    </tr></table>
+    <table><tr style="height: 30">
+	<td>colors</td>
+    <td width = 10></td>
+	<td bgColor="33aa33"><label>3 <input type="radio" name="hues" value= "3" onclick="nextCo = 3;"/></label></td>
+	<td bgColor="eeee44"><label>4 <input type="radio" name="hues" value= "4" onclick="nextCo = 4;"/></label></td>
+	<td bgColor="aa55aa"><label>5 <input type="radio" name="hues" value= "5" onclick="nextCo = 5;"/></label></td>
+	<td bgColor="aaaaaa"><label>6 <input type="radio" name="hues" checked="checked" value= "6" onclick="nextCo = 6;"/></label></td>
+	<td bgColor="33aaaa"><label>7 <input type="radio" name="hues" value= "7" onclick="nextCo = 7;"/></label></td>
+	</tr></table>
+	<table><tr style="border: 0; height: 30">
+	<td><label>directionals<input type="checkbox" onclick="doDirs();" checked="checked" id="directionals"></label></td>
+	<td width = 10></td>
+	<td><label>any two<input type="checkbox" onclick="doAnyTwo();" checked="checked" id="anyTwo"></label></td>
+	</tr></table>
+	<table>
+    <tr><td>drops:</td>
+	<td><label>none<input type="radio" name="dropper" value="0" onclick="dropset(0);" checked="checked"></label></td>
+	<td><input type="radio" name="dropper" value="10" onclick="dropset(10);"></td>
+	<td><input type="radio" name="dropper" value="6" onclick="dropset(6);"></td>
+	<td><label><input type="radio" name="dropper" value="4" onclick="dropset(4);">many</label></td>
+    <td width = 10></td>
+	<td><label>continuing<input type="checkbox" disabled="true" onclick="dropmore();" id="droplus"></label></td></tr></table>
+	<table><tr style="height: 30"><td>encumbrances:</td>
+	<td><label>0<input type="radio" name="locks" value="0" onclick="tLocks(0);" checked="checked"></label></td>
+	<td><label>1<input type="radio" name="locks" value="1" onclick="tLocks(1);"></label></td>
+	<td><label>2<input type="radio" name="locks" value="2" onclick="tLocks(2);"></label></td>
+    <td width = 10></td>
+    <td><label>few<input type="radio" id = "pctl2" name="pctlocks" value="2" onclick="plocks = 1.10;" checked="checked"></label></td>	
+    <td><input type="radio" id = "pctl3" name="pctlocks" value="3" onclick="plocks = 1.50;"></td>
+    <td><input type="radio" id = "pctl4" name="pctlocks" value="4" onclick="plocks = 2.00;"></td>	
+    <td><input type="radio" id = "pctl5" name="pctlocks" value="5" onclick="plocks = 2.50;"></td>
+    <td><label><input type="radio" id = "pctl6" name="pctlocks" value="6" onclick="plocks = 3.00;">many</label></td>
+    </tr></table><table><tr><td width=30></td>
+	<td><label>continuing<input type="checkbox" onclick="dorlocks();" id="dorls"></label></td>
+	<td><label>moveable<input type="checkbox" onclick="anchorEn();" id="anchor"></label></td>
+	<td><label>falling<input type="checkbox" onclick="fallEn();" id="faller"></label></td>
+	<td><label>by color<input type="checkbox" onclick="colEn();" id="cbaselock"></label></td>
+	</tr></table>
+	<table><tr style="height: 30">
+	<td>rings:</td>
+	<label><td>none<input type="radio" name="rings" value="0" onclick="ringset(0);" id="ringnum0" checked="checked"></label></td>
+	<label><td><input type="radio" name="rings" value="2" onclick="ringset(2);" id="ringnum1"></label></td>
+	<label><td><input type="radio" name="rings" value="3" onclick="ringset(3);" id="ringnum2"></label></td>
+	<label><td><input type="radio" name="rings" value="4" onclick="ringset(4);" id="ringnum3"></label></td>
+	<label><td><input type="radio" name="rings" value="10" onclick="ringset(10);" id="ringnum4"></label>all</td>
+	<td width = 10></td>
+	<td>persistence</td>
+	<td><label>1 <input type="radio" name="ringLev" checked="checked" value= "1" onclick="levelRings(1);" id="ringLev1"/></label></td>
+	<td><label>2 <input type="radio" name="ringLev" value= "2" onclick="levelRings(2);" id="ringLev2"/></label></td>
+	<td><label>3 <input type="radio" name="ringLev" value= "3" onclick="levelRings(3);" id="ringLev3"/></label></td>
+	<td><label>4 <input type="radio" name="ringLev" value= "4" onclick="levelRings(4);" id="ringLev4"/></label></td>
+    <td width = 30></td></tr>
+    <tr style="height: 30"><td>holes:</td>
+    <td><label>none<input type="radio" name="holes" onclick="holes = 0;" id="hole0"></label></td>
+    <td><input type="radio" name="holes" checked="checked" onclick="holes = 1;" id="hole1"></td>
+    <td><input type="radio" name="holes" onclick="holes = 2;" id="hole2"></td>
+    <td><input type="radio" name="holes" onclick="holes = 3;" id="hole3"></td>
+    <td><label><input type="radio" name="holes" onclick="holes = 4;" id="hole4">many</label></td>
+	<td width = 10></td>
+	<td><label>removeable<input type="checkbox" checked="checked" onclick="plugHoles();" id="plug"></label></td>
+	</tr></table>
+	<p></p>
+	<input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,0);" value="play">
+	</div>
+	
+	<div id="alertLayer">
+	<p id="alerttext" align="center"></p>
+	<p align="center">
+	<input type="button" id="alertbutton1" style="font-size:16px;background-color:white;border-radius:10px" onclick="unalert();">
+	<input type="button" id="alertbutton2" style="font-size:16px;background-color:white;border-radius:10px" onclick="newPuzzle();">
+	</p>
+	</div>
+</body>

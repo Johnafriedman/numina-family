@@ -1,0 +1,671 @@
+<!--
+//* All code herein (except where otherwise noted) and all associated graphics
+//* are created by Harriet Lurie, who retains all rights to this content.
+//* trinograms v: 1.7 (c) Harriet Lurie 2014
+-->
+
+<html>
+<head>
+<!-- this section copied verbatim from Apache: -->
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<link rel="stylesheet" type="text/css" href="css/index.css" />
+<!-- end of Appache code. -->
+
+<title>trinograms</title> 
+    
+<script type="text/javascript"> 
+	var canvas;
+	var ctx;		// the canvas "context"
+	var xsize;
+	var ysize;
+	var xpos;
+	var ypos;
+	var imageArray;
+	var imsLoaded;
+	var numPics;
+	var puzzleHi;
+	var puzzleWi;
+	var puzzleWiHi;
+	var nextHi;
+	var nextWi;
+	var minX;
+	var minY;
+	var myHints;
+	
+	var puzArray;	// the "solution"
+	var puzPix;		// pointers to the image tiles
+	var picNames;	// the filenames of the tiles
+	
+	var oldHi;
+	var tysize;
+	var txsize;
+	var xArray;		// these store the screen coordinates of the tiles
+	var yArray;
+	var colo;
+	var xratio;
+	
+	
+	function status(){
+        status_txt = "now playing: " + puzzleWi + " x " + puzzleHi + " (" + (puzzleWiHi / 2) + " black spaces)";
+        
+        if (myHints) { status_txt = status_txt + " ~ hints: " + myHints; }
+        
+        document.getElementById("stext1").innerHTML = status_txt;
+	}
+
+	function init() {
+		canvas = document.getElementById("canvas");
+       
+        numPics = 10;
+        picNames = new Array("up", "down", "upHi", "downHi", "upBlack", "downBlack", "upWhite", "downWhite", "upHint", "downHint");
+        xArray = new Array();
+        yArray = new Array();
+        puzArray = new Array();
+        puzPix = new Array();
+
+		setHi(8); // this should be even
+		setWi(15); // this should be odd
+		
+		puzzleWi = nextWi;
+		puzzleHi = nextHi;
+		
+		xratio = 2 / 3;
+
+		if (canvas.getContext) {
+			ctx = canvas.getContext("2d");
+			xsize = innerWidth - 32;
+			ysize = innerHeight - 60;//40;
+			canvas.width = xsize;
+			canvas.height = ysize;
+            //newPuzzle();
+		}
+		
+        imageArray = new Array();
+        imsLoaded = 0;
+        for ( izi = 0 ; izi < numPics ; izi++) {
+            imageArray[izi] = new Image(); // Some of the documentation suggests this does not work in chrome. This is the suggested work-arround:
+            //imageArray[izi] = document.createElement('img');
+            
+            imageArray[izi].onload = function(){
+                // do NOT draw this now!
+                imsLoaded ++;
+                document.getElementById("stext1").innerHTML = "number loaded: " + imsLoaded;
+                if(imsLoaded == numPics) {
+                    // make sure we do this only once
+                    imsLoaded = 99;
+                    newPuzzle();
+                }
+            }
+            imageArray[izi].onerror = function() {
+            	alert("image #" + imsLoaded + "(" + picNames[imsLoaded] + ")" + " failed to load.");
+            }
+            imageArray[izi].src = "trino/" + picNames[izi] + ".png";
+        }
+		colo = 0;
+		
+        window.onorientationchange = resizzle;        
+	}
+	
+	function resizzle() {
+            xsize = innerWidth - 32;
+            ysize = innerHeight - 60;//40;
+            canvas.width = xsize;
+            canvas.height = ysize;
+        	drawPuzzle();
+	}
+
+	function newPuzzle() {
+		puzzleWi = nextWi;
+		puzzleHi = nextHi;
+		puzzleWiHi = puzzleWi * puzzleHi;
+		
+		// zero the arrays:
+		kk = 0;
+		for (jj = 0; jj < puzzleHi; jj++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+                xArray[kk] = 0;
+                yArray[kk] = 0;
+                puzArray[kk] = 0;
+				kk ++;
+			}
+		}
+		// randomly fill half the puzArray:
+		for(ii = 0; ii < (puzzleWiHi / 2); ii++) {
+			jj = Math.floor(Math.random() * (puzzleWiHi)) - 1;
+			if (puzArray[jj] == 0) {
+				puzArray[jj] = 1;
+			}
+			else {
+				ii --;
+			}
+		}
+		
+		// zero out puzPix:
+		for (kk = 0 ; kk < puzzleWiHi ; kk++) { puzPix[kk] = imageArray[(kk % 2)]; }
+		
+		unalert();
+		drawPuzzle();
+		
+		myHints = 0;
+		
+		oldHi = 0;
+		
+		canvas.onmouseup = selectChoice;
+        canvas.onmousemove = hiTri;
+        
+        canvas.ontouchend = selectChoice;
+        canvas.ontouchmove = hiTri;
+		
+		// start with black:
+		colo = 0;
+		document.getElementById("colo0").checked = 1;
+		
+		status();
+	}
+	
+	function drawPuzzle() {
+		// fill the location arrays:
+		txsize = Math.floor(xsize / (puzzleWi * (xratio) + 2)  - 5);
+		tysize = Math.floor(ysize / (puzzleHi + 2));
+		minX = 50;
+		minY = ysize / ((puzzleHi + 2) * tysize);
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			yp = minY + ((jj + 1) * tysize);
+			for (ii = 0; ii < puzzleWi; ii++) {
+				xp = minX + ((ii + 1) * (txsize * xratio));
+				xArray[kk] = Math.floor(xp);
+				yArray[kk] = Math.floor(yp);
+				//puzPix[kk] = imageArray[(kk % 2)];
+				
+				kk ++;
+			}
+		}
+		
+		ctx.clearRect(0, 0, xsize, ysize);
+
+		rowClues();
+		upClues();
+		downClues();
+		drawGrid();
+	}
+	
+	function drawGrid() {
+		ctx.globalAlpha = 1;
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+				xp = xArray[kk];
+				yp = yArray[kk];
+				ctx.drawImage(puzPix[kk], xp, yp, txsize, tysize);
+				kk ++;
+			}
+		}
+	}
+	
+	function rowClues() {
+		kk = 0;
+		ctx.font = "12pt sans-serif";
+		
+		for (jj = 0; jj < puzzleHi; jj ++) {
+			thisRow = new Array();
+			kk = 0;
+			for (ii = 0; ii < puzzleWi; ii ++) {
+				ix = ii + (jj * puzzleWi);
+				if (puzArray[ix] == 0) { kk ++; }
+				else {
+					if (kk > 0) { thisRow.push(kk); }
+					kk = 0;
+					}
+			}
+			if (kk > 0) { thisRow.push(kk); }
+			ctx.fillStyle = "#aaffaa";
+			ctx.fillRect(0, yArray[ix] + (tysize / 6), xsize, tysize * 3 / 4);
+			ctx.fillStyle = "#000000";
+			ctx.fillText(thisRow, 0, yArray[ix] + tysize / 2);
+		}
+	}
+	
+	function upClues() {
+		linecolor = "#eeccaa";
+		lineleft = xArray[0]; // left of the tiles
+		linebottom = yArray[puzzleWiHi - 1] + (tysize * 3 / 2); // below the last row of tiles
+		lineright = xArray[(puzzleWi - 1)] + (txsize * xratio);
+		linetop = -tysize; // off the top of the canvas
+		trot = - ysize / xsize;
+		lwid = (Math.min(txsize, tysize)) * 3 / 4;
+		
+		bottominc = puzzleWi * 2;
+		for (bottomtile = puzzleWi ; bottomtile < puzzleWiHi ; bottomtile += bottominc ) {
+			// count a diagonal:
+			thisRow = new Array();
+			previoustile = bottomtile;
+			kk = 0;
+			for (currenttile = bottomtile ; !(currenttile % puzzleWi < previoustile % puzzleWi) ; currenttile ++) {
+				if(puzArray[currenttile]) {
+					if (kk > 0) { thisRow.push(kk); }
+					kk = 0;
+					}
+				else { kk++; }
+				previoustile = currenttile;
+				if (currenttile % 2) { currenttile = currenttile - puzzleWi - 1; }
+			}
+			if (kk > 0) { thisRow.push(kk); }
+			toptile = previoustile;
+			
+			// draw the line:
+			if (toptile % 2) { // the top of this diagonal is at the top of the puzzle
+				topXspot = xArray[toptile];
+				topYspot = linetop;
+				txdif = txsize / 2;
+				tydif = 1;
+			}
+			else { // the top of this diagonal is at the right of the puzzle
+				topXspot = lineright;
+				topYspot = yArray[toptile] - (tysize * 2);
+				txdif = txsize / 2;
+				tydif = tysize / 2;
+			}
+			if (bottomtile % 2) { // this diagonal starts at the left of the puzzle
+				bottomXspot = lineleft;
+				bottomYspot = yArray[bottomtile] + tysize;
+			}
+			else {
+				bottomXspot = xArray[bottomtile] + (txsize / 4);
+				bottomYspot = linebottom;
+			}
+			dLine(bottomXspot, bottomYspot, topXspot + (txsize * 2), topYspot, lwid, linecolor);
+			// show the text:
+			rText(thisRow, topXspot + txdif, topYspot + (tysize * 2) + tydif, trot);
+			
+			if ((bottomtile + bottominc) > (puzzleWiHi + 3)) {
+				bottomtile --;
+				bottominc = 2;
+			}
+		}
+	}
+	
+	function downClues() {
+		linecolor = "#aaaaff";
+		linebottom = yArray[puzzleWiHi - 1] + (tysize * 2);
+		linetop = tysize / 2;
+		lineleft = xArray[0]; // left of the tiles
+		lineright = xArray[(puzzleWi - 1)] + (txsize * xratio * 3);
+		trot = ysize / xsize;
+		lwid = (Math.min(txsize, tysize)) * 3 / 4;
+		
+		topinc = -(puzzleWi * 2);
+		for (toptile = puzzleWi * (puzzleHi - 2) ; (toptile != puzzleWi) ; toptile += topinc) {
+			// count a diagonal:
+			thisRow = new Array();
+			previoustile = toptile;
+			kk = 0;
+			for (currenttile = toptile ; (currenttile < puzzleWiHi) && !(currenttile % puzzleWi < previoustile % puzzleWi) ; currenttile ++) {
+				if (puzArray[currenttile]) {
+					if (kk > 0) { thisRow.push(kk); }
+					kk = 0;
+				}
+				else { kk ++; }
+				previoustile = currenttile;
+				if (!(currenttile % 2)) { currenttile = currenttile + puzzleWi - 1; }
+			}
+			if (kk > 0) { thisRow.push(kk); }
+			bottomtile = previoustile;
+			
+			// drawline, text:
+			if (bottomtile % 2) { // this diagonal ends at the right side of the puzzle
+				bottomXspot = lineright;
+				bottomYspot = yArray[bottomtile] + (tysize * 2);
+				txdif = txsize;
+				tydif = tysize;
+			}
+			else { // this diagonal ends at the bottom of the puzzle
+				bottomXspot = xArray[bottomtile] + txsize;
+				bottomYspot = linebottom;
+				txdif = txsize * 3 / 4;
+				tydif = tysize * 3 / 4;
+			}
+			if (toptile % 2) { // this diagonal starts at the top of the puzzle
+				topXspot = xArray[toptile] + (txsize / 4);
+				topYspot = linetop;
+			}
+			else { // this diagonal starts at the left of the puzzle
+				topXspot = lineleft;
+				topYspot = yArray[toptile];
+			}
+			dLine(bottomXspot, bottomYspot, topXspot, topYspot, lwid, linecolor);
+			rText(thisRow, bottomXspot - txdif, bottomYspot - tydif, trot);
+			
+			if (toptile + topinc < 0) {
+				toptile --;
+				topinc = 2;
+			}
+		}
+	}
+
+	function dLine(x1, y1, x2, y2, ww, cc) {
+		ctx.strokeStyle = cc;
+		ctx.lineWidth = ww;
+		ctx.beginPath();
+		ctx.moveTo(x1, y1);
+		ctx.lineTo(x2, y2);
+		ctx.closePath();
+		ctx.globalAlpha = .6;
+		ctx.stroke();
+	}
+	
+	function rText(tt, xx, yy, rr) {
+		ctx.font = "12pt sans-serif";
+		ctx.globalAlpha = 1;
+		ctx.strokeStyle = "#000000";
+		ctx.save();
+        ctx.translate(xx, yy);
+        ctx.rotate(rr);
+		ctx.fillText(tt, 0, 0);
+		ctx.restore();
+	}
+	
+    function selectChoice(event) {
+    	event.preventDefault();
+        tile = getMyTri(event.pageX, event.pageY);
+        if (tile != -1) {
+        	reveal1(tile);
+        }
+    }
+    
+    function getMyTri(xp, yp) {
+        // take the xp, yp and return the tri's number (or -1 if there is no tile there):
+        //re-center:
+        xp -= txsize;
+        yp -= tysize;
+
+  
+        xp -= minX;
+        yp -= minY;
+        xp = Math.floor(xp / (txsize * xratio));
+        yp = Math.floor(yp / tysize);        
+        
+        if ((xp > puzzleWi - 1) || (yp > puzzleHi - 1) || (xp < 0) || (yp < 0))  {
+            rv = -1;
+        }
+        else {
+            rv = xp;
+            rv += (puzzleWi * yp);
+        }
+        
+        return(rv);
+    }
+
+    function hiHi(num) {
+        loTri(oldHi);
+        if (puzPix[num] == imageArray[0]) {
+        	puzPix[num] = imageArray[2];        	
+            ctx.drawImage(puzPix[num], xArray[num], yArray[num], txsize, tysize);
+            oldHi = num;
+        }
+        else if (puzPix[num] == imageArray[1]) {
+        	puzPix[num] = imageArray[3];        	
+            ctx.drawImage(puzPix[num], xArray[num], yArray[num], txsize, tysize);
+            oldHi = num;
+        }
+    }
+    
+    function loTri(num) {
+        if (puzPix[num] == imageArray[2]) {
+        	puzPix[num] = imageArray[0];        	
+            ctx.drawImage(puzPix[num], xArray[num], yArray[num], txsize, tysize);
+        }
+        else if (puzPix[num] == imageArray[3]) {
+        	puzPix[num] = imageArray[1];        	
+            ctx.drawImage(puzPix[num], xArray[num], yArray[num], txsize, tysize);
+        }
+    }
+
+    function hiTri(event) {
+    	event.preventDefault();
+        tile = getMyTri(event.pageX, event.pageY);
+        if ((tile > -1) && (tile < puzzleWiHi)) {
+            hiHi(tile); }
+    }
+    
+    function resetPuzzle() {
+		for (kk = 0; kk < puzzleWiHi ; kk ++) {
+        	puzPix[kk] = imageArray[(kk % 2)];
+		}
+    	drawGrid();
+    }
+    
+    function reveal1(ix) {
+    	dnm = ix % 2;
+    	switch(colo) {
+    		case 2: // unknown:
+        		puzPix[ix] = imageArray[dnm];
+    			break;
+    		case 1: // white:
+        		puzPix[ix] = imageArray[6 + dnm];
+    			break;
+    		case 0: // black:
+        		puzPix[ix] = imageArray[4 + dnm];
+    			break;
+    	}
+    	ctx.drawImage(puzPix[ix], xArray[ix], yArray[ix], txsize, tysize);
+    }
+    
+	function revealPuzzle() {
+		// show the solution:
+		// ctx.font = "12pt sans-serif";
+		var statString;
+		var ctri = 0;
+		var ctrx = 0;
+		xs = txsize / 3;
+		ys = tysize / 3;
+		ctx.lineWidth = 2;
+		for (jj = 0; jj < puzzleWiHi ; jj ++) {
+			if (!(puzPix[jj] == imageArray[8 + (jj % 2)])) {
+				
+				if (puzArray[jj]) { ctx.fillStyle = "#ffffff"; }
+				else { ctx.fillStyle = "#000000"; }
+				ctx.beginPath();
+				ctx.arc(xArray[jj] + (xs * 3 / 2), yArray[jj] + (ys * 3 / 2), Math.min((xs / 2), ys), 0, (Math.PI * 2), false);
+				ctx.fill();
+				ctx.strokeStyle = "#00ee77";
+				
+				if (puzPix[jj] == imageArray[4 + (jj % 2)]) { choice = 0; }
+				else { choice = 1; }
+				
+				if (puzArray[jj] == choice) {
+					if (!choice) { ctri ++; } // correct and black
+				}
+				else {
+					ctx.strokeStyle = "#ff4400";
+					if (!choice) { ctrx ++; } // incorrect and black
+				}
+				ctx.stroke();
+			}
+		}
+		statString = "<p>" + ctri + " correct black tirangle";
+		if (ctri != 1) { statString = statString + "s"; }
+		statString = statString + " (" + Math.floor(ctri / puzzleWiHi * 200) + "%)</p><p>";
+		if (ctrx) {
+			statString = statString + ctrx + " incorrect black triangle";
+			if (ctrx > 1) { statString = statString + "s"; }
+		}
+		statString = statString + "</p><p>";
+		if (myHints) {
+			statString = statString + "with " + myHints + " hint";
+			if (myHints > 1) { statString = statString + "s"; }
+		}
+		statString = statString + "</p>";
+		myalert(statString, "continue", "new game");
+	}
+    
+    function selectHint(event) {
+    	event.preventDefault();
+        tile = getMyTri(event.pageX, event.pageY);
+		xs = txsize / 3;
+		ys = tysize / 3;
+		ctx.lineWidth = 2;
+		
+        if (tile != -1) {
+    		dnm = tile % 2;
+    		puzPix[tile] = imageArray[8 + dnm];    		
+    		ctx.drawImage(puzPix[tile], xArray[tile], yArray[tile], txsize, tysize);
+
+        	if (puzArray[tile]) { ctx.fillStyle = "#ffffff"; }
+        	else { ctx.fillStyle = "#000000"; }
+        	ctx.beginPath();
+			ctx.arc(xArray[tile] + (xs * 3 / 2), yArray[tile] + (ys * 3 / 2), Math.min((xs / 2), ys), 0, (Math.PI * 2), false);
+			ctx.fill();
+			ctx.strokeStyle = "#cccc00";
+			ctx.stroke();
+            myHints ++;
+            status();
+            canvas.onmouseup = selectChoice;
+            canvas.ontouchend = selectChoice;
+
+            document.getElementById("hint").checked = false;
+        }
+    }
+    
+    function hintOne() {
+        if (document.getElementById("hint").checked) {
+            canvas.onmouseup = selectHint;
+            canvas.ontouchend = selectHint;
+        }
+        else {
+			canvas.onmouseup = selectChoice;
+			canvas.ontouchend = selectChoice;
+        }
+    }
+    
+    function setWi(nWidth) {
+    	nextWi = nWidth;
+    	document.getElementById("nwidth").innerHTML = nWidth;
+    }
+    
+    function setHi(nHeight) {
+    	nextHi = nHeight;
+    	document.getElementById("nheight").innerHTML = nHeight;
+    }
+    
+    function myalert(tstring, bstring1, bstring2) {
+    	document.getElementById("alerttext").innerHTML = tstring;
+    	document.getElementById("alertbutton1").value = bstring1;
+    	if (typeof bstring2 == "undefined") {
+    		document.getElementById("alertbutton2").style.visibility = "hidden";
+    	}
+    	else {
+    		document.getElementById("alertbutton2").style.visibility = "visible";
+    		document.getElementById("alertbutton2").value = bstring2;   
+    	} 	
+    	
+    	document.getElementById("alertLayer").style.left = (xsize / 2) - 150;
+    	document.getElementById("alertLayer").style.top = (ysize / 2) - 100;
+    	document.getElementById("alertLayer").style.visibility = "visible";
+       	document.getElementById("alertLayer").style.zIndex = "0";
+    	document.getElementById("gameLayer").style.zIndex = "-1";
+    }
+    
+    function unalert() {
+    	document.getElementById("gameLayer").style.zIndex = "0";
+    	document.getElementById("alertLayer").style.zIndex = "-1";
+    	document.getElementById("alertLayer").style.visibility = "hidden";
+    	document.getElementById("alertbutton2").style.visibility = "hidden";
+    }
+    
+// ------------------------------------------------------------------------------------------------------
+</script>
+
+<style type="text/css"> 
+	canvas { border: 2px solid rgb(20, 120, 200);}
+	#alertLayer {
+    position: absolute;
+    visibility: hidden;
+    top: 130px;
+    left: 200px;
+    width: 300px;
+    height: 200px;
+    background-color: rgba(200,150,80,0.9);
+    border: 16px solid rgba(140,200,100,0.9);
+    z-index: -1;
+    font-size: 20px;
+    border-radius: 10px; }
+</style> 
+</head>
+
+<body onload="init();"> 
+	<div id="gameLayer">
+	<p style="color: white; height: 2">x</p>
+	<canvas id="canvas" width = 600 height = 400></canvas>
+
+    <table border = 0><tr>
+    <td>fill:</td>
+    <td style="color: red; background-color: rgb(220,220,200); font-size: 24"><label>white <input type="radio" style="height:22;width:28" name="colo" id="colo1" value= "white" onclick="colo = 1;"/></label></td>
+    <td width = 6></td>
+    <td style="color: red; background-color: black; font-size: 24"><label>black <input type="radio" style="height:22;width:28" name="colo" id="colo0" checked="checked" value= "black" onclick="colo = 0;"/></label></td>
+    <td width = 6></td>
+    <td><label style="color: yellow; background-color: rgb(100,120,80); font-size: 24">neither <input type="radio" style="height:22;width:28" name="colo" id="colo2" value= "other" onclick="colo = 2;"/></label></td>
+    <td width = 24></td>
+    <td style="font-size:18"><label>hint <input type="checkbox" style="height:14;width:28" onclick="hintOne()" id = "hint"/><label></td>
+    <td width = 16></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="revealPuzzle();" value="solution" /></td>
+	<td width = 60></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,2500);" value="options"></td>
+    </tr></table>
+    
+    <p id="stext1"style="font-size:10px"></p>
+    
+    <table><tr>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="resetPuzzle();" value="reset" /></td>
+	</tr><tr height = 40>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="newPuzzle();" value="new game" /></td>
+	</tr></table>
+	
+    <table border = 0 cellspacing = 0 cellpadding = 0><tr height = 40>
+    <td>width</td>
+    <td width = 4></td>
+    <td id="nwidth" width = 20></td>
+	<td></td>
+    <td><input type="radio" name="wid" value= "5" onclick="setWi(5);"/></td>
+    <td><input type="radio" name="wid" value= "7" onclick="setWi(7);"/></td>
+    <td><input type="radio" name="wid" value= "9" onclick="setWi(9);"/></td>
+    <td><input type="radio" name="wid" value= "11" onclick="setWi(11);"/></td>
+    <td><input type="radio" name="wid" value= "13" onclick="setWi(13);"/></td>
+    <td><input type="radio" name="wid" checked="checked" value= "15" onclick="setWi(15);"/></td>
+    <td><input type="radio" name="wid" value= "17" onclick="setWi(17);"/></td>
+    <td><input type="radio" name="wid" value= "19" onclick="setWi(19);"/></td>
+    <td><input type="radio" name="wid" value= "21" onclick="setWi(21);"/></td>
+    <td><input type="radio" name="wid" value= "23" onclick="setWi(23);"/></td>
+    <td><input type="radio" name="wid" value= "25" onclick="setWi(25);"/></td>
+
+	</tr><tr>
+
+	<td>height</td>
+    <td></td>
+	<td id ="nheight"></td>
+	<td></td>
+    <td><input type="radio" name="hig" value= "4" onclick="setHi(4);"/></td>
+    <td><input type="radio" name="hig" value= "6" onclick="setHi(6);"/></td>
+    <td><input type="radio" name="hig" checked="checked" value= "8" onclick="setHi(8);"/></td>
+    <td><input type="radio" name="hig" value= "10" onclick="setHi(10);"/></td>
+    <td><input type="radio" name="hig" value= "12" onclick="setHi(12);"/></td>
+    <td><input type="radio" name="hig" value= "14" onclick="setHi(14);"/></td>
+    <td><input type="radio" name="hig" value= "16" onclick="setHi(16);"/></td>
+	</tr></table>
+	<p></p>
+	<input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,0);" value="play">
+	</div>
+	
+	<div id="alertLayer">
+	<p id="alerttext" align="center"></p>
+	<p align="center">
+	<input type="button" id="alertbutton1" style="font-size:16px;background-color:white;border-radius:10px" onclick="unalert();">
+	<input type="button" id="alertbutton2" style="font-size:16px;background-color:white;border-radius:10px" onclick="newPuzzle();">
+	</p>
+	</div>
+
+</body>

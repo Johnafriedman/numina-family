@@ -1,0 +1,903 @@
+<!--
+//* All code herein (except where otherwise noted) and all associated graphics
+//* are created by Harriet Lurie, who retains all rights to this content.
+//* merger v: 1.0 (c) Harriet Lurie 2015
+-->
+
+<html>
+<head>
+<!-- this section copied verbatim from Apache: -->
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<link rel="stylesheet" type="text/css" href="css/index.css" />
+<!-- end of Appache code. -->
+
+<title>merger</title> 
+
+<script type="text/javascript"> 
+	var canvas;
+	var ctx;		// the canvas "context"
+	var imageArray;
+	var imsLoaded;
+	var numPics;
+	
+	var puzzleHi;
+	var puzzleWi;
+	var puzzleWiHi;
+	var nextHi;
+	var nextWi;
+	
+	var minX;
+	var minY;
+	var maxX;
+	var maxY;
+	var xsize;
+	var ysize;
+	var puzArray;
+	var xArray;		// these store the screen coordinates of the tiles
+	var yArray;
+	
+	var tysize;
+	var txsize;
+	var xspacing;
+	var yspacing;
+	
+	var aniArray; // an array of arrays
+	var ividArray; // the interval id's for the animations
+
+	var newPlant;
+	
+	var turns;
+	var combos;
+	var best;
+	var ccounts;
+	var ins;
+	var lastLtr;
+	var dowrap;
+	var wraps;
+	
+	var sensorAcc;
+	var acX;
+	var acY;
+	var acZ;
+	
+	function status() {
+		document.getElementById("stext1").innerHTML = puzzleWi + "x" + puzzleHi;
+		document.getElementById("stext2").innerHTML = "turns: " + turns;
+		document.getElementById("stext3").innerHTML = "combinations: " + combos;
+		document.getElementById("stext4").innerHTML = "";
+		if (wraps) {
+			document.getElementById("stext4").innerHTML = "wraps: " + wraps;
+		}
+		
+		tally();
+		
+		c_tx = "<table border = 1><tr><td></td><td>--</td>";		
+		for (ii = 0 ; ii < best ; ii ++) {
+			c_tx = c_tx + "<td>" + String.fromCharCode(65 + ii) + "</td>";
+		}
+		
+		c_tx = c_tx + "</tr><tr><td>current</td>";
+		for (ii = 0 ; ii < best + 1 ; ii ++) {
+			c_tx = c_tx + "<td>" + ccounts[ii] + "</td>";
+		}
+		
+		c_tx = c_tx + "</tr></table>";
+		document.getElementById("ctext").innerHTML = c_tx;
+	}
+
+	function init() {
+		canvas = document.getElementById("canvas");
+        
+        numPics = 27; // the number of image files to load
+            
+        xArray = new Array();
+        yArray = new Array();
+        puzArray = new Array();
+        ividArray = new Array();
+        
+		nextHi = 4;
+		nextWi = 4;
+		ins = 1;
+		dowrap = 0;
+		dlast(26);
+		
+        imageArray = new Array();
+        imsLoaded = 0;
+        for ( izi = 0 ; izi < numPics ; izi++) {
+            imageArray[izi] = new Image();
+            
+            imageArray[izi].onload = function(){
+                // do NOT draw this now!
+                imsLoaded ++;
+                document.getElementById("stext1").innerHTML = "number loaded: " + imsLoaded;
+                if(imsLoaded == numPics) {
+                    // make sure we do this only once
+                    imsLoaded = 99;
+                    newPuzzle();
+                }
+            }
+            imageArray[izi].onerror = function() {
+            	alert("image #" + imsLoaded + " failed to load.");
+            }
+            imageArray[izi].src = "dtiles/tile" + izi + ".png";
+        }
+        
+		if (canvas.getContext) {
+			ctx = canvas.getContext("2d");
+			xsize = innerWidth - 16;
+			ysize = innerHeight - 180;
+			canvas.width = xsize;
+			canvas.height = ysize;
+		}
+		
+		window.onorientationchange = resizzle;
+	}
+
+	function resizzle() {
+        xsize = innerWidth - 16;
+        ysize = innerHeight - 180;
+        canvas.width = xsize;
+        canvas.height = ysize;
+			
+        fillLocArrays();
+        
+		ctx.clearRect(0, 0, xsize, ysize);
+		ctx.fillStyle = "black";
+		ctx.fillRect(minX, minY, maxX, maxY);
+		
+		drawArrows();
+            
+        drawGrid();
+	}
+	
+	function fillLocArrays() {
+		// fill the location arrays:
+		
+		txsize = Math.floor(xsize / (puzzleWi + 2)  - 5);
+		tysize = Math.floor(ysize / (puzzleHi + 2));
+		
+		// they should not be overly distorted:
+		if (txsize > (tysize * 1.5)) { txsize = Math.floor(tysize * 1.5); }
+		if (tysize > (txsize * 1.5)) { tysize = Math.floor(txsize * 1.5); }
+		
+		xspacing = Math.floor(txsize / 8);
+		yspacing = Math.floor(tysize / 6);
+		
+		//minX = 50;
+		minX = Math.floor((xsize - ((txsize + xspacing) * puzzleWi)) / 2) - (xspacing * 5);
+		
+		minY = ysize / ((puzzleHi + 2) * tysize);
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			yp = minY + ((jj + 1) * tysize);
+			for (ii = 0; ii < puzzleWi; ii++) {
+				xp = minX + (ii + 1) * txsize;
+				xArray[kk] = Math.floor(xp);
+				yArray[kk] = Math.floor(yp);
+				
+				kk ++;
+			}
+		}
+		minX += txsize;
+		minY += tysize;
+		maxX = xp + txsize - minX - xspacing;
+		maxY = Math.floor(yp - yspacing);
+	}
+		
+	function newPuzzle() {
+		puzzleWi = nextWi;
+		puzzleHi = nextHi;
+		puzzleWiHi = puzzleWi * puzzleHi;
+		
+		if (ividArray.length) { stopAni(); }
+		
+		// zero the arrays:
+		kk = 0;
+		for (jj = 0; jj < puzzleHi; jj++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+                xArray[kk] = 0;
+                yArray[kk] = 0;
+                puzArray[kk] = 0;
+				kk ++;
+			}
+		}
+		
+		// plant two pieces:
+		kk = Math.floor(Math.random() * puzzleWiHi);
+		puzArray[kk] = 1;
+		kk = (kk + (puzzleWi * 2) + 2) % puzzleWiHi;
+		puzArray[kk] = 1;
+		
+		// fill location arrays:
+		fillLocArrays();
+		
+		ividArray = new Array();
+		aniArray = new Array();
+		
+		unalert();
+		ctx.clearRect(0, 0, xsize, ysize);
+		ctx.fillStyle = "black";
+		ctx.fillRect(minX, minY, maxX, maxY);
+		
+		drawArrows();
+		
+		drawGrid();
+		
+		canvas.onmouseup = selectChoice;
+		canvas.ontouchend = selectChoice;
+		
+		newPlant = -1;
+		turns = 0;
+		combos = 0;
+		best = 1;
+		wraps = 0;
+		status();
+	}
+	
+	function tally() {
+		ccounts = new Array();
+		for (ii = 0 ; ii < numPics ; ii ++) { ccounts.push(0); }
+		for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+			best = Math.max(puzArray[ii], best);
+			ccounts[puzArray[ii]] ++;
+		}
+	}
+	
+    function selectChoice(event) {
+    	event.preventDefault();
+    	var xp = event.pageX - canvas.offsetLeft;
+    	var yp = event.pageY - canvas.offsetTop;
+    	document.getElementById("cootx").innerHTML = "x:" + xp + " ~ y:" + yp;
+    	
+    	if (xp < xArray[0]) { slide(0); }
+    	else {
+    		if (xp > xArray[puzzleWi - 1] + txsize) { slide(1); }
+    		else {
+    			if (yp < yArray[0]) { slide(2); }
+    			else {
+    				if (yp > yArray[puzzleWiHi - 1] + tysize) { slide(3); }
+    			}
+    		}
+    	}
+    }
+    
+    function drawArrows() {
+    	var lx = xArray[puzzleWi - 1] + txsize - xspacing;
+    	var ly = yArray[0] - yspacing;
+    	var la = (xArray[0] + lx) / 2;
+    	
+    	ctx.globalAlpha = 1;
+		ctx.fillStyle = "#eecc66";
+		ctx.lineWidth = 2;
+		
+		anArrow(xArray[0], ly, lx, ly, la, yspacing);
+		
+		ly = yArray[puzzleWiHi - 1] + tysize;
+		anArrow(xArray[0], ly, lx, ly, la, ysize - yspacing);
+		
+		lx = xArray[0] - xspacing;
+		ly = yArray[puzzleWiHi - 1] + tysize - yspacing;
+		la = (ly + yArray[0]) / 2;
+		anArrow(lx, yArray[0], lx, ly, xspacing, la);
+		
+		lx = xArray[puzzleWi - 1] + txsize;
+		anArrow(lx, yArray[0], lx, ly, xsize - xspacing, la);		
+    }
+    
+    function anArrow(x1, y1, x2, y2, x3, y3) {
+		ctx.beginPath();
+		ctx.moveTo(x1, y1);
+		ctx.lineTo(x2, y2);
+		ctx.lineTo(x3, y3);
+		ctx.closePath();
+		ctx.fill();		
+    }
+    
+	function drawGrid() {
+		ctx.globalAlpha = 1;
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+				drawAt(kk, puzArray[kk]);
+				kk ++;
+			}
+		}
+	}
+	
+	function drawAt(gc, tn) {
+		// draw tile type tn at location gc
+		ctx.drawImage(imageArray[tn], xArray[gc], yArray[gc], txsize - xspacing, tysize - yspacing);
+	}
+    
+    function ghosti(gc) {
+    	ctx.globalAlpha = 0.5;
+    	drawAt(gc, 0);
+    	ctx.globalAlpha = 1;
+    }
+	
+	function plant1() {
+		// first make a list of the empty spaces:
+		var p_in;
+		var empties = new Array();
+		for (kk = 0 ; kk < puzzleWiHi ; kk ++) {
+			if (puzArray[kk] == 0) { empties.push(kk); }
+		}
+		
+		// choose from the list:
+		if (empties.length) {
+			kk = Math.floor(Math.random() * empties.length);
+			if (ins > 1) {
+				if (ins > 3) {
+					switch (ins) {
+						case 4:
+							// choose from the lower half of the current tiles:
+							p_in = Math.floor(Math.random() * (best / 2)) + 1;
+							break;
+						case 5:
+							// choose any type that is currently in the puzzle:
+							p_in = Math.floor(Math.random() * best) + 1;
+							break;
+						case 6:
+							// choose from the higher half of the current tiles:
+							p_in = Math.floor( (Math.random() * (best / 2)) + (best / 2) ) + 1;
+							break;
+						case 7:
+							// higest current type:
+							p_in = best;
+							break;
+						case 8:
+							// choose any type that is allowed for this puzzle:
+							p_in = Math.floor(Math.random() * lastLtr) + 1;
+							break;
+					}
+				}
+				else { p_in = Math.floor(Math.random() * ins) + 1; }
+			}
+			else { p_in = 1; }
+			puzArray[empties[kk]] = p_in;
+			// don't draw this yet:
+			newPlant = empties[kk];
+			// drawAt(empties[kk], p_in);
+			
+			return(true);
+		}
+		// return "false" if the puzzle is full:
+		else { return(false); }
+	}
+	
+//	function crunch() {
+//		for (zz = 1; zz < zless.length ; zz ++) {
+//			if (zless[zz] == zless[zz - 1]) {
+//				if (zless[zz] > (lastLtr - 1)) {
+//					if (dowrap) {
+//						zless[zz] = 1;
+//						zless.splice((zz - 1), 1);
+//						combos ++;
+//						wraps ++;
+//					}
+//				}
+//				else {
+//					zless[zz] ++;
+//					zless.splice((zz - 1), 1);
+//					combos ++;
+//				}
+//			}
+//		}
+//	}
+    
+    function slide(dd) {
+    	// dd is the direction
+    	switch (dd) {
+    		case 0:
+    			sLeft();
+    			break;
+    		case 1:
+    			sRight();
+    			break;
+    		case 2:
+    			sUp();
+    			break;
+    		case 3:
+    			sDown();
+    			break;
+    	}
+    	
+    	if (aniArray.length) {
+    		ividArray.push(setInterval(aniFrame, 1));
+    	}
+
+    	if (plant1()) {
+    		turns ++;
+    		status();
+    	}
+    	else { myalert("game over", "continue", "new game"); }
+    }
+    
+    function combo(tty) {
+    	// combine two like tiles, based on the current options
+    	// pass it the current tile type - it returns the resultant tile type
+    	// returns -1 if you have toppped out
+		if (tty > (lastLtr - 1)) {
+			if (dowrap) {
+				combos ++;
+				wraps ++;
+				return(1);
+			}
+			else {
+				// no wrap, and it's the highest letter
+				return(-1);
+			}
+		}
+		else {
+			combos ++;
+			return(tty + 1);
+		}
+    }
+    
+    function sLeft() {
+    	var ii, jj, kk, ss, tt;
+    	var src, dest;
+    	
+    	for (jj = 0 ; jj < puzzleHi ; jj ++) {
+    		for (ii = 1 ; ii < puzzleWi ; ii ++) {
+    			src = ii + (jj * puzzleWi);
+    			dest = src;
+    			kk = puzArray[src];
+    			tt = kk;
+    			if (kk) {
+    				// this space is occupied, look to the left of it:
+    				for (ss = src - 1 ; ss >= (jj * puzzleWi) ; ss --) {
+    					if (puzArray[ss]) {
+    						// a space is occupied, is it the same type of tile?
+    						if (puzArray[ss] == kk) {
+    							tt = combo(kk);
+    							if (tt > -1) {
+    								// they match, combine them:
+    								dest = ss;
+    								ghosti(dest);
+    							}
+    							else {
+    								// they match, but are both the last tile, thus non-combinable without wraparround
+    								ss = -1;
+    								tt = kk;
+    							}
+    						}
+    						else {
+    							// they don't match, stop here:
+    							ss = -1;
+    						}
+    					}
+    					else {
+    						// a vacant space
+    						dest = ss;
+    					}
+    				}
+    				if ((dest < src)) {
+    					puzArray[src] = 0;
+    					ani0(src, dest, tt);
+    					puzArray[dest] = tt;
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    function sRight() {
+    	var ii, jj, kk, ss, tt;
+    	var src, dest;
+    	
+    	for (jj = 0 ; jj < puzzleHi ; jj ++) {
+    		for (ii = puzzleWi - 2 ; ii > -1 ; ii --) {
+    			src = ii + (jj * puzzleWi);
+    			dest = src;
+    			kk = puzArray[src];
+    			tt = kk;
+    			if (kk) {
+    				// this space is occupied, look to the right of it:
+    				for (ss = src + 1 ; ss < ((jj + 1) * puzzleWi) ; ss ++) {
+    					if (puzArray[ss]) {
+    						// a space is occupied, is it the same type of tile?
+    						if (puzArray[ss] == kk) {
+    							tt = combo(kk);
+    							if (tt > -1) {
+    								// they match, combine them:
+    								dest = ss;
+    								ghosti(dest);
+    							}
+    							else {
+    								tt = kk;
+    								ss = puzzleWiHi;
+    							}
+    						}
+    						else {
+    							// they don't match, stop here:
+    							ss = puzzleWiHi;
+    						}
+    					}
+    					else {
+    						// a vacant space
+    						dest = ss;
+    					}
+    				}
+    				if ((dest > src)) {
+    					puzArray[src] = 0;
+    					ani1(src, dest, tt);
+    					puzArray[dest] = tt;
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    function sUp() {
+    	var ii, jj, kk, ss, tt;
+    	var src, dest;
+    	
+    	for (jj = 0 ; jj < puzzleWi ; jj ++) {
+    		for (ii = 1 ; ii < puzzleHi ; ii ++) {
+    			src = jj + (ii * puzzleWi);
+    			dest = src;
+    			kk = puzArray[src];
+    			tt = kk;
+    			if (kk) {
+    				// this space is occupied, look above it:
+    				for (ss = src - puzzleWi ; ss >= 0 ; ss -= puzzleWi) {
+    					if (puzArray[ss]) {
+    						// a space is occupied, is it the same type of tile?
+    						if (puzArray[ss] == kk) {
+    							tt = combo(kk);
+    							if (tt > -1) {
+    								// they match, combine them:
+    								dest = ss;
+    								ghosti(dest);
+    							}
+    							else {
+    								tt = kk;
+    								ss = -1;
+    							}
+    						}
+    						else {
+    							// they don't match, stop here:
+    							ss = -1;
+    						}
+    					}
+    					else {
+    						// a vacant space
+    						dest = ss;
+    					}
+    				}
+    				if ((dest < src)) {
+    					puzArray[src] = 0;
+    					ani2(src, dest, tt);
+    					puzArray[dest] = tt;
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    function sDown() {
+    	var ii, jj, kk, ss, tt;
+    	var src, dest;
+    	
+    	for (jj = 0 ; jj < puzzleWi ; jj ++) {
+    		for (ii = puzzleHi - 2 ; ii >= 0 ; ii --) {
+    			src = jj + (ii * puzzleWi);
+    			dest = src;
+    			kk = puzArray[src];
+    			tt = kk;
+    			if (kk) {
+    				// this space is occupied, look below it:
+    				for (ss = src + puzzleWi ; ss < puzzleWiHi ; ss += puzzleWi) {
+    					if (puzArray[ss]) {
+    						// a space is occupied, is it the same type of tile?
+    						if (puzArray[ss] == kk) {
+    							tt = combo(kk);
+    							if (tt > -1) {
+    								// they match, combine them:
+    								dest = ss;
+    								ghosti(dest);
+    							}
+    							else {
+    								tt = kk;
+    								ss = puzzleWiHi;
+    							}
+    						}
+    						else {
+    							// they don't match, stop here:
+    							ss = puzzleWiHi;
+    						}
+    					}
+    					else {
+    						// a vacant space
+    						dest = ss;
+    					}
+    				}
+    				if ((dest > src)) {
+    					puzArray[src] = 0;
+    					ani3(src, dest, tt);
+    					puzArray[dest] = tt;
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    function ani0(sp, ep, sl) {
+    	// sp=starting point, ep=ending point, sl=tile type, direction 0(left)
+    	var anAr = new Array();
+    	var ii;
+    	
+    	anAr.push(sl); // the #0 element is the tile type
+    	anAr.push(yArray[sp]); // the #1 element is the non-changing coordinate
+    	anAr.push(0); // the #2 element is 0 for horizontal, 1 for vertical
+    	
+    	for (ii = xArray[ep] ; ii < xArray[sp] ; ii++) { anAr.push(ii); }
+    	
+     	if (anAr.length > 3) { aniArray.push(anAr); }
+    }
+    
+    function ani1(sp, ep, sl) {
+    	// sp=starting point, ep=ending point, sl=tile type, direction 1(right)
+    	var anAr = new Array();
+    	var ii;
+    	
+    	anAr.push(sl); // the #0 element is the tile type
+    	anAr.push(yArray[sp]); // the #1 element is the non-changing coordinate
+    	anAr.push(0); // the #2 element is 0 for horizontal, 1 for vertical
+    	
+    	for (ii = xArray[ep] ; ii > xArray[sp] ; ii--) { anAr.push(ii); }
+    	
+     	if (anAr.length > 3) { aniArray.push(anAr); }
+    }
+    
+    function ani2(sp, ep, sl) {
+    	// sp=starting point, ep=ending point, sl=tile type, direction 2(up)
+    	var anAr = new Array();
+    	var ii;
+    	
+    	anAr.push(sl); // the #0 element is the tile type
+    	anAr.push(xArray[sp]); // the #1 element is the non-changing coordinate
+    	anAr.push(1); // the #2 element is 0 for horizontal, 1 for vertical
+    			
+    	for (ii = yArray[ep] ; ii < yArray[sp] ; ii++) { anAr.push(ii); }
+    	
+     	if (anAr.length > 3) { aniArray.push(anAr); }
+    }
+    
+    function ani3(sp, ep, sl) {
+    	// sp=starting point, ep=ending point, sl=tile type, direction 3(down)
+    	var anAr = new Array();
+    	var ii;
+    	
+    	anAr.push(sl); // the #0 element is the tile type
+    	anAr.push(xArray[sp]); // the #1 element is the non-changing coordinate
+    	anAr.push(1); // the #2 element is 0 for horizontal, 1 for vertical
+    	
+    	for (ii = yArray[ep] ; ii > yArray[sp] ; ii--) { anAr.push(ii); }
+    	
+     	if (anAr.length > 3) { aniArray.push(anAr); }
+    }
+        
+    function aniFrame() {
+    	var ii, tty, anA;
+    	if (aniArray.length) {
+    		for (ii = 0 ; ii < aniArray.length ; ii ++) {
+    			anA = aniArray[ii];
+    			tty = anA[0]; // tile type for this animation
+    			if (anA.length > 3) {
+    				if (anA[2]) { ctx.drawImage(imageArray[tty], anA[1], anA.pop(), txsize - xspacing, tysize - yspacing); }
+    				else { ctx.drawImage(imageArray[tty], anA.pop(), anA[1], txsize - xspacing, tysize - yspacing); }
+    			}
+    			else {
+    				aniArray.splice(ii, 1);
+    			}
+    		}
+    	}
+    	else {
+    		stopAni();
+    	}
+    }
+    
+	function stopAni() {
+		while (ividArray.length) {
+			clearInterval(ividArray.pop());
+		}
+		drawGrid();
+		//drawAt(newPlant, puzArray[newPlant]);
+	}
+	
+	function dWi(nn) {
+		nextWi = nn;
+		document.getElementById("witxt").innerHTML = nn;
+	}
+	
+	function dHi(nn) {
+		nextHi = nn;
+		document.getElementById("hitxt").innerHTML = nn;
+	}
+	
+    function dlast(nn) {
+    	lastLtr = nn;
+    	document.getElementById("lastxt").innerHTML = String.fromCharCode(64 + nn);
+    }
+    
+    function dotilt() {
+    	// if selected, turn on device tile mode
+//    	if (document.getElementById("tilty").checked) {
+//    		var options = { frequency: 80 };
+//    		sensorAcc = navigator.accelerometer.watchAcceleration(accelerometerSuccess, accelerometerError, options);
+//   	}
+//   	else {
+//    	}
+    }
+	
+//	function accelerometerError() {
+//       myalert('Failed to load accelerometer!', "continue");
+//    }
+     
+//    function accelerometerSuccess(acceleration) {       
+//        acX = acceleration.x;
+//        acY = acceleration.y;
+//        acZ = acceleration.z;
+//        document.getElementById("cootx").innerHTML = "x:" + acX + " y:" + acY + " z:" + acZ;
+//    }
+
+    function myalert(tstring, bstring1, bstring2) {
+    	document.getElementById("alerttext").innerHTML = tstring;
+    	document.getElementById("alertbutton1").value = bstring1;
+    	if (typeof bstring2 == "undefined") {
+    		document.getElementById("alertbutton2").style.visibility = "hidden";
+    	}
+    	else {
+    		document.getElementById("alertbutton2").style.visibility = "visible";
+    		document.getElementById("alertbutton2").value = bstring2;   
+    	} 	
+    	
+    	document.getElementById("alertLayer").style.left = (xsize / 2) - 150;
+    	document.getElementById("alertLayer").style.top = (ysize / 2) - 100;
+    	document.getElementById("alertLayer").style.visibility = "visible";
+       	document.getElementById("alertLayer").style.zIndex = "1";
+    	document.getElementById("canvas").style.zIndex = "0";
+    }
+    
+    function unalert() {
+    	document.getElementById("canvas").style.zIndex = "1";
+   		document.getElementById("alertLayer").style.zIndex = "-1";
+    	document.getElementById("alertLayer").style.visibility = "hidden";
+    	document.getElementById("alertbutton2").style.visibility = "hidden";
+    }
+
+</script>
+
+<style type="text/css"> 
+	#canvas {
+	border: 2px solid rgb(20, 120, 200);
+	z-index:1}
+	
+	#alertLayer {
+    position: absolute;
+    visibility: hidden;
+    width: 300px;
+    height: 120px;
+    background-color: rgba(200,150,80,0.9);
+    border: 16px solid rgba(140,200,100,0.9);
+    z-index: -1;
+    font-size: 20px;
+    border-radius: 10px; }
+</style> 
+</head>
+
+<body onload="init();"> 
+	<div id="gameLayer">
+	<p style="visibility: hidden; height: 2">x</p>
+	<canvas id="canvas"></canvas>
+    <table border = 0><tr>
+    <td id="stext1" style="color:rgb(250,50,100);font-size:16px"></td>
+    <td id="stext2"></td>
+    <td id="stext3"></td>
+    <td id="stext4"></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,2500);" value="options"></td>
+    </tr></table>
+    <p id="ctext" style="height:40"></p>
+    <table><tr style="height:60">
+    <td id="cootx" style="color:rgb(250,50,100);font-size:16px"></td>
+    <td width=40><input type="button" style="height:24px;font-size:16px" onclick="slide(0);" value="<" /></td>
+    <td width=40><input type="button" style="height:24px;font-size:16px" onclick="slide(2);" value="^" /></td>
+    <td width=40><input type="button" style="height:24px;font-size:16px" onclick="slide(3);" value="v" /></td>
+    <td><input type="button" style="height:24px;font-size:16px" onclick="slide(1);" value=">" /></td>
+    </tr></table>
+
+    <table border = 0><tr style="height:40">
+    <td><input type="button" style="height:24px;font-size:16px" onclick="newPuzzle();" value="new game" /></td>
+    <td><label>tilt mode<input type="checkbox" id="tilty" onclick="dotilt();"/></label></td>
+    <td><input type="button" style="height:24px;font-size:16px;color:rgb(200,100,50)" onclick="drawGrid();" value="fix"></td></tr></table>
+    <table border = 0><tr>
+    <td>introduced pieces:</td>
+    <td><label>A <input type="radio" name="ins" checked="checked" value= "1" onclick="ins = 1;"/></label></td>
+    <td><label>A,B <input type="radio" name="ins" value= "2" onclick="ins = 2;"/></label></td>
+    <td><label>A,B,C <input type="radio" name="ins" value= "3" onclick="ins = 3;"/></label></td>
+    </tr></table><table border = 0><tr><td width=30></td>
+    <td><label>first half <input type="radio" name="ins" value= "4" onclick="ins = 4;"/></label></td>
+    <td><label>any current <input type="radio" name="ins" value= "5" onclick="ins = 5;"/></label></td>
+    <td><label>last half <input type="radio" name="ins" value= "6" onclick="ins = 6;"/></label></td>
+    </tr></table><table border = 0><tr><td width=30></td>
+    <td><label>highest current <input type="radio" name="ins" value= "7" onclick="ins = 7;"/></label></td>
+    <td><label>any <input type="radio" name="ins" value= "8" onclick="ins = 8;"/></label></td>
+    </tr></table>
+    
+	<table border = 0><tr style="height:40">
+    <td>width</td>
+    <td width=24><p id="witxt">4</p></td>
+    <td><input type="radio" name="wid" value= "2" onclick="dWi(2);"/></td>
+    <td><input type="radio" name="wid" value= "3" onclick="dWi(3);"/></td>
+    <td><input type="radio" name="wid" checked="checked" value= "4" onclick="dWi(4);"/></td>
+    <td><input type="radio" name="wid" value= "5" onclick="dWi(5);"/></td>
+    <td><input type="radio" name="wid" value= "6" onclick="dWi(6);"/></td>
+    <td><input type="radio" name="wid" value= "7" onclick="dWi(7);"/></td>
+    <td><input type="radio" name="wid" value= "8" onclick="dWi(8);"/></td>
+ 	<td></td></tr>
+	<tr style="height:40"><td>height</td>
+    <td width=24><p id="hitxt">4</p></td>
+    <td><input type="radio" name="hig" value= "2" onclick="dHi(2);"/></td>
+    <td><input type="radio" name="hig" value= "3" onclick="dHi(3);"/></td>
+    <td><input type="radio" name="hig" checked="checked" value= "4" onclick="dHi(4);"/></td>
+    <td><input type="radio" name="hig" value= "5" onclick="dHi(5);"/></td>
+    <td><input type="radio" name="hig" value= "6" onclick="dHi(6);"/></td>
+    <td><input type="radio" name="hig" value= "7" onclick="dHi(7);"/></td>
+    <td><input type="radio" name="hig" value= "8" onclick="dHi(8);"/></td>
+	<td></td>
+	</tr></table>
+	
+	<p height = 40></p>
+	<table border = 0><tr>
+	<td width=40>last letter:</td>
+	<td><p id="lastxt"></p></td>
+	<td width=10></td>
+	<td><input type="radio" name="last" value= "2" onclick="dlast(2);"/></td>
+	<td><input type="radio" name="last" value= "3" onclick="dlast(3);"/></td>
+	<td><input type="radio" name="last" value= "4" onclick="dlast(4);"/></td>
+	<td><input type="radio" name="last" value= "5" onclick="dlast(5);"/></td>
+	<td><input type="radio" name="last" value= "6" onclick="dlast(6);"/></td>
+	<td><input type="radio" name="last" value= "7" onclick="dlast(7);"/></td>
+	<td><input type="radio" name="last" value= "8" onclick="dlast(8);"/></td>
+	<td><input type="radio" name="last" value= "9" onclick="dlast(9);"/></td>
+	</tr><tr><td></td><td></td><td></td>
+	<td><input type="radio" name="last" value= "10" onclick="dlast(10);"/></td>
+	<td><input type="radio" name="last" value= "11" onclick="dlast(11);"/></td>
+	<td><input type="radio" name="last" value= "12" onclick="dlast(12);"/></td>
+	<td><input type="radio" name="last" value= "13" onclick="dlast(13);"/></td>
+	<td><input type="radio" name="last" value= "14" onclick="dlast(14);"/></td>
+	<td><input type="radio" name="last" value= "15" onclick="dlast(15);"/></td>
+	<td><input type="radio" name="last" value= "16" onclick="dlast(16);"/></td>
+	<td><input type="radio" name="last" value= "17" onclick="dlast(17);"/></td>
+	<td><input type="radio" name="last" value= "18" onclick="dlast(18);"/></td>
+	</tr><tr><td></td><td></td><td></td>
+	<td><input type="radio" name="last" value= "19" onclick="dlast(19);"/></td>
+	<td><input type="radio" name="last" value= "20" onclick="dlast(20);"/></td>
+	<td><input type="radio" name="last" value= "21" onclick="dlast(21);"/></td>
+	<td><input type="radio" name="last" value= "22" onclick="dlast(22);"/></td>
+	<td><input type="radio" name="last" value= "23" onclick="dlast(23);"/></td>
+	<td><input type="radio" name="last" value= "24" onclick="dlast(24);"/></td>
+	<td><input type="radio" name="last" value= "25" onclick="dlast(25);"/></td>
+	<td><input type="radio" name="last" checked="checked" value= "26" onclick="dlast(26);"/></td>
+	</tr></table>
+	<table><tr style="height:40">
+	<td><label>wrap <input type="radio" name="worp" value="1" onclick="dowrap = 1;"></label></td>
+	<td><label>plateau <input type="radio" name="worp" checked="checked" value="0" onclick="dowrap = 0;"></label></td>
+	</tr></table>
+	<p style="height:40"><input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,0);" value="play"></p>
+	</div>
+	
+	<div id="alertLayer">
+	<p id="alerttext" align="center"></p>
+	<p align="center">
+	<input type="button" id="alertbutton1" style="font-size:16px;background-color:white;border-radius:10px" onclick="unalert();">
+	<input type="button" id="alertbutton2" style="font-size:16px;background-color:white;border-radius:10px" onclick="newPuzzle();">
+	</p>
+	</div>
+</body>

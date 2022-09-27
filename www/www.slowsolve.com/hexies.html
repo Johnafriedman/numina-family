@@ -1,0 +1,803 @@
+<!--
+//* All code herein (except where otherwise noted) and all associated graphics
+//* are created by Harriet Lurie, who retains all rights to this content.
+//* hexiess v: 1.0 (c) Harriet Lurie 2015
+-->
+
+<html>
+<head>
+<!-- this section copied verbatim from Apache: -->
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<link rel="stylesheet" type="text/css" href="css/index.css" />
+<!-- end of Appache code. -->
+<title>hexies</title> 
+    
+<script type="text/javascript"> 
+	var canvas;
+	var ctx;		// the canvas "context"
+	var xsize;
+	var ysize;
+
+	var imageArray; // full of pictures of dots
+    var imsLoaded;
+    
+	var puz_array;  // full of numbers representing mines, neighbors
+	var hex_array;  // full of pointers to images
+    var x_array;    // full of x locations of images
+    var y_array;    // full of y locations of images
+    var counts_array;   // full of totals for each type of tile in the puzzle
+    var remaining_array; // full of the counts of each type of tile still covered
+    
+	var wid;
+	var hig;
+    var windent;
+    var hindent;
+	var minX;
+	var minY;
+	var maxX;
+	var maxY;
+
+    var hexXsize;
+    var hexYsize;
+    
+	var mines;
+	var remain;
+	var fin;
+    
+    var oldHi;
+    
+    var myClicks;
+    var myHints;
+    var myXposed;
+    
+    var nextHig;
+    var nextWid;
+    
+    var status_txt;
+
+	function init() {
+		canvas = document.getElementById("canvas");
+        
+		minX = 2;
+		maxX = 46;
+		minY = 2;
+		maxY = 35;
+		hig = 7;
+		wid = 24;
+        nextHig = hig;
+        nextWid = wid;
+        document.getElementById("wtext").innerHTML = "width: " + nextWid;
+		document.getElementById("wid" + nextWid).checked = true;
+        document.getElementById("htext").innerHTML = "height: " + nextHig;
+		document.getElementById("hig" + nextHig).checked = true;
+        windent = 3;
+        hindent = 2;
+        
+        imageArray = new Array();
+        imsLoaded = 0;
+        for (ii = 0 ; ii < 11 ; ii++) {
+            imageArray[ii] = new Image();
+        
+            imageArray[ii].onload = function(){
+                // do NOT draw this now!
+                imsLoaded ++;
+
+                if(imsLoaded == 10) {
+                    // make sure we do this only once
+                    imsLoaded = 99;
+                    newPuzzle();
+                }
+            }
+            
+            if (ii < 9) {
+                imageArray[ii].src = "hexs/dots" + ii + ".png"; }
+            else {
+                if (ii < 10) {
+                    imageArray[ii].src = "hexs/cover.png"; }
+                else {
+                    imageArray[ii].src = "hexs/coverhi.png"; }
+                }
+        }
+
+		if (canvas.getContext) {
+			ctx = canvas.getContext("2d");
+			xsize = innerWidth - 32;
+			ysize = innerHeight - 220;
+			canvas.width = xsize;
+			canvas.height = ysize;
+            newPuzzle();
+		}
+		window.onorientationchange = resizzle;
+	}
+	
+	function resizzle() {
+            xsize = innerWidth - 32;
+            ysize = innerHeight - 220;
+            canvas.width = xsize;
+            canvas.height = ysize;
+        	redrawPuzzle();
+	}
+
+    function status() {
+        nm = mines - 1;
+        document.getElementById("stt1").innerHTML = "width: " + wid;
+        document.getElementById("stt2").innerHTML = "height: " + hig;
+        document.getElementById("stt3").innerHTML = "mines: " + nm;
+        if (myHints) { document.getElementById("stt4").innerHTML = "hints: " + myHints; }
+        else { document.getElementById("stt4").innerHTML =""; }
+        if (myXposed) { document.getElementById("stt5").innerHTML = "Xposure: " + myXposed; }
+        else { document.getElementById("stt5").innerHTML =""; }
+        document.getElementById("stt6").innerHTML = "moves: " + myClicks;
+        
+        status_txt = "<table border=1><tr><td>hexagon value</td><td>--0--</td><td>--1--</td>";
+        status_txt = status_txt + "<td>--2--</td><td>--3--</td><td>--4--</td><td>--5--</td><td>--6--</td>";
+        status_txt = status_txt + "<td>--total--</td></tr><tr><td>total number</td>";
+        for (ixx = 0 ; ixx < 7 ; ixx ++) {
+            status_txt = status_txt + "<td>" + counts_array[ixx] + "</td>";
+        }
+        status_txt = status_txt + "<td>" + ((wid * hig) - nm) + "</td></tr><tr><td>number remaining hidden</td>";
+        for (ixx = 0 ; ixx < 7 ; ixx ++) {
+            status_txt = status_txt + "<td>" + remaining_array[ixx] + "</td>";
+        }
+        status_txt = status_txt + "<td>" + (remain - nm) + "</td></tr></table><p></p>";
+        //status_txt = status_txt + "width:" + nextWid + "... height:" + nextHig;
+
+        document.getElementById("stext").innerHTML = status_txt;
+        
+        // ghost out the "zero move" button if there are no zero moves:
+        if (remaining_array[0]) { document.getElementById("zeroButton").disabled = false; }
+        else { document.getElementById("zeroButton").disabled = true; }
+    }
+
+	function newPuzzle() {
+		fin = false;
+        wid = nextWid;
+        hig = nextHig;
+        
+		hex_array = new Array();
+		puz_array = new Array();
+        x_array = new Array();
+        y_array = new Array();
+        counts_array = new Array();
+        remaining_array = new Array();
+        
+        unalert();
+        ctx.clearRect(0, 0, xsize, ysize);
+		makePuzzle(wid, hig);
+		honeyComb(wid / 2, hig);
+        
+        canvas.onmouseup = selectHex;
+        canvas.onmousemove = moHiHex;
+        
+        canvas.ontouchend = selectHex;
+        canvas.ontouchmove = moHiHex;
+
+        myClicks = 0;
+        myHints = 0;
+        myXposed = 0;
+        countEveryNumber();
+        status();
+        document.getElementById("concealButton").disabled = true;
+	}
+
+	function makePuzzle(wi, hi) {
+		// zero the arrays:
+		k = 0;
+		for (j = 0; j < hi; j++) {
+			for (i = 0; i < wi; i++) {
+				puz_array[k] = 0;
+                x_array[k] = 0;
+                y_array[k] = 0;
+				k ++;
+			}
+		}
+		remain = k;
+
+		// plant random "mines":
+		mines = Math.floor(wi * hi / 4);
+		if (mines < 2) { mines = 2; }
+
+		for (i = 1; i < mines; i++) {
+			//mm = random(wi * hi) - 1;
+			mm = Math.floor(Math.random()*(wi * hi)) - 1;
+            if (puz_array[mm] < 8) {
+                puz_array[mm] = 8;
+                // increment the neighbors:
+                //above
+                if (mm - wi > -1) { puz_array[mm - wi] ++; }
+                //below
+                if (mm < (wi * hi)) { puz_array[mm + wi] ++; }
+                
+                if (mm % 2) {
+                    //below-left(oddX)
+                    if ( mm < wi * hi ) { puz_array[mm + wi - 1] ++; }
+					//below-right(oddX)
+					if ( mm < (wi * hi) && ((mm + 1) % wi > 0) ) { puz_array[mm + wi + 1] ++; }
+					//above-left(oddX)
+					puz_array[mm - 1] ++;
+					//above-right(oddX)
+					if ((mm + 1) % wi > 0) { puz_array[mm + 1] ++; }
+				}
+				else {
+					//above-left(evenX)
+					if ((mm % wi > 0) && (mm > wi)) { puz_array[mm - wi - 1] ++; }
+					//above-right(evenX)
+					if (((mm + 1) % wi > 0) && (mm - wi > -1)) { puz_array[mm - wi + 1] ++; }
+					//below-left(evenX)
+					if (mm % wi > 0) { puz_array[mm - 1] ++; }
+					//below-right(evenX)
+					puz_array[mm + 1] ++;
+				}
+			}
+			else {
+				i --;
+			}
+		}
+
+		// draw the hexagons, and store their locations:
+		hexXsize = Math.floor(xsize / (wi + 4));
+		hexYsize = Math.floor((ysize - 30) / (hi + 4));
+		// limit the distortion of the hexagons:
+		if (hexXsize > (hexYsize * 2)) { hexXsize = hexYsize * 2; }
+		if (hexYsize > (hexXsize * 2)) { hexYsize = hexXsize * 2; }
+		
+		for (k = 0; k < wi * hi; k ++) {
+			i = k % wi;
+			j = Math.floor(k / wi);
+			xp = Math.floor((i + 2) * hexXsize + (hexXsize / 3));
+			
+			yp = Math.floor((j + 1) * hexYsize + (hexYsize / 2));
+			if (k % 2) { // odd:
+				yp = Math.floor(yp + (hexYsize / 2));
+			}
+			sn = puz_array[k];
+			if (sn > 6) { sn = 8; }
+            x_array[k] = xp;
+            y_array[k] = yp;
+            hex_array[k] = imageArray[sn];
+            
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = "source-over";
+            // since these will be covered, there is no need to draw the dots:
+            ctx.drawImage(imageArray[0], xp, yp, (hexXsize * 4 / 3), hexYsize);
+		}
+        
+        status();
+	}
+
+	function honeyComb(wi, hi) {
+        // this covers the "dot" tiles with the "cover"
+        wi = wi * 2;
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+        for (k = 0; k < wi * hi; k++) {
+            hex_array[k] = imageArray[9];
+            ctx.drawImage(hex_array[k], (x_array[k] + windent), (y_array[k] + hindent), (hexXsize * 4 / 3) - (windent * 2), hexYsize - (hindent * 2));
+        }
+        oldHi = 0;
+	}
+    
+    function redrawPuzzle() {
+		hexXsize = Math.floor(xsize / (wid + 4));
+		hexYsize = Math.floor((ysize - 30) / (hig + 4));
+		// limit the distortion of the hexagons:
+		if (hexXsize > (hexYsize * 2)) { hexXsize = hexYsize * 2; }
+		if (hexYsize > (hexXsize * 2)) { hexYsize = hexXsize * 2; }
+        
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+        
+        for (k = 0; k < wid * hig; k++) {
+			i = k % wid;
+			j = Math.floor(k / wid);
+			xp = Math.floor((i + 2) * hexXsize + (hexXsize / 3));
+			yp = Math.floor((j + 1) * hexYsize + (hexYsize / 2));
+			if (k % 2) { // odd:
+				yp = Math.floor(yp + (hexYsize / 2));
+			}
+            x_array[k] = xp;
+            y_array[k] = yp;
+            
+            if ( (hex_array[k] == imageArray[9]) || (hex_array[k] == imageArray[10]) ) {
+                // draw a hex:
+                ctx.drawImage(imageArray[0], xp, yp, (hexXsize * 4 / 3), hexYsize);
+                // draw the cover:
+                ctx.drawImage(hex_array[k], (xp + windent), (yp + hindent), (hexXsize * 4 / 3) - (windent * 2), hexYsize - (hindent * 2));
+            }
+            else {
+                // draw the "dots":
+                ctx.drawImage(hex_array[k], xp, yp, (hexXsize * 4 / 3), hexYsize);
+            }
+        }
+        document.getElementById("concealButton").disabled = true;
+    }
+
+    function showDots(ix) {
+        sn = puz_array[ix];
+        if (sn > 6) {
+            sn = 8;
+            remain ++;
+        }
+        else {
+            remaining_array[sn] --;
+        }
+        
+        hex_array[ix] = imageArray[sn];
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+        
+        ctx.drawImage(hex_array[ix], x_array[ix], y_array[ix], (hexXsize * 4 / 3), hexYsize);
+    }
+    
+    function countEveryNumber() {
+        for (k = 0 ; k < 7 ; k++) { 
+            remaining_array[k] = 0;
+            counts_array[k] = 0;
+        }
+        for (k = 0; k < wid * hig; k++) {
+            l = puz_array[k];
+            if (l < 7) {
+                remaining_array[l] ++;
+                counts_array[l] ++;
+            }
+        }
+    }
+    
+
+	function zudIt(cc) {
+        if (cc < hex_array.length) {
+            if ((hex_array[cc] == imageArray[9]) || (hex_array[cc] == imageArray[10]) ) {            
+                showDots(cc);
+
+                remain --;
+                status();
+
+                if (remain < mines) { fin = true; }
+                else {
+                    if (puz_array[cc] < 1) {
+                        clearAbout(cc);
+                    } 
+                }
+            }
+        }
+	}
+
+	function clearAbout(cen) {
+		//above
+		if (cen - wid > -1) { zudIt(cen - wid); }
+		//below
+		if (cen < (wid * hig)) { zudIt(cen + wid); }
+		if (cen % 2) {
+			//below-left(oddX)
+			if (cen < (wid * hig)) { zudIt(cen + wid - 1); }
+			//below-right(oddX)
+			if (cen < (wid * hig) && ((cen + 1) % wid > 0)) { zudIt(cen + wid + 1); }
+			//above-left(oddX)
+			zudIt(cen - 1);
+			//above-right(oddX)
+			if ((cen + 1) % wid > 0) { zudIt(cen + 1); }
+		}
+		else {
+			//above-left(evenX)
+			if ((cen % wid > 0) && (cen > wid)) { zudIt(cen - wid - 1); }
+			//above-right(evenX)
+			if (((cen + 1) % wid > 0) && (cen - wid > -1)) { zudIt(cen - wid + 1); }
+			//below-left(evenX)
+			if (cen % wid > 0) { zudIt(cen - 1); }
+			//below-right(evenX)
+			zudIt(cen + 1);
+		}
+	}
+        
+    function hiHex(num) {
+        loHex(oldHi);
+        if (hex_array[num] == imageArray[9]) {
+            hex_array[num] = imageArray[10];
+            ctx.drawImage(hex_array[num], (x_array[num] + windent), (y_array[num] + hindent), (hexXsize * 4 / 3) - (windent * 2), hexYsize - (hindent * 2));
+            oldHi = num;
+        }
+    }
+    function loHex(num) {
+        if (hex_array[num] == imageArray[10]) {
+            hex_array[num] = imageArray[9];
+            ctx.drawImage(hex_array[num], (x_array[num] + windent), (y_array[num] + hindent), (hexXsize * 4 / 3) - (windent * 2), hexYsize - (hindent * 2));
+        }
+    }
+
+    function moHiHex(event) {
+    	event.preventDefault();
+        var tile = getMyHex(event.pageX, event.pageY);
+        if ((tile > -1) && (tile < hex_array.length)) {
+            hiHex(tile); }
+    }
+
+    function wigLoHex(num) {
+        ctx.globalCompositeOperation = "source-over";
+        loHex(num);
+        if (hex_array[num] == imageArray[9]) {
+        ctx.drawImage(imageArray[0], (x_array[num]), (y_array[num]), (hexXsize * 4 / 3), hexYsize);
+        ctx.drawImage(hex_array[num], (x_array[num] + windent), (y_array[num] + hindent), (hexXsize * 4 / 3) - (windent * 2), hexYsize - (hindent * 2));
+        }
+        else {
+        ctx.drawImage(hex_array[num], (x_array[num]), (y_array[num]), (hexXsize * 4 / 3), hexYsize);
+        }
+    }
+    
+    function wigHiHex(num) {
+        wigLoHex(oldHi);
+        ctx.globalCompositeOperation = "xor";
+        ctx.drawImage(imageArray[9], (x_array[num]), (y_array[num]), (hexXsize * 4 / 3), hexYsize);
+        oldHi = num;
+    }
+    
+    function woHiHex(event) {
+    	event.preventDefault();
+        var tile = getMyHex(event.pageX, event.pageY);
+        if ((tile > -1) && (tile < hex_array.length)) {
+            wigHiHex(tile); }
+    }
+
+    function selectHex(event) {
+    	event.preventDefault();
+        var tile = getMyHex(event.pageX, event.pageY);
+        if (tile != -1) {
+            if ((hex_array[tile] == imageArray[9]) || (hex_array[tile] == imageArray[10]) ) {
+                myClicks ++;
+                if (puz_array[tile] > 7) {
+                    myXposed ++;
+                }
+                status();
+            }
+            zudIt(tile);
+            if (fin) {
+                revealPuz();
+                status();
+                canvas.onmousemove = 0;
+                canvas.ontouchmove = 0;
+
+            }
+        }
+    }
+    
+    function selectChoice(event) {
+    	event.preventDefault();
+        var tile = getMyHex(event.pageX, event.pageY);
+        if (tile != -1) {
+            //make a list of the neighbors:
+            tArray = new Array();
+            tArray.push(tile);
+            //above
+            if (tile - wid > -1) { tArray.push(tile - wid); }
+            //below
+            if (tile < (wid * hig)) { tArray.push(tile + wid); }
+            
+            if (tile % 2) {
+                //below-left(oddX)
+                if ( tile < wid * hig ) { tArray.push(tile + wid - 1); }
+                //below-right(oddX)
+                if ( tile < (wid * hig) && ((tile + 1) % wid > 0) ) { tArray.push(tile + wid + 1); }
+                //above-left(oddX)
+                tArray.push(tile - 1);
+                //above-right(oddX)
+                if ((tile + 1) % wid > 0) { tArray.push(tile + 1); }
+            }
+            else {
+                //above-left(evenX)
+                if ((tile % wid > 0) && (tile > wid)) { tArray.push(tile - wid - 1); }
+                //above-right(evenX)
+                if (((tile + 1) % wid > 0) && (tile - wid > -1)) { tArray.push(tile - wid + 1); }
+                //below-left(evenX)
+                if (tile % wid > 0) { tArray.push(tile - 1); }
+                //below-right(evenX)
+                tArray.push(tile + 1);
+            }
+            
+            // use this array to choose a "cheat" move:
+            rc = Math.floor(Math.random()*(tArray.length)) - 1;
+            for(i = 0 ; i < tArray.length ; i ++) {
+                ii = (i + rc) % tArray.length;
+                wigLoHex(tArray[ii]);
+                if ( (puz_array[tArray[ii]] < 7) && ( hex_array[tArray[ii]] == imageArray[9] ) ){
+                    zudIt(tArray[ii]);
+                    //i = tArray.length + 9;
+                    myHints ++;
+                    status();
+                    canvas.onmouseup = selectHex;
+                    canvas.onmousemove = moHiHex;
+                    
+                    canvas.ontouchend = selectHex;
+        			canvas.ontouchmove = moHiHex;
+
+                    document.getElementById("which").checked = false;
+                    if (fin) {
+                        revealPuz();
+                        canvas.onmousemove = 0;
+                        canvas.ontouchmove = 0;
+                    }
+                }
+            }
+        }
+    }
+        
+    function getMyHex(xp, yp) {
+        // take the xp, yp and return the hex's number (or -1 if there is no tile there):
+        //re-center:
+        //xp -= (hexXsize / 3);
+        xp -= hexXsize;
+        yp -= (hexYsize / 4);
+
+  
+        xp = (Math.floor(xp / hexXsize) - 2);
+        yp = (Math.floor(yp / hexYsize) - 2);        
+        
+        if ((xp > wid - 1) || (yp > hig - 1) || (xp < 0) || (yp < 0))  {
+            rv = -1;
+        }
+        else {
+            rv = xp;
+            rv += (wid * yp);
+        }
+        
+        return(rv);
+    }
+    
+
+	function safeMove() {
+		if (! fin) {
+			mm = Math.floor(Math.random()*(wid * hig));
+            loHex(mm);
+			while ((puz_array[mm] > 7) || (hex_array[mm] != imageArray[9])) {
+                mm = (mm + 1) % (wid * hig);
+                loHex(mm);
+            }
+			zudIt(mm);
+            myHints ++;
+            status();
+			if (fin) {
+				revealPuz();
+                canvas.onmousemove = 0;
+                canvas.ontouchmove = 0;
+			}
+		}
+	}
+    
+    function safeZeroMove() {
+        if ( (remaining_array[0]) && (! fin) ) {
+			mm = Math.floor(Math.random()*(wid * hig));
+            loHex(mm);
+			//while ((puz_array[mm]) || (hex_array[mm].src != imageArray[9].src)) { REPLACED with:
+ 			while ((puz_array[mm]) || (hex_array[mm] != imageArray[9])) {
+                mm = (mm + 1) % (wid * hig);
+                loHex(mm);
+            }
+			zudIt(mm);
+            myHints ++;
+            status();
+			if (fin) {
+				revealPuz();
+                canvas.onmousemove = 0;
+                canvas.ontouchmove = 0;
+			}
+        }
+    }
+
+	function revealPuz() {
+		k = 0;
+        ctx.globalAlpha = 0.5;
+        ctx.globalCompositeOperation = "source-over";
+        
+		while (k < hex_array.length) {
+            if ( (hex_array[k] == imageArray[9]) || (hex_array[k] == imageArray[10]) ) {
+                sn = puz_array[k];
+                if (sn > 6) { sn = 8; }
+                oldsrc = hex_array[k];
+                hex_array[k] = imageArray[sn];
+                
+                ctx.drawImage(hex_array[k], x_array[k], y_array[k], (hexXsize * 4 / 3), hexYsize);
+                hex_array[k] = oldsrc;
+           }
+            k ++;
+		}
+		document.getElementById("concealButton").disabled = false;
+		if (fin) { myalert("You Won", "continue", "new game"); }
+		else { myalert("Game Ended", "continue", "new game"); }
+	}
+
+	function setWid(nxw) {
+		nextWid = nxw;
+		status();
+        document.getElementById("wtext").innerHTML = "width: " + nextWid;
+	}
+	function reduceWidth() {
+		nextWid -= 2;
+		if (nextWid < minX) { nextWid = minX; }
+        status();
+        document.getElementById("wid" + nextWid).checked = true;
+        document.getElementById("wtext").innerHTML = "width: " + nextWid;
+	}
+	function increaseWidth() {
+		nextWid += 2;
+		if (nextWid > maxX) { nextWid = maxX; }
+        status();
+        document.getElementById("wid" + nextWid).checked = true;
+        document.getElementById("wtext").innerHTML = "width: " + nextWid;
+	}
+	function setHig(nxw) {
+		nextHig = nxw;
+		status();
+        document.getElementById("htext").innerHTML = "height: " + nextHig;
+	}
+	function reduceHeight() {
+		nextHig --;
+		if (nextHig < minY) { nextHig = minY; }
+        status();
+        document.getElementById("hig" + nextHig).checked = true;
+        document.getElementById("htext").innerHTML = "height: " + nextHig;
+	}
+	function increaseHeight() {
+		nextHig ++;
+		if (nextHig > maxY) { nextHig = maxY; }
+        status();
+        document.getElementById("hig" + nextHig).checked = true;
+        document.getElementById("htext").innerHTML = "height: " + nextHig;
+	}
+	    
+    function whichOne() {
+        if (document.getElementById("which").checked) {
+            canvas.onmouseup = selectChoice;        
+            canvas.onmousemove = woHiHex;
+            
+            canvas.ontouchend = selectChoice;
+        	canvas.ontouchmove = woHiHex;
+        }
+        else {
+            wigLoHex(oldHi);
+            canvas.onmouseup = selectHex;        
+            canvas.onmousemove = moHiHex;
+            
+        	canvas.ontouchend = selectHex;
+        	canvas.ontouchmove = moHiHex;
+        }
+    }
+    
+    
+    function myalert(tstring, bstring1, bstring2) {
+    	document.getElementById("alerttext").innerHTML = tstring;
+    	document.getElementById("alertbutton1").value = bstring1;
+    	if (typeof bstring2 == "undefined") {
+    		document.getElementById("alertbutton2").style.visibility = "hidden";
+    	}
+    	else {
+    		document.getElementById("alertbutton2").style.visibility = "visible";
+    		document.getElementById("alertbutton2").value = bstring2;   
+    	} 	
+    	
+    	document.getElementById("alertLayer").style.left = (xsize / 2) - 150;
+    	document.getElementById("alertLayer").style.top = (ysize / 2) - 100;
+    	document.getElementById("alertLayer").style.visibility = "visible";
+       	document.getElementById("alertLayer").style.zIndex = "0";
+    	document.getElementById("gameLayer").style.zIndex = "-1";
+    }
+    
+    function unalert() {
+    	document.getElementById("gameLayer").style.zIndex = "0";
+    	document.getElementById("alertLayer").style.zIndex = "-1";
+    	document.getElementById("alertLayer").style.visibility = "hidden";
+    	document.getElementById("alertbutton2").style.visibility = "hidden";
+    }
+    
+
+// ------------------------------------------------------------------------------------------------------
+</script>
+
+<style type="text/css"> 
+	canvas { border: 2px solid rgb(20, 120, 200);}
+	#alertLayer {
+    position: absolute;
+    visibility: hidden;
+    top: 130px;
+    left: 200px;
+    width: 300px;
+    height: 120px;
+    background-color: rgba(200,230,240,0.9);
+    border: 16px solid rgba(100,180,200,0.9);
+    z-index: -1;
+    font-size: 20px;
+    border-radius: 10px; }
+</style> 
+
+</head>
+
+<body onload="init();"> 
+	<div id="gameLayer">
+	<p style="color: white; height: 2">x</p>
+	<canvas id="canvas" width = 600 height = 400></canvas>
+    <table border = 0><tr>
+    <td id="stt1"></td>
+    <td width=10></td>
+    <td id="stt2"></td>
+    <td width=10></td>
+    <td id="stt3"></td>
+    <td width=30></td>
+    <td id="stt4"></td>
+    <td width=10></td>
+    <td id="stt5"></td>
+    <td width=30></td>
+    <td id="stt6"></td>
+    <td width=30></td>
+    <td><input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,2500);" value="options"></td>
+    </tr></table>
+	
+    <p id="stext"></p>
+    
+    <table><tr>
+	<td><input type="button" id="zeroButton" style="height:24px;font-size:16px" onclick="safeZeroMove();" value="zero move" /></td>
+	<td width=10></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="safeMove();" value="safe move" /></td>
+	<td width=10></td>
+    <td style="font-size:18px"><label><input type="checkbox"  style="height:24" onclick="whichOne()" id = "which">which</label></td>
+	<td width=20></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="revealPuz();" value="reveal" /></td>
+	<td width=10></td>
+	<td><input type="button" id="concealButton" style="height:24px;font-size:16px" onclick="redrawPuzzle();" value="conceal" /></td></tr>
+	<tr height=50><td><input type="button" style="height:24px;font-size:16px" onclick="newPuzzle();" value="new game" /></td>
+    </tr></table>
+    <p></p>
+    <table border = 0 cellspacing = 0 cellpadding = 0><tr>
+    <td><p id= "wtext"></p></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="reduceWidth()" value="<" /></td>
+	<td><input type="radio" name="wid" value= "2" id="wid2" onclick="setWid(2);"></td>
+	<td><input type="radio" name="wid" value= "4" id="wid4" onclick="setWid(4);"></td>
+	<td><input type="radio" name="wid" value= "6" id="wid6" onclick="setWid(6);"></td>
+	<td><input type="radio" name="wid" value= "8" id="wid8" onclick="setWid(8);"></td>
+	<td><input type="radio" name="wid" value= "10" id="wid10" onclick="setWid(10);"></td>
+	<td><input type="radio" name="wid" value= "12" id="wid12" onclick="setWid(12);"></td>
+	<td><input type="radio" name="wid" value= "14" id="wid14" onclick="setWid(14);"></td>
+	<td><input type="radio" name="wid" value= "16" id="wid16" onclick="setWid(16);"></td>
+	<td><input type="radio" name="wid" value= "18" id="wid18" onclick="setWid(18);"></td>
+	<td><input type="radio" name="wid" value= "20" id="wid20" onclick="setWid(20);"></td>
+	<td><input type="radio" name="wid" value= "22" id="wid22" onclick="setWid(22);"></td>
+	<td><input type="radio" name="wid" value= "24" id="wid24" onclick="setWid(24);"></td>
+	<td><input type="radio" name="wid" value= "26" id="wid26" onclick="nsetWid(26);"></td>
+	<td><input type="radio" name="wid" value= "28" id="wid28" onclick="setWid(28);"></td>
+	<td><input type="radio" name="wid" value= "30" id="wid30" onclick="setWid(30);"></td>
+	<td><input type="radio" name="wid" value= "32" id="wid32" onclick="setWid(32);"></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="increaseWidth()" value=">" /></td></tr>
+	</table>
+	<p></p>
+	<table border = 0 cellspacing = 0 cellpadding = 0>
+	<tr><td><p id= "htext"></p></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="reduceHeight()" value="v" /></td>
+	<td><input type="radio" name="hig" value= "2" id="hig2" onclick="setHig(2);"></td>
+	<td><input type="radio" name="hig" value= "3" id="hig3" onclick="setHig(3);"></td>
+	<td><input type="radio" name="hig" value= "4" id="hig4" onclick="setHig(4);"></td>
+	<td><input type="radio" name="hig" value= "5" id="hig5" onclick="setHig(5);"></td>
+	<td><input type="radio" name="hig" value= "6" id="hig6" onclick="setHig(6);"></td>
+	<td><input type="radio" name="hig" value= "7" id="hig7" onclick="setHig(7);"></td>
+	<td><input type="radio" name="hig" value= "8" id="hig8" onclick="setHig(8);"></td>
+	<td><input type="radio" name="hig" value= "9" id="hig9" onclick="setHig(9);"></td>
+	<td><input type="radio" name="hig" value= "10" id="hig10" onclick="setHig(10);"></td>
+	<td><input type="radio" name="hig" value= "11" id="hig11" onclick="setHig(11);"></td>
+	<td><input type="radio" name="hig" value= "12" id="hig12" onclick="setHig(12);"></td>
+	<td><input type="radio" name="hig" value= "13" id="hig13" onclick="setHig(13);"></td>
+	<td><input type="radio" name="hig" value= "14" id="hig14" onclick="setHig(14);"></td>
+	<td><input type="radio" name="hig" value= "15" id="hig15" onclick="setHig(15);"></td>
+	<td><input type="radio" name="hig" value= "16" id="hig16" onclick="setHig(16);"></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="increaseHeight()" value="^" /></td>
+	</tr></table>
+	<p></p>
+	<input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,0);" value="play">
+	</div>
+	
+	<div id="alertLayer">
+	<p id="alerttext" align="center"></p>
+	<p align="center">
+	<input type="button" id="alertbutton1" style="font-size:16px;background-color:white;border-radius:10px" onclick="unalert();">
+	<input type="button" id="alertbutton2" style="font-size:16px;background-color:white;border-radius:10px" onclick="newPuzzle();">
+	</p>
+	</div>
+</body>
+
+</html>

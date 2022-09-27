@@ -1,0 +1,1197 @@
+<!--
+//* All code herein (except where otherwise noted) and all associated graphics
+//* are created by Harriet Lurie, who retains all rights to this content.
+//* hashi v: 1.0 (c) Harriet Lurie 2015
+-->
+
+<html>
+<head>
+<!-- this section copied verbatim from Apache: -->
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<link rel="stylesheet" type="text/css" href="css/index.css" />
+<!-- end of Appache code. -->
+
+<title>hashi</title> 
+
+<script type="text/javascript"> 
+	var canva1;
+	var ctx1;		// the canvas "context"
+	var canva2;
+	var ctx2;
+	var canva3;
+	var ctx3;
+	
+	var imageArray;
+	var imsLoaded;
+	var numPics;
+	
+	var puzzleHi;
+	var puzzleWi;
+	var puzzleWiHi;
+	var nextHi;
+	var nextWi;
+    var nextLinX;
+	
+	var minX;
+	var minY;
+	var maxX;
+	var maxY;
+	var xsize;
+	var ysize;
+	var puzArray;
+	var xArray;		// these store the screen coordinates of the tiles
+	var yArray;
+	
+	var intersection;
+	var blocked;
+	var linesArray;
+    var dflag;
+    var spots;
+    var undoArray;
+    var redoArray;
+    
+    var downer;
+	
+    var bgColor;
+    var liColor;
+    var linX;
+    
+    var cLected;
+    var cLected2;
+    
+	var tysize;
+	var txsize;
+	var xspacing;
+	var yspacing;
+		
+	
+	function status() {
+		status_txt = "<table border=0><tr>";
+        status_txt = status_txt + "<td width = 10></td>";
+		status_txt = status_txt + "<td>" + puzzleWi + " x " + puzzleHi + "</td>";
+		status_txt = status_txt + "<td>(" + spots + " circles)</td>";
+		status_txt = status_txt + "<td width = 4></td>";
+        
+        status_txt = status_txt + "<td style='" + "color: " + bgColor + "'>";
+        switch (linX)
+        {
+            case 1:
+                status_txt = status_txt + "singles</td>";
+                break;
+            case 2:
+                status_txt = status_txt + "doubles</td>";
+                break;
+            case 3:
+                status_txt = status_txt + "triples</td>";
+                break;
+            case 4:
+                status_txt = status_txt + "quadruples</td>";
+                break;
+        }
+        status_txt = status_txt + "<td width = 10></td><td>lines: " + (linesArray.length / 2) + "</td>";
+		status_txt = status_txt + "</tr></table>";
+		document.getElementById("stext").innerHTML = status_txt;
+        
+        if (undoArray.length) { document.getElementById("undoButton").disabled = false; }
+        else { document.getElementById("undoButton").disabled = true; }
+        
+        if (redoArray.length) { document.getElementById("redoButton").disabled = false; }
+        else { document.getElementById("redoButton").disabled = true; }
+	}
+
+	function init() {
+        canva3 = document.getElementById("canva3");
+		canva2 = document.getElementById("canva2");
+		canva1 = document.getElementById("canva1");
+        
+        numPics = 16; // the number of image files to load
+		setHi(8);
+		setWi(6);
+        setSiDoTr(2);
+		intersection = 32;
+		blocked = -1;
+        bgColor = "rgb(248,248,240)";
+        liColor = "rgb(180, 120, 120)";
+        		
+        imageArray = new Array();
+        imsLoaded = 0;
+        for ( izi = 0 ; izi <= numPics ; izi++) {
+            imageArray[izi] = new Image();
+            
+            imageArray[izi].onload = function(){
+                // do NOT draw this now!
+                imsLoaded ++;
+                //document.getElementById("stext").innerHTML = "number loaded: " + imsLoaded;
+                if(imsLoaded == numPics) {
+                    // make sure we do this only once
+                    imsLoaded = 99;
+                    newPuzzle();
+                }
+            }
+            imageArray[izi].onerror = function() {
+            	myalert("image #" + imsLoaded + " failed to load.", "quit");
+            }
+            imageArray[izi].src = "htiles/dots" + izi + ".png";
+        }
+        
+		if (canva1.getContext) {
+			ctx3 = canva3.getContext("2d");
+            ctx2 = canva2.getContext("2d");
+			ctx1 = canva1.getContext("2d");
+			xsize = innerWidth - 32;
+			ysize = innerHeight - 180;
+			canva1.width = xsize;
+			canva1.height = ysize;
+			canva3.width = xsize;
+			canva3.height = ysize;
+			canva2.width = xsize;
+			canva2.height = ysize;
+			ctx3.globalAlpha = 0.5;
+		}
+		
+        window.onorientationchange = resizzle;		
+	}
+	
+	function resizzle() {
+            xsize = innerWidth - 32;
+            ysize = innerHeight - 180;
+            canva1.width = xsize;
+            canva1.height = ysize;
+            canva3.width = xsize;
+            canva3.height = ysize;
+			canva2.width = xsize;
+			canva2.height = ysize;
+            ctx3.globalAlpha = 0.5;
+            
+        	drawGrid();
+            redrawLinws();
+            drawVerts();
+	}
+	
+	function newPuzzle() {
+		puzzleWi = nextWi;
+		puzzleHi = nextHi;
+        linX = nextLinX;
+		puzzleWiHi = puzzleWi * puzzleHi;
+		
+		xArray = new Array();
+		yArray = new Array();
+				
+		// zero the arrays:
+		kk = 0;
+		puzArray = new Array();
+		for (jj = 0; jj < puzzleHi; jj++) {
+			for (ii = 0; ii < puzzleWi; ii++) {
+                xArray[kk] = 0;
+                yArray[kk] = 0;
+                puzArray[kk] = 0;
+				kk ++;
+			}
+		}
+				
+		unalert();
+		
+		linesArray = new Array();
+        undoArray = new Array();
+        redoArray = new Array();
+		
+		ctx1.clearRect(0, 0, xsize, ysize);
+		ctx2.clearRect(0, 0, xsize, ysize);
+        ctx3.clearRect(0, 0, xsize, ysize);
+
+		drawGrid();
+        
+        makePuzzle();
+		status();
+        
+        downer = 0;
+        cLected = -1;
+        cLected2 = -1;
+        
+		canva3.onmouseup = selectChoice;
+        canva3.onmousemove = hiSel;
+        
+        canva3.ontouchmove = hiSel;
+        canva3.ontouchend = selectChoice;
+        canva3.ontouchstart = selectChoice;
+	}
+	
+	function drawGrid() {
+		// fill the location arrays:
+		txsize = Math.floor(xsize / (puzzleWi + 2)  - 5);
+		tysize = Math.floor(ysize / (puzzleHi + 2));
+		txsize = Math.min(txsize, tysize);
+		tysize = txsize;
+		
+		xspacing = Math.floor(txsize / 6);
+		yspacing = Math.floor(tysize / 6);
+		
+		minX = (xsize - (txsize * (puzzleWi + 2)) ) / 2;
+		minY = ysize / ((puzzleHi + 2) * tysize);
+		
+		kk = 0;
+		for (jj = 0; jj < puzzleHi ; jj ++) {
+			yp = minY + ((jj + 1) * tysize);
+			for (ii = 0; ii < puzzleWi; ii++) {
+				xp = minX + (ii + 1) * txsize;
+				xArray[kk] = Math.floor(xp);
+				yArray[kk] = Math.floor(yp);
+				
+				kk ++;
+			}
+		}
+		maxX = xArray[puzzleWiHi - 1];
+		maxY = yArray[puzzleWiHi - 1];
+
+		ctx1.globalAlpha = 1;
+		        
+        ctx1.fillStyle = bgColor;
+        ctx1.fillRect(txsize / 4, tysize / 4, xsize - (txsize / 2), ysize - (tysize / 2));
+		
+		ctx1.strokeStyle = "rgb(220, 220, 220)";
+		ctx1.lineWidth = 3;
+		for (jj = 0; jj < puzzleWiHi ; jj += puzzleWi) {
+			ctx1.beginPath();
+			ctx1.moveTo(minX + (txsize * 1.5), yArray[jj] + tysize / 2);
+			ctx1.lineTo(maxX + txsize / 2, yArray[jj] + tysize / 2);
+			ctx1.closePath();
+			ctx1.stroke();
+		}
+		for (jj = 0; jj < puzzleWi ; jj ++) {
+			ctx1.beginPath();
+			ctx1.moveTo(xArray[jj] + txsize / 2, minY + (tysize * 1.5));
+			ctx1.lineTo(xArray[jj] + txsize / 2, maxY + tysize / 2);
+			ctx1.closePath();
+			ctx1.stroke();
+		}
+	}
+	
+    function linePath(con, p1, p2) {
+		con.beginPath();
+		con.moveTo(xArray[p1] + txsize / 2, yArray[p1] + tysize / 2);
+		con.lineTo(xArray[p2] + txsize / 2, yArray[p2] + tysize / 2);
+		con.closePath();
+    }
+    
+    function redrawLinws() {
+        // draw all the lines in linesArray
+        var ii;
+        ctx2.clearRect(0, 0, xsize, ysize);
+        
+        for (ii = 0 ; ii < linesArray.length ; ii += 2) {
+            switch (countLine(linesArray[ii], linesArray[ii + 1])) {
+                case 1:
+                    dline(linesArray[ii], linesArray[ii + 1]);
+                    break;
+                case 2:
+                    d2line(linesArray[ii], linesArray[ii + 1]);
+                    break;
+                case 3:
+                    d3line(linesArray[ii], linesArray[ii + 1]);
+                    break;
+                case 4:
+                    d4line(linesArray[ii], linesArray[ii + 1]);
+                    break;
+            }
+        }
+    }
+    
+    function upgradeLine(sp, ep) {
+        var nt = countLine(sp, ep) + 1;
+        
+        if (nt > linX) { nt = 0; }
+        else { linesArray.push(sp, ep); }
+        
+        switch (nt)
+        {
+            case 0:
+                undrawLine(sp, ep);
+                removeLine(sp, ep);
+                break;
+            case 1:
+                dline(sp, ep);
+                createBlockages(sp, ep);
+                break;
+            case 2:
+                d2line(sp, ep);
+                break;
+            case 3:
+                d3line(sp, ep);
+                break;
+            case 4:
+                d4line(sp, ep);
+                break;
+        }
+    }
+    
+    function dowgradeLine(sp, ep) {
+        var nt, ii;
+        nt = countLine(sp, ep);
+        nt --;
+        if (nt < 0) { nt = linX; }
+        undrawLine(sp, ep);
+        removeLine(sp, ep);
+        for (ii = 0 ; ii < nt ; ii ++) {
+            linesArray.push(sp, ep);
+        }
+        switch (nt) {
+            case 1:
+                dline(sp, ep);
+                createBlockages(sp, ep);
+                break;
+            case 2:
+                d2line(sp, ep);
+                break;
+            case 3:
+                d3line(sp, ep);
+                break;
+            case 4:
+                d4line(sp, ep);
+                break;
+        }
+        
+    }
+        
+    function hintLines(zz) {
+        // draw the possible lines from point zz
+        var ii, zx, zy;
+        zx = zz % puzzleWi;
+		zy = Math.floor(zz / puzzleWi);
+
+        var neighbors = new Array();
+        // look left:
+        if (zx) {
+            for (ii = zz - 1 ; ( (puzArray[ii] < 1) && (ii >= zz - zx) ) ; ii--) { }
+            if (ii >= zz - zx) { neighbors.push(ii); }
+        }
+        // look up:
+        if (zy) {
+            for (ii = zz - puzzleWi ; ( (puzArray[ii] < 1) && (ii > -1) ) ; ii -= puzzleWi) { }
+            if (ii > -1) { neighbors.push(ii); }
+        }
+        // look right:
+        if (zx < puzzleWi - 1) {
+            for (ii = zz + 1 ; ( (puzArray[ii] < 1) && (ii < (zy + 1) * puzzleWi) ) ; ii ++) { }
+            if (ii < (zy + 1) * puzzleWi) { neighbors.push(ii); }
+        }
+        // look down:
+        if (zy < puzzleHi - 1) {
+            for (ii = zz + puzzleWi ; ( (puzArray[ii] < 1) && (ii < puzzleWiHi) ) ; ii += puzzleWi) { }
+            if (ii < puzzleWiHi) { neighbors.push(ii); }
+        }
+        
+        for (ii = 0 ; ii < neighbors.length; ii ++) {
+            if ( (fullUp(neighbors[ii]) == 0) && (legalMove(zz, neighbors[ii])) ){
+                ctx3.strokeStyle = "rgb(250, 220, 100)";
+                ctx3.lineWidth = 11;
+                ctx3.lineCap = "round";
+                linePath(ctx3, zz, neighbors[ii]);
+                ctx3.stroke();
+            }
+        }
+        if (ii) {
+            // if we drew any lines ...
+            ctx3.clearRect(xArray[zz], yArray[zz], txsize, tysize);
+        }
+    }
+    
+    function undrawLine(stp, enp) {
+		// undraw a line from stp to enp
+        var x1, y1, w1, h1;
+        x1 = Math.min(xArray[stp], xArray[enp]);
+        y1 = Math.min(yArray[stp], yArray[enp]);
+        w1 = Math.max(xArray[enp], xArray[stp]);
+        h1 = Math.max(yArray[enp], yArray[stp]);
+        if (x1 == w1) {
+            // this line is vertical
+            x1 =  (x1 + txsize / 2) - 11;
+            h1 -= y1;
+            y1 += tysize / 2;
+            w1 = 22;
+        }
+        else {
+            // this line is horizontal
+            y1 = (y1 + tysize / 2) - 11;
+            w1 -= x1;
+            x1 += txsize / 2;
+            h1 = 22;
+        }
+		ctx2.globalAlpha = 1;
+        ctx2.clearRect(x1, y1, w1, h1);
+    }
+    
+	function dline(stp, enp) {
+		// draw a line from stp to enp
+		ctx2.globalAlpha = .75;
+		ctx2.strokeStyle = liColor;
+		ctx2.lineWidth = 7;
+		linePath(ctx2, stp, enp);
+        
+		ctx2.stroke();		
+	}
+    
+    function d2line(stp, enp) {
+		// draw a double line from stp to enp
+		ctx2.globalAlpha = .75;
+		ctx2.strokeStyle = liColor;
+		ctx2.lineWidth = 17;
+		linePath(ctx2, stp, enp);
+		ctx2.stroke();
+        
+        ctx2.strokeStyle = bgColor;
+        ctx2.lineWidth = 5;
+        ctx2.stroke();
+    }
+    
+    function d3line(stp, enp) {
+		// draw a triple line from stp to enp
+		ctx2.globalAlpha = .75;
+		ctx2.strokeStyle = liColor;
+		ctx2.lineWidth = 21;
+		linePath(ctx2, stp, enp);
+		ctx2.stroke();
+        
+        ctx2.strokeStyle = bgColor;
+        ctx2.lineWidth = 11;
+        ctx2.stroke();
+        
+        ctx2.strokeStyle = liColor;
+        ctx2.lineWidth = 5;
+        ctx2.stroke();
+    }
+    
+    function d4line(stp, enp) {
+		// draw a quadruple line from stp to enp
+		ctx2.globalAlpha = .75;
+		ctx2.strokeStyle = liColor;
+		ctx2.lineWidth = 21;
+		linePath(ctx2, stp, enp);
+		ctx2.stroke();
+        
+        ctx2.strokeStyle = bgColor;
+        ctx2.lineWidth = 15;
+        ctx2.stroke();
+        
+        ctx2.strokeStyle = liColor;
+        ctx2.lineWidth = 9;
+        ctx2.stroke();
+        
+        ctx2.strokeStyle = bgColor;
+        ctx2.lineWidth = 3;
+        ctx2.stroke();
+    }
+	
+	function makePuzzle() {
+		var spx, spy, spp, nloc, ii, rln, totaLines;
+		// start with a single circle:
+		spp = Math.floor(Math.random() * puzzleWiHi);
+		spx = spp % puzzleWi;
+		spy = Math.floor(spp / puzzleWi);
+		
+		// plant an intersection there:
+		puzArray[spp] = intersection;
+		drawAt(spp, 0);
+		
+		// send a path out:
+		if (spx > 1) {
+			nloc = spp - 2;
+			puzArray[spp - 1] = blocked;
+		}
+		else {
+			nloc = spp + 2;
+			puzArray[spp + 1] = blocked;
+		}
+		linesArray.push(Math.max(spp, nloc), Math.min(spp, nloc));
+		//dline(spp, nloc);
+		
+		// plant an intersection there too:
+		puzArray[nloc] = intersection;
+		drawAt(nloc, 0);
+		
+		// now that the puzzle is "seeded" ...
+		// ... continue making lines from these:
+        totaLines = puzzleWiHi;
+		while (linesArray.length < totaLines) {
+            // take a random intersection from the lines array:
+            rln = Math.floor(Math.random() * linesArray.length);
+            spp = linesArray[rln];
+            // check for an unused direction from that intersection:
+            nloc = newWay(spp);
+            
+            ii = 0;
+            while ( (nloc < 0) && (ii < linesArray.length) ) {
+                rln = (rln + 1) % linesArray.length;
+                spp = linesArray[rln];
+                nloc = newWay(spp);
+                ii ++;
+            }
+			if (nloc > -1) {
+                linesArray.push(Math.max(spp, nloc), Math.min(spp, nloc));
+                for (ii = Math.min(nloc, spp) + dflag; ii < Math.max(spp, nloc) ; ii += dflag) {
+                    puzArray[ii] = blocked; }
+                puzArray[nloc] = intersection;
+                drawAt(nloc, 0);
+			}
+            else { totaLines = linesArray.length; }
+		}
+        
+        // double half the lines:
+        if (linX > 1) {
+            nloc = linesArray.length / 4;
+            for (ii = 0 ; ii < nloc ; ii ++) {
+                spp = (ii * 4);
+                linesArray.push(linesArray[spp], linesArray[spp + 1]);
+                //d2line(linesArray[spp], linesArray[spp + 1]);
+                if ( (linX > 2) && (ii % 2) ) { // triple half of those
+                    linesArray.push(linesArray[spp], linesArray[spp + 1]);
+                    //d3line(linesArray[spp], linesArray[spp + 1]);
+                    // quadruple some
+                    if ( (linX > 3) && (ii % 4) ) { linesArray.push(linesArray[spp], linesArray[spp + 1]); }
+                }
+            }
+        }
+        
+        // count the lines to each intersection, put that into puzArray, and choose the correct image:
+        spots = 0;
+        for (ii = 0 ; ii < puzArray.length ; ii ++) {
+            if (puzArray[ii] == intersection) {
+                puzArray[ii] = howMany(ii, linesArray);
+                drawAt(ii, puzArray[ii]);
+                spots ++;
+            }
+        }
+        cleanLinesFromArray();
+	}
+	
+    function cleanLinesFromArray() {
+        var ii;
+        linesArray = new Array();
+        undoArray = new Array();
+        redoArray = new Array();
+        for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+            if (puzArray[ii] < 0) { puzArray[ii] = 0; }
+        }
+    }
+    
+    function resetPuzzle() {
+        cleanLinesFromArray();
+        drawGrid();
+        ctx2.clearRect(0, 0, xsize, ysize);
+        drawVerts();
+        status();
+    }
+    
+	function newWay(inx) {
+		// inx is a current endpoint
+		// returns a viable new endpoint, or -1 if there is none.
+        // sets dflag for horizontal or vertical.
+		var spx, spy, ll, rv;
+		var posbl = new Array(); // the possible new endpoints
+        var fff = new Array(); // flags corresponding to those endpoints
+		
+		spx = inx % puzzleWi;
+		spy = Math.floor(inx / puzzleWi);
+		
+		if (spx > 0) {
+			// there's room to the left
+			ll = inx - 1;
+			if (puzArray[ll] == 0) {
+				// put this space, and any other qualifying left spaces on the list
+				for ( ; ll > (spy * puzzleWi - 1); ll --) {
+					if (puzArray[ll] == 0) {
+                        posbl.push(ll);
+                        fff.push(1);
+                    }
+					else { ll = -1; }
+				}
+			}
+		}
+		if (spx < puzzleWi - 1) {
+			// there's room to the right
+			ll = inx + 1;
+			if (puzArray[ll] == 0) {
+				// put this space, and any other qualifying right spaces on the list
+				for ( ; ll < ((spy + 1) * puzzleWi); ll ++) {
+					if (puzArray[ll] == 0) {
+                        posbl.push(ll);
+                        fff.push(1);
+                    }
+					else { ll = puzzleWiHi; }
+				}
+			}
+		}
+		if (spy > 0) {
+			// there's room above
+            ll = inx - puzzleWi;
+            if (puzArray[ll] == 0) {
+                // put this space, and any other qualifying up spaces on the list
+                for ( ; ll > -1 ; ll -= puzzleWi) {
+					if (puzArray[ll] == 0) {
+                        posbl.push(ll);
+                        fff.push(puzzleWi);
+                    }
+					else { ll = -1; }
+                }
+            }
+		}
+		if (spy < puzzleHi - 1) {
+			// there's room below
+            ll = inx + puzzleWi;
+            if (puzArray[ll] == 0) {
+                // put this space, and any other qualifying down spaces on the list
+                for ( ; ll < puzzleWiHi ; ll += puzzleWi) {
+					if (puzArray[ll] == 0) {
+                        posbl.push(ll);
+                        fff.push(puzzleWi);
+                    }
+					else { ll = puzzleWiHi; }
+                }
+            }
+		}
+		
+        rv = -1;
+		if (posbl.length) {
+            rv = Math.floor(Math.random() * posbl.length);
+            dflag = fff[rv];
+            rv = posbl[rv];
+        }
+        
+		return(rv);
+	}
+	
+    function howMany(vv, anAr) {
+        // returns the number of times vv apears in array anAr
+        var ii;
+        var rv = 0;
+        for (ii = 0 ; ii < anAr.length ; ii++) {
+            if (anAr[ii] == vv) { rv ++; }
+        }
+        return(rv);
+    }
+    
+    function countLine(sp, ep) {
+        // returns the number of times line sp to ep appears in linesArray
+        var rv, ii, lp, hp, lap, hap;
+        lp = Math.min(sp, ep);
+        hp = Math.max(sp, ep);
+        rv = 0;
+        for (ii = 0 ; ii < linesArray.length ; ii +=2) {
+            lap = Math.min(linesArray[ii], linesArray[ii + 1]);
+            hap = Math.max(linesArray[ii], linesArray[ii + 1]);
+            if ( (lp == lap) && (hp == hap) ) { rv ++; }
+        }
+        return(rv);
+    }
+    
+    function removeLine(sp, ep) {
+        // remove all instances of this line from linesArray
+        var ii, lp, hp, lap, hap;
+        lp = Math.min(sp, ep);
+        hp = Math.max(sp, ep);
+        rv = 0;
+        for (ii = linesArray.length - 2 ; ii > -1 ; ii -= 2) {
+            lap = Math.min(linesArray[ii], linesArray[ii + 1]);
+            hap = Math.max(linesArray[ii], linesArray[ii + 1]);
+            if ( (lp == lap) && (hp == hap) ) {
+                linesArray.splice(ii, 2);
+            }
+        }
+        // also remove it's blockage from the puzzle
+        if ( (hp - lp) < puzzleWi ) { for (ii = lp + 1 ; ii < hp ; ii ++) { puzArray[ii] = 0; } }
+        else { for (ii = lp + puzzleWi ; ii < hp ; ii += puzzleWi) { puzArray[ii] = 0; } }
+    }
+    
+	function drawAt(gc, tn) {
+		// draw tile type tn at location gc
+		ctx2.globalAlpha = 1;
+		ctx2.drawImage(imageArray[tn], xArray[gc] + xspacing, yArray[gc] + yspacing, txsize - xspacing * 2, tysize - yspacing * 2);
+	}
+    
+    function brightVert(gc, fs) {
+		ctx2.globalAlpha = .5;
+        ctx2.beginPath();
+        ctx2.arc(xArray[gc] + (txsize / 2), yArray[gc] + (tysize / 2), (txsize / 2) - xspacing, 0, (Math.PI * 2), false);
+        ctx2.closePath();
+        ctx2.fillStyle = fs;
+        ctx2.fill();
+    }
+    
+    function fullUp(ix) {
+        // returns 1 if this vertex has its corrrect value, 2 if it has too much
+        var hm = howMany(ix, linesArray);
+        if (hm == puzArray[ix]) { return(1); }
+        else {
+            if (hm > puzArray[ix]) { return(2); }
+            else { return(0); }
+        }
+    }
+    
+    function drawVerts() {
+        var ii, fr;
+        var frv = new Array("rgb(100, 200, 50)", "rgb(200, 50, 50)");
+        for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+            if (puzArray[ii] > 0) {
+                drawAt(ii, puzArray[ii]);
+                fr = fullUp(ii);
+                if (fr) { brightVert(ii, frv[fr - 1]); }
+            }
+        }
+        if (cLected2 > -1) { loLight(); }
+    }
+    
+    function allGoodFull() {
+        // returns true if all the vertexes are correctly full up
+        var ii, rv;
+        rv = true;
+        for (ii = 0 ; ii < puzzleWiHi ; ii ++) {
+            if ( (puzArray[ii] > 0) && (fullUp(ii) != 1) ) {
+                rv = false;
+                ii = puzzleWiHi;
+            }
+        }
+        return(rv);
+    }
+    
+    function hiSel(event) {
+        event.preventDefault();
+        var vert = getMyVertex(event.pageX, event.pageY);
+        if ((vert > -1) && (vert < puzzleWiHi)) {
+        	if (puzArray[vert] > 0) {
+                if (cLected > -1) { loLight(); }
+                hintLines(vert);
+            	hiLight(vert);
+                cLected = vert;
+        		}
+            }
+    }
+    
+    function getMyVertex(xp, yp) {
+        // find the closest vertex to the x and y coordinates
+        xp -= minX;
+        yp -= minY;
+        
+        xp = Math.floor(xp / txsize) - 1;
+        yp = Math.floor(yp / tysize) - 1;        
+        
+        if ((xp > puzzleWi - 1) || (yp > puzzleHi - 1) || (xp < 0) || (yp < 0))  {
+            rv = -1;
+        }
+        else {
+            rv = xp;
+            rv += (puzzleWi * yp);
+        }
+        
+        return(rv);
+   }
+    
+    function hiLight(tt) {
+        ctx3.drawImage(imageArray[0], xArray[tt], yArray[tt], txsize, tysize);
+    }
+    
+    function loLight() {
+        ctx3.clearRect(0, 0, xsize, ysize);
+    }
+    
+    function selectChoice(event) {
+    	event.preventDefault();
+        if (cLected > -1) {
+            ctx3.drawImage(imageArray[0], xArray[cLected], yArray[cLected], txsize, tysize);
+            cLected2 = cLected;
+            
+            canva3.onmouseup = selectChoice2;
+            //canva3.ontouchstart = selectChoice2;
+            canva3.ontouchend = selectChoice2;
+        }
+    }
+    
+    function legalMove(p1, p2) {
+        // returns true or false
+        var p1y, p2y, p1x, p2x, ii, rv;
+
+        if ( (p1 < 0) || (p2 < 0) || (p1 == p2)){
+            rv = false;
+        }
+        else {
+            // can the two points be connected?
+            p1y = Math.floor(p1 / puzzleWi);
+            p2y = Math.floor(p2 / puzzleWi);
+            p1x = p1 % puzzleWi;
+            p2x = p2 % puzzleWi;
+            rv = false;
+            
+            if (p1y == p2y) {
+                // they are the same row; is anything in between?
+                rv = true;
+                for (ii = Math.min(p1, p2) + 1 ; ii < Math.max(p1, p2) ; ii ++) {
+                    if (puzArray[ii] != 0) { rv = false; }
+                }
+            }
+            else { if (p1x == p2x) {
+                // they are the same column; is anything in between?
+                rv = true;
+                for (ii = Math.min(p1, p2) + puzzleWi ; ii < Math.max(p1, p2) ; ii += puzzleWi) {
+                    if (puzArray[ii] != 0) { rv = false; }
+                }
+             } }
+            
+            if (countLine(p1, p2)) { rv = true; }
+        }
+        return(rv);
+    }
+    
+    function createBlockages(sp, ep) {
+        var ii;
+        
+        if ((sp % puzzleWi) == (ep % puzzleWi)) {
+            for (ii = Math.min(sp, ep) + puzzleWi ; ii < Math.max(sp, ep) ; ii += puzzleWi) {
+                puzArray[ii] = -1;
+            }
+        }
+        else {
+            for (ii = Math.min(sp, ep) + 1 ; ii < Math.max(sp, ep) ; ii ++){
+                puzArray[ii] = -1;
+            }
+        }
+    }
+    
+    
+    function selectChoice2(event) {
+        var clc;
+    	event.preventDefault();
+
+        clc = countLine(cLected, cLected2);
+        
+        if (downer) {
+            clc = 4;
+            document.getElementById("minus").checked = 0;
+            minus();
+        }
+        
+        if (linX < 4) { if (clc > linX - 1) { clc = 4; } }
+            
+        if (legalMove(cLected, cLected2)) {
+             // good move?
+            linesArray.push(cLected, cLected2);
+            undoArray.push(cLected, cLected2);
+            clc ++;
+
+            switch (clc)
+            {
+                case 1:
+                    dline(cLected, cLected2);
+                    createBlockages(cLected, cLected2);
+                    break;
+                case 2:
+                    d2line(cLected, cLected2);
+                    break;
+                case 3:
+                    d3line(cLected, cLected2);
+                    break;
+                case 4:
+                    d4line(cLected, cLected2);
+                    break;
+                case 5:
+                    undrawLine(cLected, cLected2);
+                    removeLine(cLected, cLected2);
+            }
+            drawVerts();
+            redoArray = new Array();
+            status();
+            cLected2 = -1;
+            cLected = -1;
+        }
+        canva3.onmouseup = selectChoice;
+        //canva3.ontouchstart = selectChoice;
+        canva3.ontouchend = selectChoice;
+    }
+    
+    function undo() {
+        var sp, ep;
+        if (undoArray.length) {
+            sp = undoArray.pop();
+            ep = undoArray.pop();
+            redoArray.push(sp, ep);
+            dowgradeLine(sp, ep);
+            drawVerts();
+            status();
+        }
+    }
+    
+    function redo() {
+        var sp, ep;
+        if (redoArray.length) {
+            sp = redoArray.pop();
+            ep = redoArray.pop();
+            undoArray.push(sp, ep);
+            upgradeLine(sp, ep);
+            drawVerts();
+            status();
+        }
+    }
+    
+    function siftArray(aAry) {
+        // remove redundancies from an array:
+        var ii;
+        aAry.reverse();
+        for (ii = 0 ; ii < aAry.length ; ii ++) {
+            if (howMany(aAry[ii], aAry) > 1) {
+                aAry.splice(ii, 1);
+                ii --;
+            }
+        }
+        aAry.reverse();
+        return(aAry);
+    }
+    
+    function neighbors(vx) {
+        // returns an array of vertexes connected to vx
+        var rAr = new Array();
+        var ii;
+        for (ii = 0 ; ii < linesArray.length ; ii ++) {
+            if (linesArray[ii] == vx) {
+                if (ii % 2) {
+                    // if it's odd ...
+                    rAr.push(linesArray[ii - 1]);
+                }
+                else { rAr.push(linesArray[ii + 1]); }
+            }
+        }
+        
+        // sift to remove redundancies
+        rAr = siftArray(rAr);
+        
+        return(rAr);
+    }
+    
+    function check() {
+        // tint all connected verts
+        var ii, ixi, zz, most, nAr, astr;
+        var col = "rgb(200, 100, 50)";
+        
+        loLight();
+        
+        // find the most common vertex from the linesArray:
+        ixi = -1;
+        most = 0;
+        for (ii = 0 ; ii < linesArray.length ; ii ++) {
+            zz = howMany(linesArray[ii], linesArray);
+            if (zz > most) {
+                most = zz;
+                ixi = linesArray[ii];
+            }
+        }
+        
+        if (most) {        
+        // tint the verts:
+        nAr = new Array();
+        nAr.push(ixi);
+        for (zz = 0 ; zz < nAr.length ; zz ++) {
+            ixi = nAr[zz];
+            //drawAt(ixi, puzArray[ixi]);
+            //brightVert(ixi, col);
+            nAr = nAr.concat(neighbors(ixi));
+            siftArray(nAr);
+        }
+        most = nAr.length;
+        
+        while (nAr.length) {
+            ixi = nAr.pop();
+            drawAt(ixi, puzArray[ixi]);
+            brightVert(ixi, col);
+        }
+        }
+        
+        // report results:
+        ixi = true;
+        if (most == spots) {
+            astr = "<p>all connected</p>";
+        }
+        else {
+            astr = "<p>not all connected</p>";
+            ixi = false;
+        }
+        if (allGoodFull()) {
+            astr = "all correct" + astr;
+        }
+        else {
+            astr = "not all correct" + astr;
+            ixi = false;
+        }
+        if (ixi) { astr = "<p>You Won</p><p></p>"; }
+        myalert(astr,"continue","new game");
+    }
+        
+    function setWi(nWidth) {
+    	nextWi = nWidth;
+    	document.getElementById("nwidth").innerHTML = nWidth;
+    }
+    
+    function setHi(nHeight) {
+    	nextHi = nHeight;
+    	document.getElementById("nheight").innerHTML = nHeight;
+    }
+    
+    function setSiDoTr(lx) {
+        // set for single/double/triple lines
+        nextLinX = lx;
+    }
+    
+    function minus() {
+        downer = (downer + 1) % 2;
+    }
+        
+    function myalert(tstring, bstring1, bstring2) {
+    	document.getElementById("alerttext").innerHTML = tstring;
+    	document.getElementById("alertbutton1").value = bstring1;
+    	if (typeof bstring2 == "undefined") {
+    		document.getElementById("alertbutton2").style.visibility = "hidden";
+    	}
+    	else {
+    		document.getElementById("alertbutton2").style.visibility = "visible";
+    		document.getElementById("alertbutton2").value = bstring2;   
+    	} 	
+    	
+    	document.getElementById("alertLayer").style.left = (xsize / 2) - 150;
+    	document.getElementById("alertLayer").style.top = (ysize / 2) - 100;
+    	document.getElementById("alertLayer").style.visibility = "visible";
+       	document.getElementById("alertLayer").style.zIndex = "3";
+    	document.getElementById("gameLayer").style.zIndex = "-1";
+    	document.getElementById("canva1").style.zIndex = "0";
+    	document.getElementById("canva2").style.zIndex = "1";
+        document.getElementById("canva2").style.zIndex = "2";
+    }
+    
+    function unalert() {
+    	document.getElementById("canva1").style.zIndex = "1";
+    	document.getElementById("canva2").style.zIndex = "2";
+        document.getElementById("canva2").style.zIndex = "3";
+    	document.getElementById("gameLayer").style.zIndex = "0";
+    	document.getElementById("alertLayer").style.zIndex = "-1";
+    }
+
+</script>
+
+<style type="text/css"> 
+	#canva1 {
+	border: 2px solid rgb(200, 120, 20);
+    position: relative;
+    left: 12px;
+    z-index: 1;}
+    
+	#canva3 {
+	border: 2px solid rgb(50, 150, 200);
+	position: absolute;
+	left: 12px;
+	top 0px;
+	z-index:3}
+    
+	#canva2 {
+	border: 2px solid rgb(120, 120, 20);
+	position: absolute;
+	left: 12px;
+	top 0px;
+	z-index:2}
+	
+	#alertLayer {
+    position: absolute;
+    visibility: hidden;
+    top: 130px;
+    left: 200px;
+    width: 300px;
+    height: 160px;
+    background-color: rgba(220,180,60,0.9);
+    border: 16px solid rgba(50,150,200,0.8);
+    z-index: -1;
+    font-size: 20px;
+    border-radius: 10px; }
+</style> 
+</head>
+
+<body onload="init();"> 
+	<div id="gameLayer">
+	<p style="visibility: hidden">x</p>
+	<canvas id="canva1" width = 600 height = 400></canvas>
+	<canvas id="canva2" width = 600 height = 400></canvas>
+	<canvas id="canva3" width = 600 height = 400></canvas>
+    <p id="stext"></p>
+	
+	<table border = 0 cellspacing = 0 cellpadding = 0><tr>
+    <td width = 10></td>
+	<td><input type="button" id="undoButton" style="height:24px;font-size:16px" onclick="undo();" value="undo" /></td>
+	<td><input type="button" id="redoButton" style="height:24px;font-size:16px" onclick="redo();" value="redo" /></td>
+    <td width = 10></td>
+    <td><label style="height:24px;font-size:16px">erase<input type="checkbox" id="minus" onclick="minus();" /></label></td>
+	<td width = 20></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,2500);" value="options"></td>
+    </tr><tr><td></td>
+    <td height = 80><input type="button" style="height:24px;font-size:16px" onclick="check();" value="check" /></td>
+    <td><input type="button" style="height:24px;font-size:16px" onclick="drawVerts();" value="uncheck" /></td>
+	</tr><tr><td></td>
+	<td height = 80><input type="button" style="height:24px;font-size:16px" onclick="resetPuzzle();" value="reset" /></td>
+	<td><input type="button" style="height:24px;font-size:16px" onclick="newPuzzle();" value="new game" /></td>
+	</tr></table>
+	
+	<table border = 0 cellspacing = 0 cellpadding = 0>
+	<tr><td width = 10></td><td height = 30>width</td>
+    <td width = 8></td>
+    <td id="nwidth" width = 20></td>
+    <td><input type="radio" name="wid" value= "4" onclick="setWi(4);"/></td>
+    <td><input type="radio" name="wid" value= "5" onclick="setWi(5);"/></td>
+    <td><input type="radio" name="wid" checked="checked" value= "6" onclick="setWi(6);"/></td>
+    <td><input type="radio" name="wid" value= "7" onclick="setWi(7);"/></td>
+    <td><input type="radio" name="wid" value= "8" onclick="setWi(8);"/></td>
+    <td><input type="radio" name="wid" value= "9" onclick="setWi(9);"/></td>
+    <td><input type="radio" name="wid" value= "10" onclick="setWi(10);"/></td>
+    <td><input type="radio" name="wid" value= "12" onclick="setWi(12);"/></td>
+    <td><input type="radio" name="wid" value= "15" onclick="setWi(15);"/></td>
+    <td><input type="radio" name="wid" value= "18" onclick="setWi(18);"/></td>
+    <td><input type="radio" name="wid" value= "20" onclick="setWi(20);"/></td>
+	</tr><tr><td></td>
+	<td height = 30>height</td>
+    <td></td>
+    <td id="nheight"></td>
+    <td><input type="radio" name="hig" value= "4" onclick="setHi(4);"/></td>
+    <td><input type="radio" name="hig" value= "5" onclick="setHi(5);"/></td>
+    <td><input type="radio" name="hig" value= "6" onclick="setHi(6);"/></td>
+    <td><input type="radio" name="hig" value= "7" onclick="setHi(7);"/></td>
+    <td><input type="radio" name="hig" checked="checked" value= "8" onclick="setHi(8);"/></td>
+    <td><input type="radio" name="hig" value= "9" onclick="setHi(9);"/></td>
+    <td><input type="radio" name="hig" value= "10" onclick="setHi(10);"/></td>
+    <td><input type="radio" name="hig" value= "11" onclick="setHi(11);"/></td>
+    <td><input type="radio" name="hig" value= "12" onclick="setHi(12);"/></td>
+	</tr></table>
+    
+    <p></p>
+	<table border = 0 cellspacing = 0 cellpadding = 0>
+	<tr><td width = 10></td>
+    <td>singles</td>
+    <td width = 30><input type="radio" name="sidotr" value= "1" onclick="setSiDoTr(1);"/></td>
+	<td>doubles</td>
+    <td width = 30><input type="radio" name="sidotr" checked="checked" value= "2" onclick="setSiDoTr(2);"/></td>
+	<td>triples</td>
+    <td width = 30><input type="radio" name="sidotr" value= "3" onclick="setSiDoTr(3);"/></td>
+	<td>quadruples</td>
+    <td width = 30><input type="radio" name="sidotr" value= "4" onclick="setSiDoTr(4);"/></td>
+    </tr></table>
+        
+	
+    <table border = 0 cellspacing = 0 cellpadding = 0><tr><td width = 10  height = 80></td><td>
+	<input type="button" style="height:24px;font-size:16px" onclick="window.scroll(0,0);" value="play">
+    </td></tr></table>
+	</div>
+	
+	<div id="alertLayer">
+	<p id="alerttext" align="center"></p>
+	<p align="center">
+	<input type="button" id="alertbutton1" style="font-size:16px;background-color:white;border-radius:10px" onclick="unalert();">
+	<input type="button" id="alertbutton2" style="font-size:16px;background-color:white;border-radius:10px" onclick="newPuzzle();">
+	</p>
+	</div>
+	
+	<div id="choiceLayer">
+	<p id = "chotext" align="center"></p>
+	</div>
+
+</body>
