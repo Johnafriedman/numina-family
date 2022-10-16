@@ -58,6 +58,9 @@ app.use(vhost("numina.org", numinaApp));
 app.use(vhost("*.slowsolve.org", slowsolveApp));
 app.use(vhost("slowsolve.org", slowsolveApp));
 
+app.use(vhost("*", numinaApp));
+
+
 var port = process.env.PORT || 3000;
 app.listen(port);
 console.log('Web server listening on port ' + port);
