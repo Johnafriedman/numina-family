@@ -3,6 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Music</title>
+
+    <style>
+        .title {
+            font-size: 2.5vw;
+            border: 5px outset red;
+            background-color: lightblue;
+            text-align: center;
+        }
+
+        .description {
+            font-size: 1.5vw;
+            border: 5px outset red;
+            background-color: lightblue;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
@@ -11,30 +27,32 @@
 
     const songTemp =
         '<div>' +
-            '<div><%title%></div>' +
-            '<div><%description%></div>' +
+            '<div class="title"><%title%></div>' +
+            '<div class="description"><%description%></div>' +
             '<audio controls>' +
                 '<source src="https://docs.google.com/uc?authuser=0&id=<%sourceId%>&export=download" type="audio/mpeg">' +
             '</audio>';
 
-    let allSongsDiv = document.createElement("div");
-    songs.forEach(function(currentValue){
-        let songStr=songTemp;
+    function loadSongs(document){
+        songs.forEach(function(currentValue){
+            let songStr=songTemp;
 
-        Object.entries(currentValue).forEach(entry => {
-            const [key, value] = entry;
-            const re = new RegExp("<%"+key+"%>");
-            songStr = songStr.replace(re, value);
+            Object.entries(currentValue).forEach(entry => {
+                const [key, value] = entry;
+                const re = new RegExp("<%"+key+"%>");
+                songStr = songStr.replace(re, value);
+            });
+
+
+            let songDiv = document.createElement("div");
+            songDiv.innerHTML = songStr;
+            document.body.append(songDiv);
         });
+    }
 
-
-        let songDiv = document.createElement("div");
-        songDiv.innerHTML = songStr;
-        allSongsDiv.append(songDiv);
-    });
 
     onload = function(){
-        this.document.body.append(allSongsDiv);
+        loadSongs(this.document);
     }
 </script>
 

@@ -42,35 +42,11 @@ const songs = [
     },
 
     {
-        title : "Via par Avion",
-
-        description : "Recorded this for my daughter Sylvia when she was away in France.",
-
-        sourceId : "15lLDe_j1YuVyOaASciKBq7HhnLes3Eak"
-    },
-
-    {
         title : "The Way You Sound Tonight",
 
         description : "I recorded this for my brother Paul's birthday the first year of the pandemic <br/> because he loved a party and there were no parties.",
 
         sourceId : "1GiQBfhvQYDhlVCBVjt5WVLreqCDuCexA"
-    },
-
-    {
-        title : "Simple Tune",
-
-        description : "a song fragment ",
-
-        sourceId : "15lfGhj7-YoEbFGsZS1sW9qYmdZCXWiSV"
-    },
-
-    {
-        title : "Riddle Song",
-
-        description : "My dad used to sing this traditional lullaby to mm mom when they were courting.<br/> I recorded it for their anniversary.",
-
-        sourceId : "14Vaj0rqOgbAwDDmQzBCXJJ2gL7QH6nny"
     },
 
     {
@@ -101,11 +77,27 @@ const songs = [
     },
 
     {
+        title : "Via par Avion",
+
+        description : "Recorded this for my daughter Sylvia when she was away in France.<br/> Her little cousin couldn't pronounce her name and valled her Via, which stuck",
+
+        sourceId : "15lLDe_j1YuVyOaASciKBq7HhnLes3Eak"
+    },
+
+    {
         title : "DML7",
 
         description : "Long acoustic improvisation for my friend Dave M's birthday",
 
         sourceId : "14nEX-Hw9E5U5HetYGoK8K_JAeOQixDNf"
+    },
+
+    {
+        title : "Riddle Song",
+
+        description : "My dad used to sing this traditional lullaby to mm mom when they were courting.<br/> I recorded it for their anniversary.",
+
+        sourceId : "14Vaj0rqOgbAwDDmQzBCXJJ2gL7QH6nny"
     },
 
     {
@@ -122,6 +114,14 @@ const songs = [
         description : "a song fragment to practice lead against",
 
         sourceId : "15uM833QKhd-F1-WFwua5AJjkSlct6XxX"
+    },
+
+    {
+        title : "Simple Tune",
+
+        description : "a song fragment ",
+
+        sourceId : "15lfGhj7-YoEbFGsZS1sW9qYmdZCXWiSV"
     },
 
     {
