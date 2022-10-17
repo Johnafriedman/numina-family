@@ -5,18 +5,29 @@
     <title>Music</title>
 
     <style>
+        .song {
+            margin-top: 2vw ;
+            margin-left: 2vw ;
+            font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
         .title {
-            font-size: 2.5vw;
-            border: 5px outset red;
+            font-size: 1.5vw;
+            border: 1.5px outset red;
             background-color: lightblue;
-            text-align: center;
+            text-align: left;
         }
 
         .description {
-            font-size: 1.5vw;
+            font-size: 1.25vw;
             border: 5px outset red;
             background-color: lightblue;
-            text-align: center;
+            text-align: left;
+        }
+
+        .audio {
+            border: 5px black;
+            background-color: #613b0a;
         }
     </style>
 </head>
@@ -26,12 +37,13 @@
     import songs from "./allSongs.js"
 
     const songTemp =
-        '<div>' +
+        '<div class="song">' +
             '<div class="title"><%title%></div>' +
             '<div class="description"><%description%></div>' +
-            '<audio controls>' +
+            '<audio controls class="audio">' +
                 '<source src="https://docs.google.com/uc?authuser=0&id=<%sourceId%>&export=download" type="audio/mpeg">' +
-            '</audio>';
+            '</audio>' +
+        '</div>'
 
     function loadSongs(document){
         songs.forEach(function(currentValue){

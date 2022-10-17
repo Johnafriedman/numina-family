@@ -2,7 +2,7 @@ const songs = [
     {
         title : "A Groovy Little Xmas",
 
-        description : "",
+        description : "Before I retired I tried to record something during  winter vacation.",
 
         sourceId : "152V4zESM7M6QT4FAhNpr24chgUsNrrWY"
     },
