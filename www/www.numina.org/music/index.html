@@ -6,42 +6,35 @@
 </head>
 <body>
 
-<script >
-    const params = {
-
-        title : 'My Girl',
-
-        description : "I recorded the Temptations' My Girl" +
-            " as a wedding present for my oldest friend Dave's marriage to Amy (both working guitarists).\n" +
-            "Dave and I used to play it in our band Biskets.",
-
-        wiki : "http://en.wikipedia.org/wiki/My_Girl_(The_Temptations_song)",
-
-        sourceId : "14_EcV84HAfocCoqscXL4_ngf-cTWMBgV"
-    }
+<script type="module" >
+    import songs from "./allSongs.js"
 
     const songTemp =
         '<div>' +
             '<div><%title%></div>' +
-            '<div><a href="<%wiki%>">wiki</a></div>' +
             '<div><%description%></div>' +
             '<audio controls>' +
                 '<source src="https://docs.google.com/uc?authuser=0&id=<%sourceId%>&export=download" type="audio/mpeg">' +
             '</audio>';
 
-    let songStr=songTemp;
-    Object.entries(params).forEach(entry => {
-        const [key, value] = entry;
-        const re = new RegExp("<%"+key+"%>");
-        songStr = songStr.replace(re, value);
+    let allSongsDiv = document.createElement("div");
+    songs.forEach(function(currentValue){
+        let songStr=songTemp;
+
+        Object.entries(currentValue).forEach(entry => {
+            const [key, value] = entry;
+            const re = new RegExp("<%"+key+"%>");
+            songStr = songStr.replace(re, value);
+        });
+
+
+        let songDiv = document.createElement("div");
+        songDiv.innerHTML = songStr;
+        allSongsDiv.append(songDiv);
     });
 
-
-    let songDiv = document.createElement("div");
-    songDiv.innerHTML = songStr;
-
     onload = function(){
-        this.document.body.append(songDiv);
+        this.document.body.append(allSongsDiv);
     }
 </script>
 
