@@ -2,7 +2,7 @@ const songs = [
     {
         title : "A Groovy Little Xmas",
 
-        description : "Before I retired I tried to record something during  winter vacation.",
+        description : "When I was still working as a software developer, I tried to record something during winter vacations.",
 
         sourceId : "152V4zESM7M6QT4FAhNpr24chgUsNrrWY"
     },
@@ -146,14 +146,6 @@ const songs = [
         description : "some electronics",
 
         sourceId : "14jc1pBr-RTyB9UmIkkFpd9UqQFHkf1XV"
-    },
-
-    {
-        title : "Net 20130609",
-
-        description : "annoying improvisation over a right hand arpeggio exercise",
-
-        sourceId : "160CL1N1z2LeG9N8Wm9hSn5FpqNLvj-SU"
     }
 ]
 
