@@ -62,9 +62,23 @@
         });
     }
 
+    function addPlayEventHandler(document){
+        document.addEventListener('play', function(e) {
+            let audios = document.getElementsByTagName('audio');
+
+            let i, len;
+            for (i = 0, len = audios.length; i < len; i++) {
+                if (audios[i] != e.target) {
+                    audios[i].pause();
+                }
+            }
+        }, true);
+    }
+
 
     onload = function(){
         loadSongs(this.document);
+        addPlayEventHandler(this.document);
     }
 </script>
 
