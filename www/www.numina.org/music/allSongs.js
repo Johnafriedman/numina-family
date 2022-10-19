@@ -95,7 +95,7 @@ const songs = [
     {
         title : "Riddle Song",
 
-        description : "My dad used to sing this traditional lullaby to mm mom when they were courting.<br/> I recorded it for their anniversary.",
+        description : "My dad used to sing this traditional lullaby to my mom when they were courting.<br/> I recorded it for their anniversary.",
 
         sourceId : "14Vaj0rqOgbAwDDmQzBCXJJ2gL7QH6nny"
     },
@@ -143,7 +143,7 @@ const songs = [
     {
         title : "5verb",
 
-        description : "some electronics",
+        description : "multi tracking with Ableton Live  effects",
 
         sourceId : "14jc1pBr-RTyB9UmIkkFpd9UqQFHkf1XV"
     }
