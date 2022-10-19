@@ -143,7 +143,7 @@ const songs = [
     {
         title : "5verb",
 
-        description : "multi tracking with Ableton Live  effects",
+        description : "double tracking guitar with Ableton Live effects",
 
         sourceId : "14jc1pBr-RTyB9UmIkkFpd9UqQFHkf1XV"
     }

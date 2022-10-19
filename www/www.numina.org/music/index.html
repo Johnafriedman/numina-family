@@ -6,22 +6,45 @@
 
     <style>
 
+        body{
+            background-color: #a1a399;
+        }
+
+        .page {
+            margin-top: 2vw ;
+            margin-left: 2vw ;
+            margin-right: 2vw ;
+            font-family: Georgia, "Times New Roman", Times, serif
+        }
+
+        .page-title {
+            font-size: 5vw;
+            border-bottom: white solid;
+        }
+
+        .page-author {
+            font-size: 2vw;
+            font-style: italic;
+            margin-left: 96vw;
+            right: 4vw;
+        }
+
         .song {
             margin-top: 2vw ;
             margin-left: 2vw ;
             margin-right: 2vw ;
             padding: 2px ;
-            border: 2px black;
-            background-color: lightblue;
+            border: 2px black solid;
+            background-color: #d7c89a;
 
             font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
-        .title {
+        .song-title {
             margin-top: 2.5vw;
             margin-left: 1vw;
+            padding: 1vh;
             font-size: 2vw;
-            background-color: lightblue;
             text-align: left;
         }
 
@@ -37,6 +60,10 @@
             margin-top: 1vw;
             margin-left: 1vw;
         }
+
+        .audio, .song-title {
+            background-color: #d9d2a9;
+        }
     </style>
 </head>
 <body>
@@ -46,7 +73,7 @@
 
     const songTemp =
         '<div class="song">' +
-            '<div class="title"><%title%></div>' +
+            '<div class="song-title"><%title%></div>' +
             '<div class="description"><%description%></div>' +
             '<audio controls class="audio">' +
                 '<source src="https://docs.google.com/uc?authuser=0&id=<%sourceId%>&export=download" + "?noCache=" + Math.floor(Math.random() * 1000000)" +  " type="audio/mpeg">' +
@@ -90,5 +117,13 @@
     }
 </script>
 
+<div class="page">
+    <div class="page-title">
+        Guitar
+    </div >
+    <div class="page-author">
+        by john friedman
+    </div>
+</div>
 </body>
 </html>
