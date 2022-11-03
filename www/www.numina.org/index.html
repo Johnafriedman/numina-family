@@ -32,45 +32,113 @@
 
 -->
 <!-- git commit -->
-<title>Not Box Mod</title>
-<script type="text/javascript">
-	// function getWidth(){
-	// 	return innerWidth-32;
-	// }
-	// function getHeight(){
-	// 	return innerHeight-32;
-	// }
+	<title>Not Box Mod</title>
+	<style>
+		.resize-drag {
 
-notBox = {
-  MAX_WIDTH: 1024,
-  MAX_HEIGHT: 800
+
+			/* This makes things *much* easier */
+			box-sizing: border-box;
+			position: absolute;
+		}
+	</style>
+	<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+	<script type="module">
+
+
+
+		function dragMoveListener (event) {
+			var target = event.target,
+					// keep the dragged position in the data-x/data-y attributes
+					x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+					y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+			// translate the element
+			target.style.webkitTransform =
+					target.style.transform =
+							'translate(' + x + 'px, ' + y + 'px)';
+
+			// update the posiion attributes
+			target.setAttribute('data-x', x);
+			target.setAttribute('data-y', y);
+		}
+		function showEventInfo (event) {
+			const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
+
+			console.log( `action: ${actionInfo} \ncoords: ${event.pageX}, ${event.pageY}`);
+		}
+
+		const interactable = interact('.resize-drag')
+
+		interactable.draggable({
+			listeners: {
+				move: dragMoveListener,
+				onend: showEventInfo,
+			}
+		});
+
+		interactable
+				.resizable({
+					edges: { left: true, right: true, bottom: true, top: true }
+				})
+				.on('resizemove', function (event) {
+					var target = event.target;
+					var x = (parseFloat(target.getAttribute('data-x')) || 0),
+							y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+					// update the element's style
+					target.style.width  = event.rect.width + 'px';
+					target.style.height = event.rect.height + 'px';
+
+					// translate when resizing from top or left edges
+					x += event.deltaRect.left;
+					y += event.deltaRect.top;
+
+					target.style.webkitTransform = target.style.transform =
+							'translate(' + x + 'px,' + y + 'px)';
+
+					target.setAttribute('data-x', x);
+					target.setAttribute('data-y', y);
+					target.textContent = event.rect.width + '×' + event.rect.height;
+					showEventInfo(event);
+
+				});
+
+	</script>
+<script type="text/javascript">
+
+const notBox = {
+  MARGIN_LEFT: 16,
+  MARGIN_RIGHT: 16,
+  MARGIN_TOP: 16,
+  MARGIN_BOTTOM: 16
 };
 
 var busy = false;
 
 window.onload = window.onresize = function() {
 	init();
-	canvas.width = Math.min(getWidth(), notBox.MAX_WIDTH);
-	canvas.height = Math.min(getHeight(), notBox.MAX_HEIGHT);
+	canvas.width = getMaxWidth();
+	canvas.height = getMaxHeight();
 
 	cx = Math.floor(canvas.width/2);
 	cy = Math.floor(canvas.height/2);
-	max_width  =cx-1;
-	max_height  =cy-1;
+	modWidth  =cx-1;
+	modHeight  =cy-1;
 
 	ctx = canvas.getContext('2d');
 
 	ctx.globalCompositeOperation = 'copy';
 	ctx.fillStyle = "rgb(255,255,255)";
-	ctx.clearRect(0,0,1280,1280);
+	ctx.clearRect(0,0,canvas.width,canvas.height);
 
 	ctx.globalCompositeOperation = 'xor';
 	ctx.fillStyle = "rgb(0,0,0)";
 
 }
-window.onclick = function(){
-	window.location.assign("./springs.html")
-}
+// window.onclick = function(){
+// 	window.location.assign("./springs.html")
+// }
 
 function draw (){
 	if(busy==false){
@@ -81,18 +149,33 @@ function draw (){
 			var x0 = cx-w;
 			var y0 = cy-h;
 			ctx.fillRect(x0,y0,w*2,h*2);
-			w=(w+inc)%max_width;
-			h=(h+inc)%max_height;
-		}while((oldw<=w)&&(oldh<=h));
+			w=(w+inc)%modWidth;
+			h=(h+inc)%modHeight;
+		}while((oldw <= w) && (oldh <= h));
 		busy=false;
 	}
 }
 
+function resize (rect){
+	cx = Math.floor(canvas.width/2);
+	cy = Math.floor(canvas.height/2);
+	modWidth  =cx-1;
+	modHeight  =cy-1;
+
+	ctx = canvas.getContext('2d');
+
+	ctx.globalCompositeOperation = 'copy';
+	ctx.fillStyle = "rgb(255,255,255)";
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+
+	ctx.globalCompositeOperation = 'xor';
+	ctx.fillStyle = "rgb(0,0,0)";
+}
 function init(){
 
 	canvas = document.getElementById('notBoxMod');
-	canvas.width = getWidth();
-	canvas.height = getHeight();
+	canvas.width = getMaxWidth();
+	canvas.height = getMaxHeight();
 	if(typeof notInterval != "undefined"){
 		clearInterval(notInterval);
 	}
@@ -110,18 +193,18 @@ function init(){
 
 <script type="text/javascript">
 
-	getWidth = function(){
-		return innerWidth-32;
+	getMaxWidth = function(){
+		return innerWidth-(notBox.MARGIN_LEFT + notBox.MARGIN_RIGHT);
 	};
 
-	getHeight = function(){
-		return innerHeight-32;
+	getMaxHeight = function(){
+		return innerHeight-(notBox.MARGIN_TOP + notBox.MARGIN_BOTTOM);
 	};
 
-	var cx = Math.floor(getWidth()/2);
-	var cy = Math.floor(getHeight()/2);
-	var max_width  =cx-1;
-	var max_height  =cy-1;
+	var cx = Math.floor(getMaxWidth()/2);
+	var cy = Math.floor(getMaxHeight()/2);
+	var modWidth  =cx-1;
+	var modHeight  =cy-1;
 	var inc = 1;
 	var canvas;
 	var ctx;
@@ -132,13 +215,17 @@ function init(){
       window.location.assign("./springs.html")
     }
 
+
+
 </script>
 
 </head>
-<!-- <body onload="init();"> -->
+
 <body>
 
-	<canvas id="notBoxMod" width="1280" height="1280" onClick=gotoSprings></canvas>
+<div>
+	<canvas id="notBoxMod" class="resize-drag"> </canvas>
+</div>
 
 </body>
 </html>
