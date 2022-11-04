@@ -1,248 +1,235 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<!-- Global site tag (gtag.js) - Google Analytics -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-80268610-1"></script>
-	<script>
-		window.dataLayer = window.dataLayer || [];
-		function gtag(){dataLayer.push(arguments);}
-		gtag('js', new Date());
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-80268610-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
 
-		gtag('config', 'UA-80268610-1');
-	</script>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<!--
-	Not Box Mod
-    © Copyright 2011 John Friedman
+        function gtag() {
+            dataLayer.push(arguments);
+        }
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+        gtag('js', new Date());
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+        gtag('config', 'UA-80268610-1');
+    </script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <!--
+        Not Box Mod
+        © Copyright 2011 John Friedman
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
 
-    contact:     john@numina.org
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
 
--->
-<!-- git commit -->
-	<title>Not Box Mod</title>
-	<style>
-		.resize-drag {
+        You should have received a copy of the GNU General Public License
+        along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+        contact:     john@numina.org
+
+    -->
+    <!-- git commit -->
+    <title>Not Box Mod</title>
+    <style>
+        .resize-drag {
 
 
-			/* This makes things *much* easier */
-			box-sizing: border-box;
-			position: absolute;
+            /* This makes things *much* easier */
+            box-sizing: border-box;
+            position: absolute;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script type="module">
+
+		const notBox = {
+			MARGIN_LEFT: 16,
+			MARGIN_RIGHT: 16,
+			MARGIN_TOP: 16,
+			MARGIN_BOTTOM: 16
+		};
+
+		let cx = Math.floor(getMaxWidth() / 2);
+		let cy = Math.floor(getMaxHeight() / 2);
+		let modWidth = cx - 1;
+		let modHeight = cy - 1;
+		let inc = 1;
+		let canvas;
+		let ctx;
+		let w = 0;
+		let h = 0;
+		let notInterval = 0;
+		let busy = false;
+
+        function showEventInfo(event) {
+            const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
+
+            console.log(`action: ${actionInfo} \ncoords: ${event.pageX}, ${event.pageY}`);
+        }
+
+
+        function dragMoveListener(event) {
+            var target = event.target,
+                // keep the dragged position in the data-x/data-y attributes
+                x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+            // translate the element
+            target.style.webkitTransform =
+                target.style.transform =
+                    'translate(' + x + 'px, ' + y + 'px)';
+
+            // update the posiion attributes
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+        }
+
+        function resizeStartListener(event) {
+            busy = true;
+        }
+
+        function resizeEndListener(event) {
+            doResize();
+            busy = false;
+        }
+
+        function resizeMoveListener(event) {
+            var target = event.target;
+            var x = (parseFloat(target.getAttribute('data-x')) || 0),
+                y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+            // update the element's style
+            target.style.width = event.rect.width + 'px';
+            target.style.height = event.rect.height + 'px';
+
+            // translate when resizing from top or left edges
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+
+            target.style.webkitTransform = target.style.transform =
+                'translate(' + x + 'px,' + y + 'px)';
+
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+            target.textContent = event.rect.width + '×' + event.rect.height;
+        }
+
+
+        const interactable = interact('.resize-drag')
+
+        interactable.draggable({
+            listeners: {
+                move: dragMoveListener
+            }
+        });
+
+        interactable.resizable({
+            edges: {left: true, right: true, bottom: true, top: true},
+            listeners: {
+                start: resizeStartListener,
+                end: resizeEndListener,
+                move: resizeMoveListener
+            }
+        });
+
+        function getMaxWidth () {
+            return innerWidth - (notBox.MARGIN_LEFT + notBox.MARGIN_RIGHT);
+        }
+
+        function getMaxHeight () {
+            return innerHeight - (notBox.MARGIN_TOP + notBox.MARGIN_BOTTOM);
+        }
+
+        function doResize() {
+            cx = Math.floor(canvas.width / 2);
+            cy = Math.floor(canvas.height / 2);
+            modWidth = cx - 1;
+            modHeight = cy - 1;
+
+            ctx = canvas.getContext('2d');
+
+            ctx.globalCompositeOperation = 'copy';
+            ctx.fillStyle = "rgb(255,255,255)";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.globalCompositeOperation = 'xor';
+            ctx.fillStyle = "rgb(0,0,0)";
+            busy = false;
+        }
+
+        window.onload = window.onresize = function () {
+            init();
+            canvas.width = getMaxWidth();
+            canvas.height = getMaxHeight();
+
+            doResize();
+
+
+        }
+
+        // window.onclick = function(){
+        // 	window.location.assign("./springs.html")
+        // }
+
+        function draw() {
+            if (busy == false) {
+                busy = true;
+                let oldH = 0, oldW = 0;
+                do {
+                    oldW = w;
+                    oldH = h;
+                    let x0 = cx - w;
+                    let y0 = cy - h;
+                    ctx.fillRect(x0, y0, w * 2, h * 2);
+                    w = (w + inc) % modWidth;
+                    h = (h + inc) % modHeight;
+                } while ((oldW <= w) && (oldH <= h));
+                busy = false;
+            }
+        }
+
+		function gotoSprings () {
+			window.location.assign("./springs.html")
 		}
-	</style>
-	<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-	<script type="module">
+
+        function init() {
+
+            canvas = document.getElementById('notBoxMod');
+            canvas.width = getMaxWidth();
+            canvas.height = getMaxHeight();
+            if (typeof notInterval != 0) {
+                clearInterval(notInterval);
+            }
+
+            if (canvas.getContext) {
+                ctx = canvas.getContext('2d');
+                ctx.globalCompositeOperation = 'xor';
+                ctx.fillStyle = "rgb(1,1,1)";
+                notInterval = setInterval(draw, 10);
+            }
+        }
 
 
 
-		function showEventInfo (event) {
-			const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
-
-			console.log( `action: ${actionInfo} \ncoords: ${event.pageX}, ${event.pageY}`);
-		}
-
-
-		function dragMoveListener (event) {
-			var target = event.target,
-					// keep the dragged position in the data-x/data-y attributes
-					x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-					y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-			// translate the element
-			target.style.webkitTransform =
-					target.style.transform =
-							'translate(' + x + 'px, ' + y + 'px)';
-
-			// update the posiion attributes
-			target.setAttribute('data-x', x);
-			target.setAttribute('data-y', y);
-		}
-
-		function resizeStartListener(event){
-			busy = true;
-		}
-
-		function resizeEndListener(event){
-			doResize();
-			busy = false;
-		}
-
-		function resizeMoveListener(event){
-			var target = event.target;
-			var x = (parseFloat(target.getAttribute('data-x')) || 0),
-					y = (parseFloat(target.getAttribute('data-y')) || 0);
-
-			// update the element's style
-			target.style.width  = event.rect.width + 'px';
-			target.style.height = event.rect.height + 'px';
-
-			// translate when resizing from top or left edges
-			x += event.deltaRect.left;
-			y += event.deltaRect.top;
-
-			target.style.webkitTransform = target.style.transform =
-					'translate(' + x + 'px,' + y + 'px)';
-
-			target.setAttribute('data-x', x);
-			target.setAttribute('data-y', y);
-			target.textContent = event.rect.width + '×' + event.rect.height;
-		}
-
-
-		const interactable = interact('.resize-drag')
-
-		interactable.draggable({
-			listeners: {
-				move: dragMoveListener,
-				onend: showEventInfo,
-			}
-		});
-
-		interactable.resizable({
-			edges: { left: true, right: true, bottom: true, top: true },
-		})
-				.on('resizestart', resizeStartListener)
-				.on('resizeend', resizeEndListener)
-				.on('resizemove',resizeMoveListener);
-
-	</script>
-<script type="text/javascript">
-
-const notBox = {
-  MARGIN_LEFT: 16,
-  MARGIN_RIGHT: 16,
-  MARGIN_TOP: 16,
-  MARGIN_BOTTOM: 16
-};
-
-var busy = false;
-
-function doResize(){
-	cx = Math.floor(canvas.width/2);
-	cy = Math.floor(canvas.height/2);
-	modWidth  =cx-1;
-	modHeight  =cy-1;
-
-	ctx = canvas.getContext('2d');
-
-	ctx.globalCompositeOperation = 'copy';
-	ctx.fillStyle = "rgb(255,255,255)";
-	ctx.clearRect(0,0,canvas.width,canvas.height);
-
-	ctx.globalCompositeOperation = 'xor';
-	ctx.fillStyle = "rgb(0,0,0)";
-	busy=false;
-}
-
-window.onload = window.onresize = function() {
-	init();
-	canvas.width = getMaxWidth();
-	canvas.height = getMaxHeight();
-
-	doResize();
-
-
-}
-// window.onclick = function(){
-// 	window.location.assign("./springs.html")
-// }
-
-function draw (){
-	if(busy==false){
-		busy=true;
-		do{
-			var oldw = w;
-			var oldh = h;
-			var x0 = cx-w;
-			var y0 = cy-h;
-			ctx.fillRect(x0,y0,w*2,h*2);
-			w=(w+inc)%modWidth;
-			h=(h+inc)%modHeight;
-		}while((oldw <= w) && (oldh <= h));
-		busy=false;
-	}
-}
-
-/*function resize (rect){
-	cx = Math.floor(canvas.width/2);
-	cy = Math.floor(canvas.height/2);
-	modWidth  =cx-1;
-	modHeight  =cy-1;
-
-	ctx = canvas.getContext('2d');
-
-	ctx.globalCompositeOperation = 'copy';
-	ctx.fillStyle = "rgb(255,255,255)";
-	ctx.clearRect(0,0,canvas.width,canvas.height);
-
-	ctx.globalCompositeOperation = 'xor';
-	ctx.fillStyle = "rgb(0,0,0)";
-}*/
-function init(){
-
-	canvas = document.getElementById('notBoxMod');
-	canvas.width = getMaxWidth();
-	canvas.height = getMaxHeight();
-	if(typeof notInterval != "undefined"){
-		clearInterval(notInterval);
-	}
-
-	if (canvas.getContext){
-		ctx = canvas.getContext('2d');
-		ctx.globalCompositeOperation = 'xor';
-		ctx.fillStyle = "rgb(1,1,1)";
-		notInterval = setInterval("draw();", 10);
-	}
-}
-
-</script>
-
-<script type="text/javascript">
-
-	getMaxWidth = function(){
-		return innerWidth-(notBox.MARGIN_LEFT + notBox.MARGIN_RIGHT);
-	};
-
-	getMaxHeight = function(){
-		return innerHeight-(notBox.MARGIN_TOP + notBox.MARGIN_BOTTOM);
-	};
-
-	var cx = Math.floor(getMaxWidth()/2);
-	var cy = Math.floor(getMaxHeight()/2);
-	var modWidth  =cx-1;
-	var modHeight  =cy-1;
-	var inc = 1;
-	var canvas;
-	var ctx;
-	var w=0;
-	var h=0;
-
-    gotoSprings = function(){
-      window.location.assign("./springs.html")
-    }
 
 
 
-</script>
+    </script>
 
 </head>
 
 <body>
 
 <div>
-	<canvas id="notBoxMod" class="resize-drag"> </canvas>
+    <canvas id="notBoxMod" class="resize-drag"></canvas>
 </div>
 
 </body>
