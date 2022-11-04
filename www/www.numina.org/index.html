@@ -47,6 +47,13 @@
 
 
 
+		function showEventInfo (event) {
+			const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
+
+			console.log( `action: ${actionInfo} \ncoords: ${event.pageX}, ${event.pageY}`);
+		}
+
+
 		function dragMoveListener (event) {
 			var target = event.target,
 					// keep the dragged position in the data-x/data-y attributes
@@ -62,11 +69,37 @@
 			target.setAttribute('data-x', x);
 			target.setAttribute('data-y', y);
 		}
-		function showEventInfo (event) {
-			const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
 
-			console.log( `action: ${actionInfo} \ncoords: ${event.pageX}, ${event.pageY}`);
+		function resizeStartListener(event){
+			busy = true;
 		}
+
+		function resizeEndListener(event){
+			doResize();
+			busy = false;
+		}
+
+		function resizeMoveListener(event){
+			var target = event.target;
+			var x = (parseFloat(target.getAttribute('data-x')) || 0),
+					y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+			// update the element's style
+			target.style.width  = event.rect.width + 'px';
+			target.style.height = event.rect.height + 'px';
+
+			// translate when resizing from top or left edges
+			x += event.deltaRect.left;
+			y += event.deltaRect.top;
+
+			target.style.webkitTransform = target.style.transform =
+					'translate(' + x + 'px,' + y + 'px)';
+
+			target.setAttribute('data-x', x);
+			target.setAttribute('data-y', y);
+			target.textContent = event.rect.width + '×' + event.rect.height;
+		}
+
 
 		const interactable = interact('.resize-drag')
 
@@ -77,32 +110,12 @@
 			}
 		});
 
-		interactable
-				.resizable({
-					edges: { left: true, right: true, bottom: true, top: true }
-				})
-				.on('resizemove', function (event) {
-					var target = event.target;
-					var x = (parseFloat(target.getAttribute('data-x')) || 0),
-							y = (parseFloat(target.getAttribute('data-y')) || 0);
-
-					// update the element's style
-					target.style.width  = event.rect.width + 'px';
-					target.style.height = event.rect.height + 'px';
-
-					// translate when resizing from top or left edges
-					x += event.deltaRect.left;
-					y += event.deltaRect.top;
-
-					target.style.webkitTransform = target.style.transform =
-							'translate(' + x + 'px,' + y + 'px)';
-
-					target.setAttribute('data-x', x);
-					target.setAttribute('data-y', y);
-					target.textContent = event.rect.width + '×' + event.rect.height;
-					showEventInfo(event);
-
-				});
+		interactable.resizable({
+			edges: { left: true, right: true, bottom: true, top: true },
+		})
+				.on('resizestart', resizeStartListener)
+				.on('resizeend', resizeEndListener)
+				.on('resizemove',resizeMoveListener);
 
 	</script>
 <script type="text/javascript">
@@ -116,11 +129,7 @@ const notBox = {
 
 var busy = false;
 
-window.onload = window.onresize = function() {
-	init();
-	canvas.width = getMaxWidth();
-	canvas.height = getMaxHeight();
-
+function doResize(){
 	cx = Math.floor(canvas.width/2);
 	cy = Math.floor(canvas.height/2);
 	modWidth  =cx-1;
@@ -134,6 +143,16 @@ window.onload = window.onresize = function() {
 
 	ctx.globalCompositeOperation = 'xor';
 	ctx.fillStyle = "rgb(0,0,0)";
+	busy=false;
+}
+
+window.onload = window.onresize = function() {
+	init();
+	canvas.width = getMaxWidth();
+	canvas.height = getMaxHeight();
+
+	doResize();
+
 
 }
 // window.onclick = function(){
@@ -156,7 +175,7 @@ function draw (){
 	}
 }
 
-function resize (rect){
+/*function resize (rect){
 	cx = Math.floor(canvas.width/2);
 	cy = Math.floor(canvas.height/2);
 	modWidth  =cx-1;
@@ -170,7 +189,7 @@ function resize (rect){
 
 	ctx.globalCompositeOperation = 'xor';
 	ctx.fillStyle = "rgb(0,0,0)";
-}
+}*/
 function init(){
 
 	canvas = document.getElementById('notBoxMod');
@@ -186,7 +205,6 @@ function init(){
 		ctx.fillStyle = "rgb(1,1,1)";
 		notInterval = setInterval("draw();", 10);
 	}
-	busy=false;
 }
 
 </script>
