@@ -50,24 +50,24 @@
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script type="module">
 
-		const notBox = {
-			MARGIN_LEFT: 16,
-			MARGIN_RIGHT: 16,
-			MARGIN_TOP: 16,
-			MARGIN_BOTTOM: 16
-		};
+        const notBox = {
+            MARGIN_LEFT: 16,
+            MARGIN_RIGHT: 16,
+            MARGIN_TOP: 16,
+            MARGIN_BOTTOM: 16
+        };
 
-		let cx = Math.floor(getMaxWidth() / 2);
-		let cy = Math.floor(getMaxHeight() / 2);
-		let modWidth = cx - 1;
-		let modHeight = cy - 1;
-		let inc = 1;
-		let canvas;
-		let ctx;
-		let w = 0;
-		let h = 0;
-		let notInterval = 0;
-		let busy = false;
+        let cx = Math.floor(getMaxWidth() / 2);
+        let cy = Math.floor(getMaxHeight() / 2);
+        let modWidth = cx - 1;
+        let modHeight = cy - 1;
+        let inc = 1;
+        let canvas;
+        let ctx;
+        let w = 0;
+        let h = 0;
+        let notInterval = 0;
+        let busy = false;
 
         function showEventInfo(event) {
             const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
@@ -140,11 +140,11 @@
             }
         });
 
-        function getMaxWidth () {
+        function getMaxWidth() {
             return innerWidth - (notBox.MARGIN_LEFT + notBox.MARGIN_RIGHT);
         }
 
-        function getMaxHeight () {
+        function getMaxHeight() {
             return innerHeight - (notBox.MARGIN_TOP + notBox.MARGIN_BOTTOM);
         }
 
@@ -165,14 +165,31 @@
             busy = false;
         }
 
-        window.onload = window.onresize = function () {
-            init();
+        function initializeCanvas() {
+
+            canvas = document.createElement('canvas');
+            canvas.className="resize-drag"
+            document.body.append(canvas);
             canvas.width = getMaxWidth();
             canvas.height = getMaxHeight();
+            if (typeof notInterval != 0) {
+                clearInterval(notInterval);
+            }
 
+            if (canvas.getContext) {
+                ctx = canvas.getContext('2d');
+                ctx.globalCompositeOperation = 'xor';
+                ctx.fillStyle = "rgb(1,1,1)";
+                notInterval = setInterval(draw, 10);
+            }
+        }
+
+        window.onload = window.onresize = function () {
+            if(canvas){
+                canvas.remove();
+            }
+            initializeCanvas();
             doResize();
-
-
         }
 
         // window.onclick = function(){
@@ -196,30 +213,9 @@
             }
         }
 
-		function gotoSprings () {
-			window.location.assign("./springs.html")
-		}
-
-        function init() {
-
-            canvas = document.getElementById('notBoxMod');
-            canvas.width = getMaxWidth();
-            canvas.height = getMaxHeight();
-            if (typeof notInterval != 0) {
-                clearInterval(notInterval);
-            }
-
-            if (canvas.getContext) {
-                ctx = canvas.getContext('2d');
-                ctx.globalCompositeOperation = 'xor';
-                ctx.fillStyle = "rgb(1,1,1)";
-                notInterval = setInterval(draw, 10);
-            }
+        function gotoSprings() {
+            window.location.assign("./springs.html")
         }
-
-
-
-
 
 
     </script>
@@ -227,10 +223,6 @@
 </head>
 
 <body>
-
-<div>
-    <canvas id="notBoxMod" class="resize-drag"></canvas>
-</div>
 
 </body>
 </html>
