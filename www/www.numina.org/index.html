@@ -1,144 +1,238 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<!-- Global site tag (gtag.js) - Google Analytics -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-80268610-1"></script>
-	<script>
-		window.dataLayer = window.dataLayer || [];
-		function gtag(){dataLayer.push(arguments);}
-		gtag('js', new Date());
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-80268610-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
 
-		gtag('config', 'UA-80268610-1');
-	</script>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<!--
-	Not Box Mod
-    © Copyright 2011 John Friedman
+        function gtag() {
+            dataLayer.push(arguments);
+        }
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+        gtag('js', new Date());
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+        gtag('config', 'UA-80268610-1');
+    </script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <!--
+        Not Box Mod
+        © Copyright 2011 John Friedman
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
 
-    contact:     john@numina.org
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
 
--->
-<!-- git commit -->
-<title>Not Box Mod</title>
-<script type="text/javascript">
-	// function getWidth(){
-	// 	return innerWidth-32;
-	// }
-	// function getHeight(){
-	// 	return innerHeight-32;
-	// }
+        You should have received a copy of the GNU General Public License
+        along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-notBox = {
-  MAX_WIDTH: 1024,
-  MAX_HEIGHT: 800
-};
+        contact:     john@numina.org
 
-var busy = false;
+    -->
+    <!-- git commit -->
+    <title>Not Box Mod</title>
+    <style>
+        .resize-drag {
 
-window.onload = window.onresize = function() {
-	init();
-	canvas.width = Math.min(getWidth(), notBox.MAX_WIDTH);
-	canvas.height = Math.min(getHeight(), notBox.MAX_HEIGHT);
 
-	cx = Math.floor(canvas.width/2);
-	cy = Math.floor(canvas.height/2);
-	max_width  =cx-1;
-	max_height  =cy-1;
+            /* This makes things *much* easier */
+            box-sizing: border-box;
+            position: absolute;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script>
 
-	ctx = canvas.getContext('2d');
+        const MARGINS = {
+            LEFT: 16,
+            RIGHT: 16,
+            TOP: 16,
+            BOTTOM: 16,
+        }
 
-	ctx.globalCompositeOperation = 'copy';
-	ctx.fillStyle = "rgb(255,255,255)";
-	ctx.clearRect(0,0,1280,1280);
+        const INITIAL_CENTER = {
+            x: Math.floor(innerWidth - (MARGINS.LEFT + MARGINS.RIGHT) / 2),
+            y:  Math.floor(innerHeight - (MARGINS.TOP + MARGINS.BOTTOM) / 2)
+        }
 
-	ctx.globalCompositeOperation = 'xor';
-	ctx.fillStyle = "rgb(0,0,0)";
+        let o = {
+            
+            cx: INITIAL_CENTER.x,
+            cy: INITIAL_CENTER.y,
+            modWidth: INITIAL_CENTER.x - 1,
+            modHeight: INITIAL_CENTER.y - 1,
+            inc: 1,
+            canvas:0,
+            ctx:0,
+            w: 0,
+            h: 0,
+            notInterval: 0,
+            busy: false
 
-}
-window.onclick = function(){
-	window.location.assign("./springs.html")
-}
+        }
 
-function draw (){
-	if(busy==false){
-		busy=true;
-		do{
-			var oldw = w;
-			var oldh = h;
-			var x0 = cx-w;
-			var y0 = cy-h;
-			ctx.fillRect(x0,y0,w*2,h*2);
-			w=(w+inc)%max_width;
-			h=(h+inc)%max_height;
-		}while((oldw<=w)&&(oldh<=h));
-		busy=false;
-	}
-}
+        function getMaxWidth() {
+            return innerWidth - (MARGINS.LEFT + MARGINS.RIGHT);
+        }
 
-function init(){
+        function getMaxHeight() {
+            return innerHeight - (MARGINS.TOP + MARGINS.BOTTOM);
+        }
 
-	canvas = document.getElementById('notBoxMod');
-	canvas.width = getWidth();
-	canvas.height = getHeight();
-	if(typeof notInterval != "undefined"){
-		clearInterval(notInterval);
-	}
 
-	if (canvas.getContext){
-		ctx = canvas.getContext('2d');
-		ctx.globalCompositeOperation = 'xor';
-		ctx.fillStyle = "rgb(1,1,1)";
-		notInterval = setInterval("draw();", 10);
-	}
-	busy=false;
-}
+        function showEventInfo(event) {
+            const actionInfo = JSON.stringify(event.interaction.prepared, null, 2)
 
-</script>
+            console.log(`action: ${actionInfo} \ncoords: ${event.pageX}, ${event.pageY}`);
+        }
 
-<script type="text/javascript">
 
-	getWidth = function(){
-		return innerWidth-32;
-	};
+        function dragMoveListener(event) {
+            var target = event.target,
+                // keep the dragged position in the data-x/data-y attributes
+                x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-	getHeight = function(){
-		return innerHeight-32;
-	};
+            // translate the element
+            target.style.webkitTransform =
+                target.style.transform =
+                    'translate(' + x + 'px, ' + y + 'px)';
 
-	var cx = Math.floor(getWidth()/2);
-	var cy = Math.floor(getHeight()/2);
-	var max_width  =cx-1;
-	var max_height  =cy-1;
-	var inc = 1;
-	var canvas;
-	var ctx;
-	var w=0;
-	var h=0;
+            // update the posiion attributes
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+        }
 
-    gotoSprings = function(){
-      window.location.assign("./springs.html")
-    }
+        function resizeStartListener(event) {
+            o.busy = true;
+        }
 
-</script>
+        function resizeEndListener(event) {
+            doResize();
+            o.busy = false;
+        }
+
+        function resizeMoveListener(event) {
+            var target = event.target;
+            var x = (parseFloat(target.getAttribute('data-x')) || 0),
+                y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+            // update the element's style
+            target.style.width = event.rect.width + 'px';
+            target.style.height = event.rect.height + 'px';
+
+            // translate when resizing from top or left edges
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+
+            target.style.webkitTransform = target.style.transform =
+                'translate(' + x + 'px,' + y + 'px)';
+
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+            target.textContent = event.rect.width + '×' + event.rect.height;
+        }
+
+
+        const interactable = interact('.resize-drag')
+
+        interactable.draggable({
+            listeners: {
+                move: dragMoveListener
+            }
+        });
+
+        interactable.resizable({
+            edges: {left: true, right: true, bottom: true, top: true},
+            listeners: {
+                start: resizeStartListener,
+                end: resizeEndListener,
+                move: resizeMoveListener
+            }
+        });
+
+        function doResize() {
+            o.cx = Math.floor(o.canvas.width / 2);
+            o.cy = Math.floor(o.canvas.height / 2);
+            o.modWidth = o.cx - 1;
+            o.modHeight = o.cy - 1;
+
+            ctx = o.canvas.getContext('2d');
+
+            ctx.globalCompositeOperation = 'copy';
+            ctx.fillStyle = "rgb(255,255,255)";
+            ctx.clearRect(0, 0, o.canvas.width, o.canvas.height);
+
+            ctx.globalCompositeOperation = 'xor';
+            ctx.fillStyle = "rgb(0,0,0)";
+            o.busy = false;
+        }
+
+        function initializeCanvas() {
+
+            o.canvas = document.createElement('canvas');
+            o.canvas.className="resize-drag"
+            document.body.append(o.canvas);
+            o.canvas.width = getMaxWidth();
+            o.canvas.height = getMaxHeight();
+            if (typeof o.notInterval != 0) {
+                clearInterval(o.notInterval);
+            }
+
+            if (o.canvas.getContext) {
+                o.ctx = o.canvas.getContext('2d');
+                o.ctx.globalCompositeOperation = 'xor';
+                o.ctx.fillStyle = "rgb(1,1,1)";
+                o.notInterval = setInterval(draw, 10);
+            }
+        }
+
+        window.onload = window.onresize = function () {
+            if(o.canvas){
+                o.canvas.remove();
+            }
+            initializeCanvas();
+            doResize();
+        }
+
+        // window.onclick = function(){
+        // 	window.location.assign("./springs.html")
+        // }
+
+        function draw() {
+            if (o.busy == false) {
+                o.busy = true;
+                let oldH = 0, oldW = 0;
+                do {
+                    oldW = o.w;
+                    oldH = o.h;
+                    let x0 = o.cx - o.w;
+                    let y0 = o.cy - o.h;
+                    o.ctx.fillRect(x0, y0, o.w * 2, o.h * 2);
+                    o.w = (o.w + o.inc) % o.modWidth;
+                    o.h = (o.h + o.inc) % o.modHeight;
+                } while ((oldW <= o.w) && (oldH <= o.h));
+                o.busy = false;
+            }
+        }
+
+        function gotoSprings() {
+            window.location.assign("./springs.html")
+        }
+
+
+    </script>
 
 </head>
-<!-- <body onload="init();"> -->
-<body>
 
-	<canvas id="notBoxMod" width="1280" height="1280" onClick=gotoSprings></canvas>
+<body>
 
 </body>
 </html>
