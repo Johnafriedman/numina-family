@@ -46,6 +46,21 @@
             box-sizing: border-box;
             position: absolute;
         }
+
+        .menu-icon {
+            z-index: 1;
+            position: fixed;
+            margin-top: 16px;
+            margin-left: 16px;
+            width: 32px;
+            height: 32px;
+            background-image: url("assets/hamburger.png");
+            cursor: pointer;
+        }
+
+        .menu {
+
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script>
@@ -63,7 +78,7 @@
         }
 
         let o = {
-            
+
             cx: INITIAL_CENTER.x,
             cy: INITIAL_CENTER.y,
             modWidth: INITIAL_CENTER.x - 1,
@@ -175,6 +190,13 @@
             o.busy = false;
         }
 
+        function initializeMenu(){
+            let menu = document.createElement('div');
+            menu.className="menu-icon";
+            menu.onclick = gotoSprings;
+            document.body.append(menu);
+        }
+
         function initializeCanvas() {
 
             o.canvas = document.createElement('canvas');
@@ -190,21 +212,19 @@
                 o.ctx = o.canvas.getContext('2d');
                 o.ctx.globalCompositeOperation = 'xor';
                 o.ctx.fillStyle = "rgb(1,1,1)";
-                o.notInterval = setInterval(draw, 10);
+                o.notInterval = setInterval(draw, 100);
             }
         }
 
-        window.onload = window.onresize = function () {
+        window.onload  = window.onresize = function () {
+
             if(o.canvas){
                 o.canvas.remove();
-            }
+            } else
+                initializeMenu();
             initializeCanvas();
             doResize();
         }
-
-        // window.onclick = function(){
-        // 	window.location.assign("./springs.html")
-        // }
 
         function draw() {
             if (o.busy == false) {
