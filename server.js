@@ -56,8 +56,8 @@ app.use(vhost("*.makeamindfulmark.com", makeamindfulmarkApp));
 app.use(vhost("makeamindfulmark.com", makeamindfulmarkApp));
 
 app.use(vhost("www.numina.org", numinaApp));
-app.use(vhost("*.numina.org", numinaApp));
 app.use(vhost("asteroids.numina.org", asteroidsApp));
+app.use(vhost("*.numina.org", numinaApp));
 app.use(vhost("numina.org", numinaApp));
 
 app.use(vhost("*.slowsolve.org", slowsolveApp));
