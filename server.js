@@ -24,6 +24,9 @@ katefriedmanApp.use(express.static("www/www.katefriedman.com"));
 var numinaApp = express();
 numinaApp.use(express.static("www/www.numina.org"));
 
+var asteroidsApp = express();
+asteroidsApp.use(express.static("www/www.numina.org/asteroids"));
+
 var slowsolveApp = express();
 slowsolveApp.use(express.static("www/www.slowsolve.org"));
 
@@ -52,6 +55,7 @@ app.use(vhost("katefriedman.com", katefriedmanApp));
 app.use(vhost("*.makeamindfulmark.com", makeamindfulmarkApp));
 app.use(vhost("makeamindfulmark.com", makeamindfulmarkApp));
 
+app.use(vhost("www.numina.org", numinaApp));
 app.use(vhost("*.numina.org", numinaApp));
 app.use(vhost("numina.org", numinaApp));
 
