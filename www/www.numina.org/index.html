@@ -193,7 +193,8 @@
         function initializeMenu(){
             let menu = document.createElement('div');
             menu.className="menu-icon";
-            menu.onclick = gotoSprings;
+            // menu.onclick = gotoSprings;
+            menu.onclick = gotoAsteroids;
             document.body.append(menu);
         }
 
@@ -245,6 +246,10 @@
 
         function gotoSprings() {
             window.location.assign("./springs.html")
+        }
+
+        function gotoAsteroids() {
+            window.location.assign("./asteroids/index.html")
         }
 
 
