@@ -2,13 +2,15 @@ let is_iPad = /Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints
 
 const deviceType = () => {
   const ua = navigator.userAgent;
-  if (/(tablet|ipad|iPad|playbook|silk)|(android(?!.*mobi))/i.test(ua) || is_iPad)  {
-    return "tablet";
-  }
-  else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
-    return "mobile";
-  }
-  return "desktop";
+  return "tablet";
+  //
+  // if (/(tablet|ipad|iPad|playbook|silk)|(android(?!.*mobi))/i.test(ua) || is_iPad)  {
+  //   return "tablet";
+  // }
+  // else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+  //   return "mobile";
+  // }
+  // return "desktop";
 };
 
 if (deviceType()=="tablet") {
