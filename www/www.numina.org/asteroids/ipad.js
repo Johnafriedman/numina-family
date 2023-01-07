@@ -1,4 +1,4 @@
-let ipad = 1; ///Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+window.ipad = 1; ///Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
 
 const deviceType = () => {
   const ua = navigator.userAgent;
