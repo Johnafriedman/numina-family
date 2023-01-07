@@ -5,6 +5,14 @@
     <script src="ipad.js"></script>
     <script src="game.js"></script>
     <style>
+      .unselectable {
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        color: #cc0000;
+      }
       #canvas { border:1px solid black; top:0px; left:0px; }
       .button { position:absolute; border:1px solid black; }
       #left-controls { position:absolute; left:1px; bottom:100px; display:none; }
@@ -18,12 +26,12 @@
   <body>
     <div id="game-container" >
       <canvas id="canvas" width="780" height="540"></canvas>
-      <div id="left-controls">
+      <div class="unselectable" id="left-controls">
         <div id="up" class='button'>THRUST</div>
         <div id="left" class='button'>LEFT</div>
         <div id="right" class='button'>RIGHT</div>
       </div>
-      <div id="right-controls">
+      <div class="unselectable" id="right-controls">
         <div id="space" class='button'>FIRE</div>
       </div>
     </div>
