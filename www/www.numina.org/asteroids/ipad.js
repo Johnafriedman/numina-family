@@ -1,7 +1,6 @@
-let is_iPad = /Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+let is_iPad = 1; ///Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
 
 const deviceType = () => {
-  return "tablet";
   const ua = navigator.userAgent;
   if (/(tablet|ipad|iPad|playbook|silk)|(android(?!.*mobi))/i.test(ua) || is_iPad) {
     return "tablet";
