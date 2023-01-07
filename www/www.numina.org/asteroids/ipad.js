@@ -1,8 +1,8 @@
-let is_iPad = 1; ///Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+let ipad = 1; ///Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
 
 const deviceType = () => {
   const ua = navigator.userAgent;
-  if (/(tablet|ipad|iPad|playbook|silk)|(android(?!.*mobi))/i.test(ua) || is_iPad) {
+  if (/(tablet|ipad|iPad|playbook|silk)|(android(?!.*mobi))/i.test(ua) || ipad) {
     return "tablet";
   }
   else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
