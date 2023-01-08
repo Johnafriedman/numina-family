@@ -84,14 +84,10 @@ Matrix = function (rows, columns) {
 };
 
 Sprite = function () {
-  this.init = function (name, points) {
+  this.init = function (name, points, image) {
     this.name     = name;
-    if(name=="ship"){
-      this.image = points;
-      this.points=[];
-    } else {
-      this.points   = points;
-    }
+    this.image = image;
+    this.points   = points;
 
     this.vel = {
       x:   0,
@@ -385,7 +381,11 @@ Sprite = function () {
 };
 
 Ship = function () {
-  this.init("ship", superHero.shipImg );
+  this.init("ship",
+      [-5,   4,
+        0, -12,
+        5,   4],
+      superHero.shipImg);
 
   this.children.exhaust = new Sprite();
   this.children.exhaust.init("exhaust",
