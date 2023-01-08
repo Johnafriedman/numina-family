@@ -3,12 +3,14 @@
 // Copyright (c) 2010 Doug McInnes
 let superHero = {
   img: new Image(),
+  shipImg: new Image(),
   x: 0,
   y: 0,
   dx: 2,
   dy: 8
 }
 superHero.img.src = "./asteroidHero.svg";
+superHero.shipImg.src = "./asteroidHero.png";
 
 KEY_CODES = {
   32: 'space',
@@ -84,7 +86,12 @@ Matrix = function (rows, columns) {
 Sprite = function () {
   this.init = function (name, points) {
     this.name     = name;
-    this.points   = points;
+    if(name=="ship"){
+      this.image = points;
+      this.points=[];
+    } else {
+      this.points   = points;
+    }
 
     this.vel = {
       x:   0,
@@ -240,17 +247,22 @@ Sprite = function () {
       this.children[child].draw();
     }
 
-    this.context.beginPath();
+    if(this.name == "ship"){
+      this.context.drawImage(this.image,0,0)
+    } else {
+      this.context.beginPath();
 
-    this.context.moveTo(this.points[0], this.points[1]);
-    for (var i = 1; i < this.points.length/2; i++) {
-      var xi = i*2;
-      var yi = xi + 1;
-      this.context.lineTo(this.points[xi], this.points[yi]);
+      this.context.moveTo(this.points[0], this.points[1]);
+      for (var i = 1; i < this.points.length/2; i++) {
+        var xi = i*2;
+        var yi = xi + 1;
+        this.context.lineTo(this.points[xi], this.points[yi]);
+      }
+
+      this.context.closePath();
+      this.context.stroke();
     }
 
-    this.context.closePath();
-    this.context.stroke();
   };
   this.findCollisionCanidates = function () {
     if (!this.visible || !this.currentNode) return [];
@@ -373,10 +385,7 @@ Sprite = function () {
 };
 
 Ship = function () {
-  this.init("ship",
-            [-5,   4,
-              0, -12,
-              5,   4]);
+  this.init("ship", superHero.shipImg );
 
   this.children.exhaust = new Sprite();
   this.children.exhaust.init("exhaust",
