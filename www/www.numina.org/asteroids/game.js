@@ -850,14 +850,18 @@ for (var sfx in SFX) {
   (function () {
     var audio = SFX[sfx];
     audio.muted = true;
-    audio.play();
+    if(audio.readyState == HTMLMediaElement.HAVE_FUTURE_DATA) {
+      audio.play();
+    }
 
     SFX[sfx] = function () {
       if (!this.muted) {
         if (audio.duration == 0) {
           // somehow dropped out
           audio.load();
-          audio.play();
+          if(audio.readyState == HTMLMediaElement.HAVE_FUTURE_DATA){
+            audio.play();
+          }
         } else {
           audio.muted = false;
           audio.currentTime = 0;
