@@ -1,9 +1,14 @@
 // Canvas Asteroids
 //
 // Copyright (c) 2010 Doug McInnes
-//
-let superHeroImg = new Image();
-superHeroImg.src = "./asteroidHero.svg";
+let superHero = {
+  img: new Image(),
+  x: 0,
+  y: 0,
+  dx: 2,
+  dy: 8
+}
+superHero.img.src = "./asteroidHero.svg";
 
 KEY_CODES = {
   32: 'space',
@@ -925,13 +930,21 @@ Game = {
     waiting: function () {
       Text.renderText(window.ipad ? 'LUKAS VS.the ASTEROIDS' : 'Press Space to Start', 36, Game.canvasWidth/2 - 270, Game.canvasHeight/2);
       Text.renderText(window.ipad ? 'Touch Screen to Start' : 'Press Space to Start', 36, Game.canvasWidth/2 - 270, Game.canvasHeight/2+46);
-      if(superHeroImg.width){
+      if(superHero.img.width){
         let canvas = $("#canvas");
         let canvasWidth  = canvas.width();
         let canvasHeight = canvas.height();
 
         let context = canvas[0].getContext("2d");
-        context.drawImage(superHeroImg, 0, 0);
+        context.drawImage(superHero.img, superHero.x, superHero.y);
+        superHero.x -= superHero.dx;
+        superHero.y -= superHero.dy;
+        if(superHero.y + superHero.img.height < 0){
+          superHero.y = canvasHeight;
+        }
+        if(superHero.x + superHero.img.width < 0){
+          superHero.x = canvasWidth;
+        }
       }
 
       if (KEY_STATUS.space || window.gameStart) {
