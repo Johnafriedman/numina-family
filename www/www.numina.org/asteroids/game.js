@@ -7,16 +7,15 @@ const SHIP_WIDTH = 24;
 const SHIP_HEIGHT = 40;
 let superHero = {
   img: new Image(),
-  shipImg: new Image(),
   x: 0,
   y: 0,
-  shipWidth: SHIP_WIDTH*SHIP_SCALE,
-  shipheight: SHIP_HEIGHT*SHIP_SCALE,
   dx: 2,
-  dy: 8
+  dy: 8,
+  shipImg: null,
+  shipWidth: SHIP_WIDTH*SHIP_SCALE,
+  shipHeight: SHIP_HEIGHT*SHIP_SCALE
 }
 superHero.img.src = "./asteroidHero.svg";
-superHero.shipImg.src = "./asteroidHero.png";
 
 KEY_CODES = {
   32: 'space',
@@ -250,7 +249,7 @@ Sprite = function () {
     }
 
     if(this.name == "ship"){
-      this.context.drawImage(this.image,-30,-80)
+      this.context.drawImage(superHero.shipImg,0,0)
     } else {
       this.context.beginPath();
 
@@ -389,8 +388,7 @@ Sprite = function () {
 Ship = function () {
   let shipPoints = COLLIDE_SHIP ? [-5,   4, 0, -12, 5,   4] : [];
   this.init("ship",
-      shipPoints,
-      superHero.img);
+      shipPoints);
 
   this.children.exhaust = new Sprite();
   this.children.exhaust.init("exhaust",
@@ -949,9 +947,6 @@ Game = {
         let canvasWidth  = canvas.width();
         let canvasHeight = canvas.height();
 
-        superHero.img.width = superHero.img.naturalWidth;
-        superHero.img.height = superHero.img.naturalHeight;
-
         let context = canvas[0].getContext("2d");
         context.drawImage(superHero.img, superHero.x, superHero.y);
         superHero.x -= superHero.dx;
@@ -962,6 +957,16 @@ Game = {
         if(superHero.x + superHero.img.width < 0){
           superHero.x = canvasWidth;
         }
+
+        if(superHero.shipImg==null){
+           createImageBitmap(superHero.img, {resizeWidth: SHIP_WIDTH*SHIP_SCALE, resizeHeight: SHIP_HEIGHT*SHIP_SCALE }).then(
+               function (image) {
+                 superHero.shipImg = image;
+                 } ,
+               function (reason){
+                 console.log(reason)
+               });
+        }
       }
 
       if (KEY_STATUS.space || window.gameStart) {
@@ -971,9 +976,6 @@ Game = {
       }
     },
     start: function () {
-
-      superHero.img.width = superHero.shipWidth;
-      superHero.img.height = superHero.shipheight;
 
       for (var i = 0; i < Game.sprites.length; i++) {
         if (Game.sprites[i].name == 'asteroid') {
