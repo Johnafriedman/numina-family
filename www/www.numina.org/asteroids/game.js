@@ -11,11 +11,12 @@ let superHero = {
   y: 0,
   dx: 2,
   dy: 8,
-  shipImg: null,
+  shipImg: new Image(),
   shipWidth: SHIP_WIDTH*SHIP_SCALE,
   shipHeight: SHIP_HEIGHT*SHIP_SCALE
 }
 superHero.img.src = "./asteroidHero.svg";
+superHero.shipImg.src = "./asteroidHero.png";
 
 KEY_CODES = {
   32: 'space',
@@ -249,7 +250,7 @@ Sprite = function () {
     }
 
     if(this.name == "ship"){
-      this.context.drawImage(superHero.shipImg,0,0)
+      this.context.drawImage(superHero.shipImg, 0, 0)
     } else {
       this.context.beginPath();
 
@@ -949,6 +950,7 @@ Game = {
 
         let context = canvas[0].getContext("2d");
         context.drawImage(superHero.img, superHero.x, superHero.y);
+
         superHero.x -= superHero.dx;
         superHero.y -= superHero.dy;
         if(superHero.y + superHero.img.height < 0){
@@ -958,15 +960,6 @@ Game = {
           superHero.x = canvasWidth;
         }
 
-        if(superHero.shipImg==null){
-           createImageBitmap(superHero.img, {resizeWidth: SHIP_WIDTH*SHIP_SCALE, resizeHeight: SHIP_HEIGHT*SHIP_SCALE }).then(
-               function (image) {
-                 superHero.shipImg = image;
-                 } ,
-               function (reason){
-                 console.log(reason)
-               });
-        }
       }
 
       if (KEY_STATUS.space || window.gameStart) {
