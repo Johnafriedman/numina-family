@@ -1,11 +1,17 @@
 // Canvas Asteroids
 //
 // Copyright (c) 2010 Doug McInnes
+const COLLIDE_SHIP = false;
+const SHIP_SCALE = 3;
+const SHIP_WIDTH = 24;
+const SHIP_HEIGHT = 40;
 let superHero = {
   img: new Image(),
   shipImg: new Image(),
   x: 0,
   y: 0,
+  shipWidth: SHIP_WIDTH*SHIP_SCALE,
+  shipheight: SHIP_HEIGHT*SHIP_SCALE,
   dx: 2,
   dy: 8
 }
@@ -244,7 +250,7 @@ Sprite = function () {
     }
 
     if(this.name == "ship"){
-      this.context.drawImage(this.image,0,0)
+      this.context.drawImage(this.image,-30,-80)
     } else {
       this.context.beginPath();
 
@@ -381,11 +387,10 @@ Sprite = function () {
 };
 
 Ship = function () {
+  let shipPoints = COLLIDE_SHIP ? [-5,   4, 0, -12, 5,   4] : [];
   this.init("ship",
-      [-5,   4,
-        0, -12,
-        5,   4],
-      superHero.shipImg);
+      shipPoints,
+      superHero.img);
 
   this.children.exhaust = new Sprite();
   this.children.exhaust.init("exhaust",
@@ -944,6 +949,9 @@ Game = {
         let canvasWidth  = canvas.width();
         let canvasHeight = canvas.height();
 
+        superHero.img.width = superHero.img.naturalWidth;
+        superHero.img.height = superHero.img.naturalHeight;
+
         let context = canvas[0].getContext("2d");
         context.drawImage(superHero.img, superHero.x, superHero.y);
         superHero.x -= superHero.dx;
@@ -963,6 +971,10 @@ Game = {
       }
     },
     start: function () {
+
+      superHero.img.width = superHero.shipWidth;
+      superHero.img.height = superHero.shipheight;
+
       for (var i = 0; i < Game.sprites.length; i++) {
         if (Game.sprites[i].name == 'asteroid') {
           Game.sprites[i].die();
