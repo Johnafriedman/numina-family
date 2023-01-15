@@ -16,7 +16,16 @@ let superHero = {
   shipHeight: SHIP_HEIGHT*SHIP_SCALE
 }
 superHero.img.src = "./asteroidHero.svg";
-superHero.shipImg.src = "./asteroidHero.png";
+superHero.shipImg.src = "./asteroidVillian.png";
+
+let superVillian = {
+  img: new Image(),
+  x: 0,
+  y: 0,
+  dx: -6,
+  dy: -2,
+}
+superVillian.img.src = "./asteroidVillian.svg";
 
 KEY_CODES = {
   32: 'space',
@@ -941,15 +950,16 @@ Game = {
       this.state = 'waiting';
     },
     waiting: function () {
-      Text.renderText(window.ipad ? 'LUKAS VS.the ASTEROIDS' : 'Press Space to Start', 36, Game.canvasWidth/2 - 270, Game.canvasHeight/2);
+      Text.renderText(window.ipad ? 'LUKAS VS.the Badguys' : 'Press Space to Start', 36, Game.canvasWidth/2 - 270, Game.canvasHeight/2);
       Text.renderText(window.ipad ? 'Touch Screen to Start' : 'Press Space to Start', 36, Game.canvasWidth/2 - 270, Game.canvasHeight/2+46);
-      if(superHero.img.width){
+      if(superHero.img.width && superVillian.img.width){
         let canvas = $("#canvas");
         let canvasWidth  = canvas.width();
         let canvasHeight = canvas.height();
 
         let context = canvas[0].getContext("2d");
         context.drawImage(superHero.img, superHero.x, superHero.y);
+        context.drawImage(superVillian.img, superVillian.x, superVillian.y);
 
         superHero.x -= superHero.dx;
         superHero.y -= superHero.dy;
@@ -959,6 +969,16 @@ Game = {
         if(superHero.x + superHero.img.width < 0){
           superHero.x = canvasWidth;
         }
+
+        superVillian.x -= superVillian.dx;
+        superVillian.y -= superVillian.dy;
+        if(superVillian.y + superVillian.img.height > canvasHeight){
+          superVillian.y = 0;
+        }
+        if(superVillian.x + superVillian.img.width > canvasWidth){
+          superVillian.x = 0;
+        }
+
 
       }
 
