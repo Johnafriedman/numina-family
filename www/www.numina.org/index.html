@@ -55,8 +55,8 @@
         }
 
         const INITIAL_CENTER = {
-            x: Math.floor((innerWidth - (MARGINS.LEFT + MARGINS.RIGHT)) / 2 + MARGINS.LEFT),
-            y:  Math.floor((innerHeight - (MARGINS.TOP + MARGINS.BOTTOM)) / 2 + MARGINS.TOP)
+            x: Math.floor((innerWidth - (MARGINS.LEFT + MARGINS.RIGHT)) / 2),
+            y:  Math.floor((innerHeight - (MARGINS.TOP + MARGINS.BOTTOM)) / 2)
         }
 
         let o = {
@@ -157,8 +157,8 @@
 
         function doResize() {
 
-            o.cx = Math.floor(o.canvas.width / 2) + MARGINS.LEFT;
-            o.cy = Math.floor(o.canvas.height / 2) + MARGINS.TOP;
+            o.cx = Math.floor(o.canvas.width / 2);
+            o.cy = Math.floor(o.canvas.height / 2);
             o.modWidth = o.cx - 1;
             o.modHeight = o.cy - 1;
 
