@@ -6,14 +6,14 @@
 
     <style>
 
-        body{
+        body {
             background-color: #a1a399;
         }
 
         .page {
-            margin-top: 2vw ;
-            margin-left: 2vw ;
-            margin-right: 2vw ;
+            margin-top: 2vw;
+            margin-left: 2vw;
+            margin-right: 2vw;
             font-family: Georgia, "Times New Roman", Times, serif
         }
 
@@ -22,21 +22,24 @@
             border-bottom: white solid;
         }
 
-        .page-back {
-            font-size: 2vw;
-        }
-        .page-author {
+        .page-header {
             font-size: 2vw;
             font-style: italic;
-            margin-left: 75vw;
-            right: 4vw;
+        }
+
+        .page-back {
+            text-align: left;
+        }
+
+        .page-author {
+            float: right;
         }
 
         .song {
-            margin-top: 2vw ;
-            margin-left: 2vw ;
-            margin-right: 2vw ;
-            padding: 2px ;
+            margin-top: 2vw;
+            margin-left: 2vw;
+            margin-right: 2vw;
+            padding: 2px;
             border: 2px black solid;
             background-color: #d7c89a;
 
@@ -59,7 +62,7 @@
         }
 
         .audio {
-            padding: 2px ;
+            padding: 2px;
             margin-top: 1vw;
             margin-left: 1vw;
         }
@@ -71,25 +74,25 @@
 </head>
 <body>
 
-<script type="module" >
+<script type="module">
     import songs from "./allSongs.js"
 
     const songTemp =
         '<div class="song">' +
-            '<div class="song-title"><%title%></div>' +
-            '<div class="description"><%description%></div>' +
-            '<audio controls class="audio">' +
-                '<source src="https://docs.google.com/uc?authuser=0&id=<%sourceId%>&export=download" + "?noCache=" + Math.floor(Math.random() * 1000000)" +  " type="audio/mpeg">' +
-            '</audio>' +
+        '<div class="song-title"><%title%></div>' +
+        '<div class="description"><%description%></div>' +
+        '<audio controls class="audio">' +
+        '<source src="https://docs.google.com/uc?authuser=0&id=<%sourceId%>&export=download" + "?noCache=" + Math.floor(Math.random() * 1000000)" +  " type="audio/mpeg">' +
+        '</audio>' +
         '</div>'
 
-    function loadSongs(document){
-        songs.forEach(function(currentValue){
-            let songStr=songTemp;
+    function loadSongs(document) {
+        songs.forEach(function (currentValue) {
+            let songStr = songTemp;
 
             Object.entries(currentValue).forEach(entry => {
                 const [key, value] = entry;
-                const re = new RegExp("<%"+key+"%>");
+                const re = new RegExp("<%" + key + "%>");
                 songStr = songStr.replace(re, value);
             });
 
@@ -100,8 +103,8 @@
         });
     }
 
-    function addPlayEventHandler(document){
-        document.addEventListener('play', function(e) {
+    function addPlayEventHandler(document) {
+        document.addEventListener('play', function (e) {
             let audios = document.getElementsByTagName('audio');
 
             let i, len;
@@ -114,7 +117,7 @@
     }
 
 
-    onload = function(){
+    onload = function () {
         loadSongs(this.document);
         addPlayEventHandler(this.document);
     }
@@ -123,13 +126,19 @@
 <div class="page">
     <div class="page-title">
         Guitar
-    </div >
-    <div class="page-back">
-        <a href="../">Back</a>
     </div>
-    <div class="page-author">
-        by john friedman
+
+    <div class="page-header">
+        <div class="page-back">
+            <a href="../">
+                back
+            </a>
+            <span class="page-author">
+                by john friedman
+            </span>
+        </div>
     </div>
+</div>
 </div>
 </body>
 </html>

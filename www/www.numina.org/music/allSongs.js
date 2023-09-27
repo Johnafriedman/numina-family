@@ -20,7 +20,7 @@ const songs = [
     {
         title : "River",
 
-        description : "I wrote this for and performed at my brother-in-law Don's memorial gathering.<br/> He was a great guitarist.",
+        description : "I wrote this for my brother-in-law's memorial gathering.<br/> He was a great guitarist.",
 
         sourceId : "14VY47Gs-LTyu4MoLzGb3uEV_sV3UySnQ"
     },
