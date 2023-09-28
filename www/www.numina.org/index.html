@@ -155,6 +155,20 @@
             }
         });
 
+        var previousOrientation = window.screen.orientation;
+        var checkOrientation = function() {
+            if(window.screen.orientation.type !== previousOrientation.type){
+                previousOrientation.type = window.screen.orientation.type;
+                reinitialize();
+            }
+        };
+
+        window.addEventListener("resize", checkOrientation, false);
+        window.addEventListener("orientationchange", checkOrientation, false);
+
+        // (optional) Android doesn't always fire orientationChange on 180 degree turns
+        setInterval(checkOrientation, 2000);
+
         function doResize() {
 
             o.cx = Math.floor(o.canvas.width / 2);
@@ -200,12 +214,10 @@
             }
         }
 
-        window.onload  = window.onresize = function () {
-
+        let reinitialize = window.onload  = window.onresize = function () {
             if(o.canvas){
                 o.canvas.remove();
-            } else
-                // initializeMenu();
+            }
             initializeCanvas();
             doResize();
         }
