@@ -41,8 +41,8 @@ var debugHandler = function handle (req, res, next) {
 
 
 var app = express();
-app.use(sslRedirect());
-app.use(sslRedirect());
+/*app.use(sslRedirect());
+app.use(sslRedirect());*/
 
 app.use(vhost("*.fraterdeus.com", fraterdeusApp));
 app.use(vhost("fraterdeus.com", fraterdeusApp));
