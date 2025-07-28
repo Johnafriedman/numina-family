@@ -36,7 +36,6 @@
 
     </style>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-    <script src="js/vendor/jquery-3.7.0.min.js"></script>
     <script>
 
         const MARGINS = {
@@ -235,40 +234,113 @@
             window.location.assign("./springs.html")
         }
 
-        // Requires jQuery
+        // Rewritten in native JavaScript
 
-        $(document).on('click','.js-menu_toggle.closed',function(e){
-            e.preventDefault(); $('.list_load, .list_item').stop();
-            $(this).removeClass('closed').addClass('opened');
-
-            $('.side_menu').css({ 'left':'0px' });
-
-            var count = $('.list_item').length;
-            $('.list_load').slideDown( (count*.6)*100 );
-            $('.list_item').each(function(i){
-                var thisLI = $(this);
-                timeOut = 100*i;
-                setTimeout(function(){
-                    thisLI.css({
-                        'opacity':'1',
-                        'margin-left':'0'
-                    });
-                },100*i);
+        document.addEventListener('click', function(e) {
+            var menuToggle = e.target.closest('.js-menu_toggle.closed');
+            if (menuToggle) {
+            e.preventDefault();
+            document.querySelectorAll('.list_load, .list_item').forEach(function(el) {
+                el.style.transition = '';
             });
+            menuToggle.classList.remove('closed');
+            menuToggle.classList.add('opened');
+
+            var sideMenu = document.querySelector('.side_menu');
+            if (sideMenu) sideMenu.style.left = '0px';
+
+            var listItems = document.querySelectorAll('.list_item');
+            var listLoad = document.querySelector('.list_load');
+            if (listLoad) listLoad.style.display = 'block';
+
+            listItems.forEach(function(thisLI, i) {
+                setTimeout(function() {
+                thisLI.style.opacity = '1';
+                thisLI.style.marginLeft = '0';
+                }, 100 * i);
+            });
+            return;
+            }
+
+            menuToggle = e.target.closest('.js-menu_toggle.opened');
+            if (menuToggle) {
+            e.preventDefault();
+            document.querySelectorAll('.list_load, .list_item').forEach(function(el) {
+                el.style.transition = '';
+            });
+            menuToggle.classList.remove('opened');
+            menuToggle.classList.add('closed');
+
+            var sideMenu = document.querySelector('.side_menu');
+            if (sideMenu) sideMenu.style.left = '-250px';
+
+            var listItems = document.querySelectorAll('.list_item');
+            listItems.forEach(function(thisLI) {
+                thisLI.style.opacity = '0';
+                thisLI.style.marginLeft = '-20px';
+            });
+
+            var listLoad = document.querySelector('.list_load');
+            if (listLoad) {
+                listLoad.style.transition = 'all 0.3s';
+                listLoad.style.display = 'none';
+            }
+            }
         });
 
-        $(document).on('click','.js-menu_toggle.opened',function(e){
-            e.preventDefault(); $('.list_load, .list_item').stop();
-            $(this).removeClass('opened').addClass('closed');
+        document.addEventListener('click', function(e) {
+            var menuToggle = e.target.closest('.js-menu_toggle.closed');
+            if (menuToggle) {
+                e.preventDefault();
+                // Stop any ongoing transitions/animations
+                document.querySelectorAll('.list_load, .list_item').forEach(function(el) {
+                    el.style.transition = '';
+                });
+                menuToggle.classList.remove('closed');
+                menuToggle.classList.add('opened');
 
-            $('.side_menu').css({ 'left':'-250px' });
+                var sideMenu = document.querySelector('.side_menu');
+                if (sideMenu) sideMenu.style.left = '0px';
 
-            var count = $('.list_item').length;
-            $('.list_item').css({
-                'opacity':'0',
-                'margin-left':'-20px'
-            });
-            $('.list_load').slideUp(300);
+                var listItems = document.querySelectorAll('.list_item');
+                var listLoad = document.querySelector('.list_load');
+                if (listLoad) listLoad.style.display = 'block';
+
+                listItems.forEach(function(thisLI, i) {
+                    setTimeout(function() {
+                        thisLI.style.opacity = '1';
+                        thisLI.style.marginLeft = '0';
+                    }, 100 * i);
+                });
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            var menuToggle = e.target.closest('.js-menu_toggle.opened');
+            if (menuToggle) {
+                e.preventDefault();
+                // Stop any ongoing transitions/animations
+                document.querySelectorAll('.list_load, .list_item').forEach(function(el) {
+                    el.style.transition = '';
+                });
+                menuToggle.classList.remove('opened');
+                menuToggle.classList.add('closed');
+
+                var sideMenu = document.querySelector('.side_menu');
+                if (sideMenu) sideMenu.style.left = '-250px';
+
+                var listItems = document.querySelectorAll('.list_item');
+                listItems.forEach(function(thisLI) {
+                    thisLI.style.opacity = '0';
+                    thisLI.style.marginLeft = '-20px';
+                });
+
+                var listLoad = document.querySelector('.list_load');
+                if (listLoad) {
+                    listLoad.style.transition = 'all 0.3s';
+                    listLoad.style.display = 'none';
+                }
+            }
         });
 
 
