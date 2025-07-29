@@ -109,10 +109,11 @@
             const pos = getMousePos(e, el);
             const edgeSize = 10;
             let dir = '';
-            if (pos.x < edgeSize) dir += 'w';
-            else if (pos.x > el.width - edgeSize) dir += 'e';
             if (pos.y < edgeSize) dir += 'n';
             else if (pos.y > el.height - edgeSize) dir += 's';
+            if (pos.x < edgeSize) dir += 'w';
+            else if (pos.x > el.width - edgeSize) dir += 'e';
+
             return dir || null;
         }
 
