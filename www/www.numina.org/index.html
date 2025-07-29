@@ -95,51 +95,108 @@
         let resizeDir = null;
         let resizeStart = { x: 0, y: 0, width: 0, height: 0 };
 
-        // Helper: get mouse position relative to element
-        function getMousePos(e, el) {
+        // Helper: get mouse/touch position relative to element
+        function getPointerPos(e, el) {
+            // e can be MouseEvent or Touch
+            const clientX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+            const clientY = e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
             const rect = el.getBoundingClientRect();
             return {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
+                x: clientX - rect.left,
+                y: clientY - rect.top,
+                clientX,
+                clientY
             };
         }
 
-        // Helper: detect if mouse is near edge for resizing
-        function getResizeDirection(e, el) {
-            const pos = getMousePos(e, el);
+        // Helper: detect if pointer is near edge for resizing
+        function getResizeDirectionFromPos(pos, el) {
             const edgeSize = 32;
             let dir = '';
             if (pos.y < edgeSize) dir += 'n';
             else if (pos.y > el.height - edgeSize) dir += 's';
             if (pos.x < edgeSize) dir += 'w';
             else if (pos.x > el.width - edgeSize) dir += 'e';
-
             return dir || null;
+        }
+
+        function getResizeDirection(e, el) {
+            return getResizeDirectionFromPos(getPointerPos(e, el), el);
+        }
+
+        // Helper: set canvas style and size during resize
+        function updateCanvasStyleDuringResize(canvas, newLeft, newTop, newWidth, newHeight) {
+            canvas.style.left = newLeft + 'px';
+            canvas.style.top = newTop + 'px';
+            canvas.style.width = newWidth + 'px';
+            canvas.style.height = newHeight + 'px';
+        }
+
+        // Helper: actually resize canvas and restore content
+        function finalizeResize(canvas) {
+            // Save current visual as an image
+            const prevWidth = canvas.width;
+            const prevHeight = canvas.height;
+            const temp = document.createElement('canvas');
+            temp.width = prevWidth;
+            temp.height = prevHeight;
+            temp.getContext('2d').drawImage(canvas, 0, 0);
+
+            // Get new size from styled width/height
+            const newWidth = parseInt(canvas.style.width, 10) || canvas.width;
+            const newHeight = parseInt(canvas.style.height, 10) || canvas.height;
+
+            // Set actual canvas size (this clears it)
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+
+            // Restore image, scaled if needed
+            canvas.getContext('2d').drawImage(temp, 0, 0, prevWidth, prevHeight, 0, 0, newWidth, newHeight);
+
+            // Remove temporary style overrides
+            canvas.style.width = '';
+            canvas.style.height = '';
+
+            doResize();
+        }
+
+        // Helper: get correct cursor for resize direction
+        function getCursorForDir(dir) {
+            if (!dir) return 'move';
+            if (dir === 'n' || dir === 's') return dir + '-resize';
+            if (dir === 'e' || dir === 'w') return dir + '-resize';
+            if (dir === 'ne' || dir === 'en') return 'ne-resize';
+            if (dir === 'nw' || dir === 'wn') return 'nw-resize';
+            if (dir === 'se' || dir === 'es') return 'se-resize';
+            if (dir === 'sw' || dir === 'ws') return 'sw-resize';
+            return 'move';
         }
 
         function setupNativeDragResize(canvas) {
             canvas.style.position = 'absolute';
             canvas.style.cursor = 'move';
 
+            // --- Mouse Events ---
             canvas.addEventListener('mousedown', function(e) {
                 const dir = getResizeDirection(e, canvas);
+                const pos = getPointerPos(e, canvas);
                 if (dir) {
                     isResizing = true;
                     resizeDir = dir;
                     resizeStart = {
-                        x: e.clientX,
-                        y: e.clientY,
+                        x: pos.clientX,
+                        y: pos.clientY,
                         width: canvas.width,
                         height: canvas.height,
                         left: parseInt(canvas.style.left || 0, 10),
                         top: parseInt(canvas.style.top || 0, 10)
                     };
-                    document.body.style.cursor = dir + '-resize';
+                    document.body.style.cursor = getCursorForDir(dir);
                     o.busy = true;
                 } else {
                     isDragging = true;
-                    dragOffset.x = e.clientX - (parseInt(canvas.style.left || 0, 10));
-                    dragOffset.y = e.clientY - (parseInt(canvas.style.top || 0, 10));
+                    dragOffset.x = pos.clientX - (parseInt(canvas.style.left || 0, 10));
+                    dragOffset.y = pos.clientY - (parseInt(canvas.style.top || 0, 10));
                     document.body.style.cursor = 'move';
                 }
                 e.preventDefault();
@@ -147,11 +204,13 @@
 
             window.addEventListener('mousemove', function(e) {
                 if (isDragging) {
-                    canvas.style.left = (e.clientX - dragOffset.x) + 'px';
-                    canvas.style.top = (e.clientY - dragOffset.y) + 'px';
+                    const pos = getPointerPos(e, canvas);
+                    canvas.style.left = (pos.clientX - dragOffset.x) + 'px';
+                    canvas.style.top = (pos.clientY - dragOffset.y) + 'px';
                 } else if (isResizing) {
-                    let dx = e.clientX - resizeStart.x;
-                    let dy = e.clientY - resizeStart.y;
+                    const pos = getPointerPos(e, canvas);
+                    let dx = pos.clientX - resizeStart.x;
+                    let dy = pos.clientY - resizeStart.y;
                     let newWidth = resizeStart.width;
                     let newHeight = resizeStart.height;
                     let newLeft = resizeStart.left;
@@ -168,13 +227,8 @@
                         newTop = resizeStart.top + dy;
                     }
 
-                    // --- Preserve canvas content during resize ---
-                    // Only update style, not width/height, during resize
-                    canvas.style.left = newLeft + 'px';
-                    canvas.style.top = newTop + 'px';
-                    canvas.style.width = newWidth + 'px';
-                    canvas.style.height = newHeight + 'px';
-                    // Do NOT set canvas.width/canvas.height here!
+                    updateCanvasStyleDuringResize(canvas, newLeft, newTop, newWidth, newHeight);
+                    document.body.style.cursor = getCursorForDir(resizeDir);
                 }
             });
 
@@ -182,31 +236,7 @@
                 if (isDragging || isResizing) {
                     isDragging = false;
                     if (isResizing) {
-                        // --- Now actually resize the canvas and redraw ---
-                        // Save current visual as an image
-                        const prevWidth = canvas.width;
-                        const prevHeight = canvas.height;
-                        const temp = document.createElement('canvas');
-                        temp.width = prevWidth;
-                        temp.height = prevHeight;
-                        temp.getContext('2d').drawImage(canvas, 0, 0);
-
-                        // Get new size from styled width/height
-                        const newWidth = parseInt(canvas.style.width, 10) || canvas.width;
-                        const newHeight = parseInt(canvas.style.height, 10) || canvas.height;
-
-                        // Set actual canvas size (this clears it)
-                        canvas.width = newWidth;
-                        canvas.height = newHeight;
-
-                        // Restore image, scaled if needed
-                        canvas.getContext('2d').drawImage(temp, 0, 0, prevWidth, prevHeight, 0, 0, newWidth, newHeight);
-
-                        // Remove temporary style overrides
-                        canvas.style.width = '';
-                        canvas.style.height = '';
-
-                        doResize();
+                        finalizeResize(canvas);
                     }
                     isResizing = false;
                     resizeDir = null;
@@ -219,27 +249,24 @@
             canvas.addEventListener('mousemove', function(e) {
                 if (isDragging || isResizing) return;
                 const dir = getResizeDirection(e, canvas);
-                if (dir) {
-                    canvas.style.cursor = dir + '-resize';
-                } else {
-                    canvas.style.cursor = 'move';
-                }
+                canvas.style.cursor = getCursorForDir(dir);
             });
 
-            // Touch helpers
+            // --- Touch Events ---
             function getTouch(e) {
-                return e.touches[0] || e.changedTouches[0];
+                return e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
             }
 
             canvas.addEventListener('touchstart', function(e) {
                 const touch = getTouch(e);
                 const dir = getResizeDirection(touch, canvas);
+                const pos = getPointerPos(touch, canvas);
                 if (dir) {
                     isResizing = true;
                     resizeDir = dir;
                     resizeStart = {
-                        x: touch.clientX,
-                        y: touch.clientY,
+                        x: pos.clientX,
+                        y: pos.clientY,
                         width: canvas.width,
                         height: canvas.height,
                         left: parseInt(canvas.style.left || 0, 10),
@@ -248,20 +275,21 @@
                     o.busy = true;
                 } else {
                     isDragging = true;
-                    dragOffset.x = touch.clientX - (parseInt(canvas.style.left || 0, 10));
-                    dragOffset.y = touch.clientY - (parseInt(canvas.style.top || 0, 10));
+                    dragOffset.x = pos.clientX - (parseInt(canvas.style.left || 0, 10));
+                    dragOffset.y = pos.clientY - (parseInt(canvas.style.top || 0, 10));
                 }
                 e.preventDefault();
             }, { passive: false });
 
             window.addEventListener('touchmove', function(e) {
                 const touch = getTouch(e);
+                const pos = getPointerPos(touch, canvas);
                 if (isDragging) {
-                    canvas.style.left = (touch.clientX - dragOffset.x) + 'px';
-                    canvas.style.top = (touch.clientY - dragOffset.y) + 'px';
+                    canvas.style.left = (pos.clientX - dragOffset.x) + 'px';
+                    canvas.style.top = (pos.clientY - dragOffset.y) + 'px';
                 } else if (isResizing) {
-                    let dx = touch.clientX - resizeStart.x;
-                    let dy = touch.clientY - resizeStart.y;
+                    let dx = pos.clientX - resizeStart.x;
+                    let dy = pos.clientY - resizeStart.y;
                     let newWidth = resizeStart.width;
                     let newHeight = resizeStart.height;
                     let newLeft = resizeStart.left;
@@ -278,10 +306,7 @@
                         newTop = resizeStart.top + dy;
                     }
 
-                    canvas.style.left = newLeft + 'px';
-                    canvas.style.top = newTop + 'px';
-                    canvas.style.width = newWidth + 'px';
-                    canvas.style.height = newHeight + 'px';
+                    updateCanvasStyleDuringResize(canvas, newLeft, newTop, newWidth, newHeight);
                 }
                 e.preventDefault();
             }, { passive: false });
@@ -290,30 +315,7 @@
                 if (isDragging || isResizing) {
                     isDragging = false;
                     if (isResizing) {
-                        // Save current visual as an image
-                        const prevWidth = canvas.width;
-                        const prevHeight = canvas.height;
-                        const temp = document.createElement('canvas');
-                        temp.width = prevWidth;
-                        temp.height = prevHeight;
-                        temp.getContext('2d').drawImage(canvas, 0, 0);
-
-                        // Get new size from styled width/height
-                        const newWidth = parseInt(canvas.style.width, 10) || canvas.width;
-                        const newHeight = parseInt(canvas.style.height, 10) || canvas.height;
-
-                        // Set actual canvas size (this clears it)
-                        canvas.width = newWidth;
-                        canvas.height = newHeight;
-
-                        // Restore image, scaled if needed
-                        canvas.getContext('2d').drawImage(temp, 0, 0, prevWidth, prevHeight, 0, 0, newWidth, newHeight);
-
-                        // Remove temporary style overrides
-                        canvas.style.width = '';
-                        canvas.style.height = '';
-
-                        doResize();
+                        finalizeResize(canvas);
                     }
                     isResizing = false;
                     resizeDir = null;
