@@ -225,6 +225,102 @@
                     canvas.style.cursor = 'move';
                 }
             });
+
+            // Touch helpers
+            function getTouch(e) {
+                return e.touches[0] || e.changedTouches[0];
+            }
+
+            canvas.addEventListener('touchstart', function(e) {
+                const touch = getTouch(e);
+                const dir = getResizeDirection(touch, canvas);
+                if (dir) {
+                    isResizing = true;
+                    resizeDir = dir;
+                    resizeStart = {
+                        x: touch.clientX,
+                        y: touch.clientY,
+                        width: canvas.width,
+                        height: canvas.height,
+                        left: parseInt(canvas.style.left || 0, 10),
+                        top: parseInt(canvas.style.top || 0, 10)
+                    };
+                    o.busy = true;
+                } else {
+                    isDragging = true;
+                    dragOffset.x = touch.clientX - (parseInt(canvas.style.left || 0, 10));
+                    dragOffset.y = touch.clientY - (parseInt(canvas.style.top || 0, 10));
+                }
+                e.preventDefault();
+            }, { passive: false });
+
+            window.addEventListener('touchmove', function(e) {
+                const touch = getTouch(e);
+                if (isDragging) {
+                    canvas.style.left = (touch.clientX - dragOffset.x) + 'px';
+                    canvas.style.top = (touch.clientY - dragOffset.y) + 'px';
+                } else if (isResizing) {
+                    let dx = touch.clientX - resizeStart.x;
+                    let dy = touch.clientY - resizeStart.y;
+                    let newWidth = resizeStart.width;
+                    let newHeight = resizeStart.height;
+                    let newLeft = resizeStart.left;
+                    let newTop = resizeStart.top;
+
+                    if (resizeDir.includes('e')) newWidth = Math.max(50, resizeStart.width + dx);
+                    if (resizeDir.includes('s')) newHeight = Math.max(50, resizeStart.height + dy);
+                    if (resizeDir.includes('w')) {
+                        newWidth = Math.max(50, resizeStart.width - dx);
+                        newLeft = resizeStart.left + dx;
+                    }
+                    if (resizeDir.includes('n')) {
+                        newHeight = Math.max(50, resizeStart.height - dy);
+                        newTop = resizeStart.top + dy;
+                    }
+
+                    canvas.style.left = newLeft + 'px';
+                    canvas.style.top = newTop + 'px';
+                    canvas.style.width = newWidth + 'px';
+                    canvas.style.height = newHeight + 'px';
+                }
+                e.preventDefault();
+            }, { passive: false });
+
+            window.addEventListener('touchend', function(e) {
+                if (isDragging || isResizing) {
+                    isDragging = false;
+                    if (isResizing) {
+                        // Save current visual as an image
+                        const prevWidth = canvas.width;
+                        const prevHeight = canvas.height;
+                        const temp = document.createElement('canvas');
+                        temp.width = prevWidth;
+                        temp.height = prevHeight;
+                        temp.getContext('2d').drawImage(canvas, 0, 0);
+
+                        // Get new size from styled width/height
+                        const newWidth = parseInt(canvas.style.width, 10) || canvas.width;
+                        const newHeight = parseInt(canvas.style.height, 10) || canvas.height;
+
+                        // Set actual canvas size (this clears it)
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+
+                        // Restore image, scaled if needed
+                        canvas.getContext('2d').drawImage(temp, 0, 0, prevWidth, prevHeight, 0, 0, newWidth, newHeight);
+
+                        // Remove temporary style overrides
+                        canvas.style.width = '';
+                        canvas.style.height = '';
+
+                        doResize();
+                    }
+                    isResizing = false;
+                    resizeDir = null;
+                    o.busy = false;
+                }
+                e.preventDefault();
+            }, { passive: false });
         }
 
         function initializeCanvas() {
