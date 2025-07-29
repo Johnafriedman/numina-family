@@ -107,7 +107,7 @@
         // Helper: detect if mouse is near edge for resizing
         function getResizeDirection(e, el) {
             const pos = getMousePos(e, el);
-            const edgeSize = 10;
+            const edgeSize = 32;
             let dir = '';
             if (pos.y < edgeSize) dir += 'n';
             else if (pos.y > el.height - edgeSize) dir += 's';
