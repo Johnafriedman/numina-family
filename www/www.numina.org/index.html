@@ -167,17 +167,46 @@
                         newTop = resizeStart.top + dy;
                     }
 
-                    canvas.width = newWidth;
-                    canvas.height = newHeight;
+                    // --- Preserve canvas content during resize ---
+                    // Only update style, not width/height, during resize
                     canvas.style.left = newLeft + 'px';
                     canvas.style.top = newTop + 'px';
-                    doResize();
+                    canvas.style.width = newWidth + 'px';
+                    canvas.style.height = newHeight + 'px';
+                    // Do NOT set canvas.width/canvas.height here!
                 }
             });
 
             window.addEventListener('mouseup', function() {
                 if (isDragging || isResizing) {
                     isDragging = false;
+                    if (isResizing) {
+                        // --- Now actually resize the canvas and redraw ---
+                        // Save current visual as an image
+                        const prevWidth = canvas.width;
+                        const prevHeight = canvas.height;
+                        const temp = document.createElement('canvas');
+                        temp.width = prevWidth;
+                        temp.height = prevHeight;
+                        temp.getContext('2d').drawImage(canvas, 0, 0);
+
+                        // Get new size from styled width/height
+                        const newWidth = parseInt(canvas.style.width, 10) || canvas.width;
+                        const newHeight = parseInt(canvas.style.height, 10) || canvas.height;
+
+                        // Set actual canvas size (this clears it)
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+
+                        // Restore image, scaled if needed
+                        canvas.getContext('2d').drawImage(temp, 0, 0, prevWidth, prevHeight, 0, 0, newWidth, newHeight);
+
+                        // Remove temporary style overrides
+                        canvas.style.width = '';
+                        canvas.style.height = '';
+
+                        doResize();
+                    }
                     isResizing = false;
                     resizeDir = null;
                     document.body.style.cursor = '';
