@@ -162,14 +162,9 @@
 
         // Helper: get correct cursor for resize direction
         function getCursorForDir(dir) {
-            if (!dir) return 'move';
-            if (dir === 'n' || dir === 's') return dir + '-resize';
-            if (dir === 'e' || dir === 'w') return dir + '-resize';
-            if (dir === 'ne' || dir === 'en') return 'ne-resize';
-            if (dir === 'nw' || dir === 'wn') return 'nw-resize';
-            if (dir === 'se' || dir === 'es') return 'se-resize';
-            if (dir === 'sw' || dir === 'ws') return 'sw-resize';
-            return 'move';
+            if (!dir) return 'move'
+            else return dir + '-resize';
+
         }
 
         function setupNativeDragResize(canvas) {
