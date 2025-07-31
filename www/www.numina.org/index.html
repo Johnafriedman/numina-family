@@ -139,157 +139,117 @@
 
         }
 
+        function getUnifiedPointer(e, canvas) {
+            // Accepts MouseEvent or TouchEvent or Touch
+            let clientX, clientY;
+            if (e.touches && e.touches.length) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top,
+                clientX,
+                clientY
+            };
+        }
+
+        function handlePointerDown(e, canvas) {
+            const pos = getUnifiedPointer(e, canvas);
+            const dir = getResizeDirectionFromPos(pos, canvas);
+            if (dir) {
+                isResizing = true;
+                resizeDir = dir;
+                resizeStart = {
+                    x: pos.clientX,
+                    y: pos.clientY,
+                    width: canvas.width,
+                    height: canvas.height,
+                    left: parseInt(canvas.style.left || 0, 10),
+                    top: parseInt(canvas.style.top || 0, 10)
+                };
+                document.body.style.cursor = getCursorForDir(dir);
+                o.busy = true;
+            } else {
+                isDragging = true;
+                dragOffset.x = pos.clientX - (parseInt(canvas.style.left || 0, 10));
+                dragOffset.y = pos.clientY - (parseInt(canvas.style.top || 0, 10));
+                document.body.style.cursor = 'move';
+            }
+            e.preventDefault && e.preventDefault();
+        }
+
+        function handlePointerMove(e, canvas) {
+            const pos = getUnifiedPointer(e, canvas);
+            if (isDragging) {
+                canvas.style.left = (pos.clientX - dragOffset.x) + 'px';
+                canvas.style.top = (pos.clientY - dragOffset.y) + 'px';
+            } else if (isResizing) {
+                let dx = pos.clientX - resizeStart.x;
+                let dy = pos.clientY - resizeStart.y;
+                let newWidth = resizeStart.width;
+                let newHeight = resizeStart.height;
+                let newLeft = resizeStart.left;
+                let newTop = resizeStart.top;
+
+                if (resizeDir.includes('e')) newWidth = Math.max(50, resizeStart.width + dx);
+                if (resizeDir.includes('s')) newHeight = Math.max(50, resizeStart.height + dy);
+                if (resizeDir.includes('w')) {
+                    newWidth = Math.max(50, resizeStart.width - dx);
+                    newLeft = resizeStart.left + dx;
+                }
+                if (resizeDir.includes('n')) {
+                    newHeight = Math.max(50, resizeStart.height - dy);
+                    newTop = resizeStart.top + dy;
+                }
+
+                updateCanvasStyleDuringResize(canvas, newLeft, newTop, newWidth, newHeight);
+                document.body.style.cursor = getCursorForDir(resizeDir);
+            }
+            e.preventDefault && e.preventDefault();
+        }
+
+        function handlePointerUp(e, canvas) {
+            if (isDragging || isResizing) {
+                isDragging = false;
+                if (isResizing) {
+                    doResize();
+                }
+                isResizing = false;
+                resizeDir = null;
+                document.body.style.cursor = '';
+                o.busy = false;
+            }
+            e.preventDefault && e.preventDefault();
+        }
+
         function setupNativeDragResize(canvas) {
             canvas.style.position = 'absolute';
             canvas.style.cursor = 'move';
 
-            // --- Mouse Events ---
-            canvas.addEventListener('mousedown', function(e) {
-                const dir = getResizeDirection(e, canvas);
-                const pos = getPointerPos(e, canvas);
-                if (dir) {
-                    isResizing = true;
-                    resizeDir = dir;
-                    resizeStart = {
-                        x: pos.clientX,
-                        y: pos.clientY,
-                        width: canvas.width,
-                        height: canvas.height,
-                        left: parseInt(canvas.style.left || 0, 10),
-                        top: parseInt(canvas.style.top || 0, 10)
-                    };
-                    document.body.style.cursor = getCursorForDir(dir);
-                    o.busy = true;
-                } else {
-                    isDragging = true;
-                    dragOffset.x = pos.clientX - (parseInt(canvas.style.left || 0, 10));
-                    dragOffset.y = pos.clientY - (parseInt(canvas.style.top || 0, 10));
-                    document.body.style.cursor = 'move';
-                }
-                e.preventDefault();
-            });
+            // Mouse events
+            canvas.addEventListener('mousedown', function(e) { handlePointerDown(e, canvas); });
+            window.addEventListener('mousemove', function(e) { handlePointerMove(e, canvas); });
+            window.addEventListener('mouseup', function(e) { handlePointerUp(e, canvas); });
 
-            window.addEventListener('mousemove', function(e) {
-                if (isDragging) {
-                    const pos = getPointerPos(e, canvas);
-                    canvas.style.left = (pos.clientX - dragOffset.x) + 'px';
-                    canvas.style.top = (pos.clientY - dragOffset.y) + 'px';
-                } else if (isResizing) {
-                    const pos = getPointerPos(e, canvas);
-                    let dx = pos.clientX - resizeStart.x;
-                    let dy = pos.clientY - resizeStart.y;
-                    let newWidth = resizeStart.width;
-                    let newHeight = resizeStart.height;
-                    let newLeft = resizeStart.left;
-                    let newTop = resizeStart.top;
+            // Touch events
+            canvas.addEventListener('touchstart', function(e) { handlePointerDown(e, canvas); }, { passive: false });
+            window.addEventListener('touchmove', function(e) { handlePointerMove(e, canvas); }, { passive: false });
+            window.addEventListener('touchend', function(e) { handlePointerUp(e, canvas); }, { passive: false });
 
-                    if (resizeDir.includes('e')) newWidth = Math.max(50, resizeStart.width + dx);
-                    if (resizeDir.includes('s')) newHeight = Math.max(50, resizeStart.height + dy);
-                    if (resizeDir.includes('w')) {
-                        newWidth = Math.max(50, resizeStart.width - dx);
-                        newLeft = resizeStart.left + dx;
-                    }
-                    if (resizeDir.includes('n')) {
-                        newHeight = Math.max(50, resizeStart.height - dy);
-                        newTop = resizeStart.top + dy;
-                    }
-
-                    updateCanvasStyleDuringResize(canvas, newLeft, newTop, newWidth, newHeight);
-                    document.body.style.cursor = getCursorForDir(resizeDir);
-                }
-            });
-
-            window.addEventListener('mouseup', function() {
-                if (isDragging || isResizing) {
-                    isDragging = false;
-                    if (isResizing) {
-                        doResize();
-                    }
-                    isResizing = false;
-                    resizeDir = null;
-                    document.body.style.cursor = '';
-                    o.busy = false;
-                }
-            });
-
-            // Change cursor on hover near edge
+            // Change cursor on hover near edge (mouse only)
             canvas.addEventListener('mousemove', function(e) {
                 if (isDragging || isResizing) return;
                 const dir = getResizeDirection(e, canvas);
                 canvas.style.cursor = getCursorForDir(dir);
             });
-
-            // --- Touch Events ---
-            function getTouch(e) {
-                return e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
-            }
-
-            canvas.addEventListener('touchstart', function(e) {
-                const touch = getTouch(e);
-                const dir = getResizeDirection(touch, canvas);
-                const pos = getPointerPos(touch, canvas);
-                if (dir) {
-                    isResizing = true;
-                    resizeDir = dir;
-                    resizeStart = {
-                        x: pos.clientX,
-                        y: pos.clientY,
-                        width: canvas.width,
-                        height: canvas.height,
-                        left: parseInt(canvas.style.left || 0, 10),
-                        top: parseInt(canvas.style.top || 0, 10)
-                    };
-                    o.busy = true;
-                } else {
-                    isDragging = true;
-                    dragOffset.x = pos.clientX - (parseInt(canvas.style.left || 0, 10));
-                    dragOffset.y = pos.clientY - (parseInt(canvas.style.top || 0, 10));
-                }
-                e.preventDefault();
-            }, { passive: false });
-
-            window.addEventListener('touchmove', function(e) {
-                const touch = getTouch(e);
-                const pos = getPointerPos(touch, canvas);
-                if (isDragging) {
-                    canvas.style.left = (pos.clientX - dragOffset.x) + 'px';
-                    canvas.style.top = (pos.clientY - dragOffset.y) + 'px';
-                } else if (isResizing) {
-                    let dx = pos.clientX - resizeStart.x;
-                    let dy = pos.clientY - resizeStart.y;
-                    let newWidth = resizeStart.width;
-                    let newHeight = resizeStart.height;
-                    let newLeft = resizeStart.left;
-                    let newTop = resizeStart.top;
-
-                    if (resizeDir.includes('e')) newWidth = Math.max(50, resizeStart.width + dx);
-                    if (resizeDir.includes('s')) newHeight = Math.max(50, resizeStart.height + dy);
-                    if (resizeDir.includes('w')) {
-                        newWidth = Math.max(50, resizeStart.width - dx);
-                        newLeft = resizeStart.left + dx;
-                    }
-                    if (resizeDir.includes('n')) {
-                        newHeight = Math.max(50, resizeStart.height - dy);
-                        newTop = resizeStart.top + dy;
-                    }
-
-                    updateCanvasStyleDuringResize(canvas, newLeft, newTop, newWidth, newHeight);
-                }
-                e.preventDefault();
-            }, { passive: false });
-
-            window.addEventListener('touchend', function(e) {
-                if (isDragging || isResizing) {
-                    isDragging = false;
-                    if (isResizing) {
-                        doResize();
-                    }
-                    isResizing = false;
-                    resizeDir = null;
-                    o.busy = false;
-                    e.preventDefault();
-                }
-            }, { passive: false });
         }
 
         function initializeCanvas() {
