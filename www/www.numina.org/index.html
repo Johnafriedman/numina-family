@@ -86,7 +86,7 @@
             o.busy = false;
         }
 
-        // --- Native Drag and Resize for .resize-drag Canvas ---
+        // --- Drag and Resize for .resize-drag Canvas ---
 
         let isDragging = false;
         let dragOffset = { x: 0, y: 0 };
@@ -230,7 +230,7 @@
             e.preventDefault && e.preventDefault();
         }
 
-        function setupNativeDragResize(canvas) {
+        function setupDragResize(canvas) {
             canvas.style.position = 'absolute';
             canvas.style.cursor = 'move';
 
@@ -276,8 +276,8 @@
                 o.notInterval = setInterval(draw, 100);
             }
 
-            // Setup native drag/resize
-            setupNativeDragResize(o.canvas);
+            // Setup drag/resize
+            setupDragResize(o.canvas);
         }
 
         let reinitialize = window.onload  = window.onresize = function () {
@@ -309,7 +309,7 @@
             window.location.assign("./springs.html")
         }
 
-        // Rewritten in native JavaScript
+        // Menu handling
 
         document.addEventListener('click', function(e) {
             var menuToggle = e.target.closest('.js-menu_toggle');
