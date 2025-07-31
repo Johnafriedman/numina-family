@@ -183,7 +183,9 @@
                 dragOffset.y = pos.clientY - (parseInt(canvas.style.top || 0, 10));
                 document.body.style.cursor = 'move';
             }
-            e.preventDefault && e.preventDefault();
+            if (e.type === "mousedown") {
+                e.preventDefault && e.preventDefault();
+            }
         }
 
         function handlePointerMove(e, canvas) {
@@ -227,8 +229,9 @@
                 document.body.style.cursor = '';
                 o.busy = false;
             }
-            e.preventDefault && e.preventDefault();
-        }
+            if (e.type === "mouseup") {
+                e.preventDefault && e.preventDefault();
+            }        }
 
         function setupDragResize(canvas) {
             canvas.style.position = 'absolute';
@@ -311,11 +314,13 @@
 
         // Menu handling
 
-        document.addEventListener('click', function(e) {
+        let menuTouchHandled = false;
+
+        function handleMenuToggle(e) {
+            // Only toggle if the event is on the menu toggle, not a link inside the menu
             var menuToggle = e.target.closest('.js-menu_toggle');
             if (!menuToggle) return;
 
-            e.preventDefault();
             // Stop any ongoing transitions/animations
             document.querySelectorAll('.list_load, .list_item').forEach(function(el) {
                 el.style.transition = '';
@@ -349,7 +354,10 @@
                     listLoad.style.display = 'none';
                 }
             }
-        });
+        }
+
+        document.addEventListener('touchstart', handleMenuToggle, {passive: false});
+        document.addEventListener('click', handleMenuToggle);
 
 
     </script>
