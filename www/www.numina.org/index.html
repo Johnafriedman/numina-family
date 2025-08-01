@@ -222,6 +222,9 @@
             if (isDragging || isResizing) {
                 isDragging = false;
                 if (isResizing) {
+                    // Update canvas size
+                    o.canvas.width = parseInt(canvas.style.width, 10);
+                    o.canvas.height = parseInt(canvas.style.height, 10);
                     doResize();
                 }
                 isResizing = false;
