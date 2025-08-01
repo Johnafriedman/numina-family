@@ -4,8 +4,8 @@
   "repository": "https://github.com/Johnafriedman/numina-family.git",
   "version": "1.0.0",
   "engines": {
-    "node": "6.11.1",
-    "npm": "3.10.10"
+    "node": "18.20.8",
+    "npm": "10.8.2"
   },
   "scripts": {
     "build": "npm install",
