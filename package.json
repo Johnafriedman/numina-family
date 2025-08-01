@@ -8,12 +8,21 @@
     "npm": "3.10.10"
   },
   "scripts": {
-    "build": "npm install"
+    "build": "npm install",
+    "test": "jest"
   },
   "dependencies": {
     "express": "^4.14.0",
     "heroku-ssl-redirect": "0.0.4",
     "vhost": "^3.0.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.6.4",
+    "babel-jest": "^30.0.5",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5"
+  }
 }
