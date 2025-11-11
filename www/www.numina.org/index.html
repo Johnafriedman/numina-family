@@ -61,6 +61,25 @@
             busy: false
         }
 
+        let initialDistance = null;
+        let currentScale = 1;
+
+        function getDistance(touches) {
+        const [touch1, touch2] = touches;
+        return Math.sqrt(
+            Math.pow(touch1.pageX - touch2.pageX, 2) +
+            Math.pow(touch1.pageY - touch2.pageY, 2)
+        );
+        }
+
+        function getMidpoint(touches) {
+        const [touch1, touch2] = touches;
+        return {
+            x: (touch1.pageX + touch2.pageX) / 2,
+            y: (touch1.pageY + touch2.pageY) / 2,
+        };
+        }
+
         function getMaxWidth() {
             return innerWidth - (MARGINS.LEFT + MARGINS.RIGHT);
         }
@@ -162,6 +181,9 @@
         }
 
         function handlePointerDown(e, canvas) {
+            if (e.touches && e.touches.length > 1) {
+                return;
+            }
             const pos = getUnifiedPointer(e, canvas);
             const dir = getResizeDirectionFromPos(pos, canvas);
             if (dir) {
@@ -189,6 +211,9 @@
         }
 
         function handlePointerMove(e, canvas) {
+            if (e.touches && e.touches.length > 1) {
+                return;
+            }
             const pos = getUnifiedPointer(e, canvas);
             if (isDragging) {
                 canvas.style.left = (pos.clientX - dragOffset.x) + 'px';
@@ -236,6 +261,47 @@
                 e.preventDefault && e.preventDefault();
             }        }
 
+        function setupPinchZoom(canvas) {
+                        // Touch events
+            canvas.addEventListener('touchstart', function(e) { handlePointerDown(e, canvas); }, { passive: false });
+            window.addEventListener('touchmove', function(e) { handlePointerMove(e, canvas); }, { passive: false });
+            window.addEventListener('touchend', function(e) { handlePointerUp(e, canvas); }, { passive: false });
+
+            canvas.addEventListener('touchstart', (e, canvas) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                initialDistance = getDistance(e.touches);
+                const midpoint = getMidpoint(e.touches);
+                target.style.transformOrigin = `${midpoint.x}px ${midpoint.y}px`;
+                console.log('Touch start with two fingers', midpoint);
+            }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e, canvas) => {
+            if (e.touches.length === 2 && initialDistance) {
+                e.preventDefault();
+                const newDistance = getDistance(e.touches);
+                const scale = newDistance / initialDistance;
+                const newScale = currentScale * scale;
+                if (newScale >= 1) {
+                    target.style.transform = `scale(${newScale})`;
+                }
+            }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', (e, canvas) => {
+            if (e.touches.length < 2) {
+                if (initialDistance) {
+                    const tempScale = currentScale * (getDistance(e.changedTouches) / initialDistance);
+                    if (tempScale >= 1) {
+                        currentScale = tempScale;
+                    }
+                }
+                initialDistance = null;
+            }
+            }, { passive: false });
+
+        }
         function setupDragResize(canvas) {
             canvas.style.position = 'absolute';
             canvas.style.cursor = 'move';
@@ -364,6 +430,7 @@
 
 
     </script>
+    <script src="js/pinch-zoom.js"></script>
 
 </head>
 
