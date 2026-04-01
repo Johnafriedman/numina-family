@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-mesh"></div>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="title-group">
+                    <div class="icon-pulse">
+                        <svg viewBox="0 0 24 24" fill="none" class="heart-icon">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <h1>Heart Activity</h1>
+                </div>
+                <p class="subtitle">April 1st, 2026</p>
+            </div>
+            <div class="metrics" id="metrics-panel">
+                <div class="metric-card">
+                    <span class="metric-label">Total Readings</span>
+                    <span class="metric-value" id="total-readings">0</span>
+                </div>
+                <div class="metric-card highlight-card">
+                    <span class="metric-label">High HR (>120 BPM)</span>
+                    <span class="metric-value" id="high-readings">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">All Readings</button>
+                <button class="filter-btn" data-filter="high">Only >120 BPM</button>
+            </div>
+            <div class="search-group">
+                <input type="text" id="time-search" placeholder="Search timestamp...">
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>BPM</th>
+                        <th>Device</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data injected via JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <button id="prev-btn" class="page-btn" disabled>&leftarrow; Previous</button>
+            <span class="page-info" id="page-info">Page <span class="current-p">1</span> of <span class="total-p">1</span></span>
+            <button id="next-btn" class="page-btn">Next &rightarrow;</button>
+        </div>
+    </div>
+    
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
