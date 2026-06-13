@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Non-Reciprocal Flocking & Spin Dynamics Animation</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="An interactive simulation of non-reciprocal vision-cone flocking and XY spin dynamics based on Hamiltonian embedding principles.">
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M21.5,9.5 C20.5,10.2 19,10.5 17.5,10.2 C18.5,8.8 19.8,7.2 21,5.5 C19.2,6.5 17.2,7.5 15.5,8 C14,6.2 11.5,5 9,5 C5.1,5 2,8.1 2,12 C2,13.5 2.5,14.8 3.3,16 C4.5,14.5 6.2,13.5 8,13.5 C9.8,13.5 11.5,14.5 12.7,16 C13.5,14.8 14,13.5 14,12 C14,11.5 13.9,11 13.7,10.5 C15,11.2 16.5,11.5 18,11.2 C19.5,11 20.8,10.2 21.5,9.5 Z" />
+        </svg>
+      </div>
+      <div>
+        <h1>Non-Reciprocal Flocking</h1>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
+          Hamiltonian Embedding of Non-Reciprocal Dynamics
+        </div>
+      </div>
+    </div>
+    
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="boids" id="tab-boids">Flocking Boids</button>
+      <button class="tab-btn" data-tab="lattice" id="tab-lattice">Lattice Spins</button>
+      <button class="tab-btn" data-tab="chase" id="tab-chase">Chase & Run</button>
+    </div>
+    
+    <a href="https://doi.org/10.1038/s41567-026-03317-0" target="_blank" class="paper-badge">
+      Shi et al. Nature Phys (2026)
+    </a>
+  </header>
+
+  <main class="main-container">
+    <!-- Simulation and Visualization Area -->
+    <div class="sim-section">
+      <div class="canvas-container heavy-component" id="canvasContainer">
+        <!-- Live Stats Overlay -->
+        <div class="canvas-overlay overlay-stats">
+          <span>FPS: <strong id="val-fps">0</strong></span>
+          <span id="stat-primary-label">Polarization: <strong id="val-primary-metric">0.00</strong></span>
+          <span id="stat-secondary-label">Active Particles: <strong id="val-active-particles">0</strong></span>
+        </div>
+        
+        <!-- Quick Action Canvas Overlay Controls -->
+        <div class="canvas-overlay overlay-controls">
+          <button class="btn" id="btn-pause-canvas" style="padding: 5px 10px; font-size: 0.75rem;">Pause</button>
+          <button class="btn" id="btn-reset-canvas" style="padding: 5px 10px; font-size: 0.75rem;">Reset</button>
+          <button class="btn" id="btn-fullscreen" style="padding: 5px 10px; font-size: 0.75rem;">Fullscreen</button>
+        </div>
+        
+        <canvas id="simCanvas"></canvas>
+      </div>
+      
+      <!-- Metrics Plotting Area -->
+      <div class="chart-panel">
+        <div class="chart-header">
+          <span class="chart-title" id="chart-title-text">Order Parameter (Polarization)</span>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">Real-Time Dynamics</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Sidebar -->
+    <aside class="sidebar">
+      <!-- General Playback Controls -->
+      <div class="control-group">
+        <span class="group-title">Simulation Control</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button class="btn btn-primary" id="btn-play-pause">Pause</button>
+          <button class="btn" id="btn-reset">Reset</button>
+        </div>
+        <div class="switch-container">
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Draw Vision Cones (Hover)</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-vision-cones" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Mode 1: Flocking Boids Controls -->
+      <div class="control-group active-mode-controls" id="controls-boids">
+        <span class="group-title">Active Boids Params</span>
+        
+        <div class="control-row">
+          <div class="control-label">
+            <span>Bird Count</span>
+            <span class="control-value" id="lbl-boid-count">150</span>
+          </div>
+          <input type="range" id="param-boid-count" min="20" max="400" step="5" value="150">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Vision Angle (2&Psi;)</span>
+            <span class="control-value" id="lbl-boid-vision-angle">120&deg;</span>
+          </div>
+          <input type="range" id="param-boid-vision-angle" min="10" max="360" step="5" value="120">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Alignment Strength (J)</span>
+            <span class="control-value" id="lbl-boid-alignment">1.50</span>
+          </div>
+          <input type="range" id="param-boid-alignment" min="0.0" max="5.0" step="0.1" value="1.5">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Noise / Temperature (T)</span>
+            <span class="control-value" id="lbl-boid-noise">0.10</span>
+          </div>
+          <input type="range" id="param-boid-noise" min="0.0" max="2.0" step="0.05" value="0.10">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Flight Speed (v₀)</span>
+            <span class="control-value" id="lbl-boid-speed">2.0</span>
+          </div>
+          <input type="range" id="param-boid-speed" min="0.5" max="5.0" step="0.1" value="2.0">
+        </div>
+        
+        <div class="control-row">
+          <div class="control-label">
+            <span>Short-range Repulsion</span>
+            <span class="control-value" id="lbl-boid-repulsion">1.0</span>
+          </div>
+          <input type="range" id="param-boid-repulsion" min="0.0" max="4.0" step="0.1" value="1.0">
+        </div>
+
+        <div class="control-row" style="margin-top: 5px;">
+          <div class="switch-container">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Show Trails</span>
+            <label class="switch">
+              <input type="checkbox" id="toggle-boid-trails" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="control-row" style="margin-top: 5px;">
+          <div class="switch-container">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Infinite Trails (No Erase)</span>
+            <label class="switch">
+              <input type="checkbox" id="toggle-boid-infinite-trails">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Trail Length</span>
+            <span class="control-value" id="lbl-boid-trail-length">15</span>
+          </div>
+          <input type="range" id="param-boid-trail-length" min="2" max="60" step="1" value="15">
+        </div>
+      </div>
+
+      <!-- Mode 2: Lattice XY Spins Controls -->
+      <div class="control-group active-mode-controls" id="controls-lattice" style="display: none;">
+        <span class="group-title">Lattice Spin Params</span>
+        
+        <div class="control-row">
+          <div class="control-label">
+            <span>Lattice Grid (L &times; L)</span>
+            <span class="control-value" id="lbl-lat-grid">32 &times; 32</span>
+          </div>
+          <input type="range" id="param-lat-grid" min="16" max="64" step="4" value="32">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Vision Angle (2&Psi;)</span>
+            <span class="control-value" id="lbl-lat-vision-angle">306&deg;</span>
+          </div>
+          <input type="range" id="param-lat-vision-angle" min="10" max="360" step="5" value="306">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Coupling Strength (J)</span>
+            <span class="control-value" id="lbl-lat-coupling">1.00</span>
+          </div>
+          <input type="range" id="param-lat-coupling" min="0.1" max="3.0" step="0.1" value="1.0">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Temperature (T)</span>
+            <span class="control-value" id="lbl-lat-temp">0.40</span>
+          </div>
+          <input type="range" id="param-lat-temp" min="0.05" max="2.5" step="0.05" value="0.40">
+        </div>
+        
+        <div class="control-row" style="margin-top: 5px;">
+          <div class="switch-container">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Glauber Monte Carlo</span>
+            <label class="switch">
+              <input type="checkbox" id="toggle-lat-glauber" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 3: Chase & Run Controls -->
+      <div class="control-group active-mode-controls" id="controls-chase" style="display: none;">
+        <span class="group-title">Chase & Run Params</span>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Lattice Grid (L &times; L)</span>
+            <span class="control-value" id="lbl-chase-grid">40 &times; 40</span>
+          </div>
+          <input type="range" id="param-chase-grid" min="16" max="80" step="4" value="40">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Right Coupling (J<sub>&rarr;</sub>)</span>
+            <span class="control-value" id="lbl-chase-jr">1.00</span>
+          </div>
+          <input type="range" id="param-chase-jr" min="0.0" max="2.0" step="0.1" value="1.0">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Left Coupling (J<sub>&larr;</sub>)</span>
+            <span class="control-value" id="lbl-chase-jl">-0.99</span>
+          </div>
+          <input type="range" id="param-chase-jl" min="-2.0" max="2.0" step="0.1" value="-0.99">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Vertical Coupling (J<sub>rec</sub>)</span>
+            <span class="control-value" id="lbl-chase-jrec">1.50</span>
+          </div>
+          <input type="range" id="param-chase-jrec" min="0.0" max="3.0" step="0.1" value="1.5">
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Temperature (T)</span>
+            <span class="control-value" id="lbl-chase-temp">0.08</span>
+          </div>
+          <input type="range" id="param-chase-temp" min="0.0" max="1.0" step="0.02" value="0.08">
+        </div>
+        
+        <button class="btn btn-primary" id="btn-chase-stripes" style="margin-top: 10px; background: linear-gradient(135deg, var(--accent), var(--secondary)); box-shadow: 0 4px 15px rgba(255, 0, 127, 0.2);">
+          Re-Initialize Stripes
+        </button>
+      </div>
+
+      <!-- Information Card -->
+      <div class="info-panel" id="infoPanel">
+        <strong>Flocking Boids Mode:</strong>
+        <p style="margin-top: 6px; color: var(--text-secondary);">
+          Boids flying in continuous space. Each boid aligns only with neighbors in its <code>Vision Angle</code>. Hover over a boid to view its vision cone. Lowering the angle makes interaction non-reciprocal.
+        </p>
+      </div>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
