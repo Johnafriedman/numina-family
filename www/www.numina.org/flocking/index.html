@@ -91,6 +91,16 @@
         
         <div class="control-row">
           <div class="control-label">
+            <span>Model Type</span>
+          </div>
+          <select id="param-boid-model-type" style="background: #0f172a; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 8px; border-radius: 8px; font-family: var(--font-sans); outline: none; cursor: pointer;">
+            <option value="vision" selected>Vision Cone (Nature Phys)</option>
+            <option value="classic">Classic Boids (Reynolds)</option>
+          </select>
+        </div>
+        
+        <div class="control-row">
+          <div class="control-label">
             <span>Bird Count</span>
             <span class="control-value" id="lbl-boid-count">150</span>
           </div>
@@ -111,6 +121,14 @@
             <span class="control-value" id="lbl-boid-alignment">1.50</span>
           </div>
           <input type="range" id="param-boid-alignment" min="0.0" max="5.0" step="0.1" value="1.5">
+        </div>
+
+        <div class="control-row" id="row-boid-cohesion" style="display: none;">
+          <div class="control-label">
+            <span>Cohesion Strength</span>
+            <span class="control-value" id="lbl-boid-cohesion">1.00</span>
+          </div>
+          <input type="range" id="param-boid-cohesion" min="0.0" max="3.0" step="0.1" value="1.0">
         </div>
 
         <div class="control-row">
@@ -152,6 +170,16 @@
             <span style="font-size: 0.85rem; color: var(--text-secondary);">Infinite Trails (No Erase)</span>
             <label class="switch">
               <input type="checkbox" id="toggle-boid-infinite-trails">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="control-row" style="margin-top: 5px;">
+          <div class="switch-container">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Show Fictitious Partners</span>
+            <label class="switch">
+              <input type="checkbox" id="toggle-boid-partners">
               <span class="slider"></span>
             </label>
           </div>

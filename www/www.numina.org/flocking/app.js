@@ -280,17 +280,20 @@ class Simulation {
   initParams() {
     // Mode 1: Boids parameters
     this.boidsParams = {
-      count: 150,
-      visionAngle: 120, // degrees
-      alignment: 1.5,
-      noise: 0.10,
-      speed: 2.0,
-      repulsion: 1.0,
-      radius: 40,      // interaction distance
-      repRadius: 15,   // repulsion distance
-      trailsEnabled: true,
-      trailLength: 15,
-      infiniteTrails: false
+       count: 150,
+       visionAngle: 120, // degrees
+       alignment: 1.5,
+       noise: 0.10,
+       speed: 2.0,
+       repulsion: 1.0,
+       radius: 40,      // interaction distance
+       repRadius: 15,   // repulsion distance
+       trailsEnabled: true,
+       trailLength: 15,
+       infiniteTrails: false,
+       showPartners: false,
+       modelType: 'vision',
+       cohesion: 1.0
     };
 
     // Mode 2: Lattice parameters
@@ -355,10 +358,20 @@ class Simulation {
     bindSlider('param-boid-count', this.boidsParams, 'count', () => this.resetSimulation());
     bindSlider('param-boid-vision-angle', this.boidsParams, 'visionAngle');
     bindSlider('param-boid-alignment', this.boidsParams, 'alignment');
+    bindSlider('param-boid-cohesion', this.boidsParams, 'cohesion');
     bindSlider('param-boid-noise', this.boidsParams, 'noise');
     bindSlider('param-boid-speed', this.boidsParams, 'speed');
     bindSlider('param-boid-repulsion', this.boidsParams, 'repulsion');
     bindSlider('param-boid-trail-length', this.boidsParams, 'trailLength');
+
+    document.getElementById('param-boid-model-type').addEventListener('change', (e) => {
+      this.boidsParams.modelType = e.target.value;
+      const cohesionRow = document.getElementById('row-boid-cohesion');
+      if (cohesionRow) {
+        cohesionRow.style.display = (e.target.value === 'classic') ? 'flex' : 'none';
+      }
+      this.resetSimulation();
+    });
     document.getElementById('toggle-boid-trails').addEventListener('change', (e) => {
       this.boidsParams.trailsEnabled = e.target.checked;
       if (!e.target.checked) {
@@ -381,6 +394,10 @@ class Simulation {
         lengthSlider.disabled = e.target.checked;
         lengthSlider.parentElement.style.opacity = e.target.checked ? '0.4' : '1';
       }
+    });
+
+    document.getElementById('toggle-boid-partners').addEventListener('change', (e) => {
+      this.boidsParams.showPartners = e.target.checked;
     });
 
     // Bind Lattice Sliders
@@ -417,7 +434,7 @@ class Simulation {
 
     // Fullscreen control bindings
     document.getElementById('btn-fullscreen').addEventListener('click', () => {
-      this.toggleFullscreen();
+       this.toggleFullscreen();
     });
 
     this.canvas.addEventListener('dblclick', () => {
@@ -430,18 +447,25 @@ class Simulation {
       }
     });
 
-    document.addEventListener('fullscreenchange', () => {
-      const isFullscreen = !!document.fullscreenElement;
+    const handleFS = () => {
+      const doc = document;
+      const isFS = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
       const container = document.getElementById('canvasContainer');
-      if (isFullscreen) {
+      if (isFS) {
         container.classList.add('fullscreen-active');
       } else {
         container.classList.remove('fullscreen-active');
       }
-      setTimeout(() => {
-        this.resizeCanvas();
-      }, 50);
-    });
+      this.resizeCanvas();
+      setTimeout(() => this.resizeCanvas(), 150);
+      setTimeout(() => this.resizeCanvas(), 300);
+      setTimeout(() => this.resizeCanvas(), 600);
+    };
+
+    document.addEventListener('fullscreenchange', handleFS);
+    document.addEventListener('webkitfullscreenchange', handleFS);
+    document.addEventListener('mozfullscreenchange', handleFS);
+    document.addEventListener('MSFullscreenChange', handleFS);
   }
 
   togglePlayPause() {
@@ -453,12 +477,21 @@ class Simulation {
 
   toggleFullscreen() {
     const container = document.getElementById('canvasContainer');
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().catch(err => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
+    const doc = document;
+    const db = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
+    const ab = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+    const isFS = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+
+    if (!isFS) {
+      if (db) {
+        db.call(container).catch(err => {
+          console.error(`Fullscreen failed: ${err.message}`);
+        });
+      }
     } else {
-      document.exitFullscreen();
+      if (ab) {
+        ab.call(doc);
+      }
     }
   }
 
@@ -545,8 +578,15 @@ class Simulation {
     for (let i = 0; i < this.boids.length; i++) {
       const b = this.boids[i];
       let torqueAlign = 0;
+      let torqueCoh = 0;
       
-      // Repulsion force vector
+      let sumCos = 0;
+      let sumSin = 0;
+      let sumDx = 0;
+      let sumDy = 0;
+      let neighborsCount = 0;
+      
+      // Repulsion force vector (Separation)
       let repForceX = 0;
       let repForceY = 0;
       let neighborsInRep = 0;
@@ -576,9 +616,18 @@ class Simulation {
           // Normalize to [-PI, PI]
           dpsi = Math.atan2(Math.sin(dpsi), Math.cos(dpsi));
 
-          // If neighbor lies within the vision cone
-          if (Math.abs(dpsi) <= halfPsi) {
-            torqueAlign += -J * Math.sin(b.theta - n.theta);
+          if (this.boidsParams.modelType === 'vision') {
+            // If neighbor lies within the vision cone
+            if (Math.abs(dpsi) <= halfPsi) {
+              torqueAlign += -J * Math.sin(b.theta - n.theta);
+            }
+          } else {
+            // Classic Boids: full 360 degree vision
+            sumCos += Math.cos(n.theta);
+            sumSin += Math.sin(n.theta);
+            sumDx += dx;
+            sumDy += dy;
+            neighborsCount++;
           }
 
           // Short-range repulsion steering (repel outwards)
@@ -591,6 +640,16 @@ class Simulation {
         }
       }
 
+      if (this.boidsParams.modelType === 'classic' && neighborsCount > 0) {
+        // Alignment steering
+        const theta_avg = Math.atan2(sumSin, sumCos);
+        torqueAlign = -J * Math.sin(b.theta - theta_avg);
+
+        // Cohesion steering (towards center of mass)
+        const theta_coh = Math.atan2(sumDy, sumDx);
+        torqueCoh = -this.boidsParams.cohesion * Math.sin(b.theta - theta_coh);
+      }
+
       // Repulsion steering torque
       let torqueRep = 0;
       if (neighborsInRep > 0 && repStrength > 0) {
@@ -601,7 +660,7 @@ class Simulation {
       }
 
       // Angular Langevin update: dTheta = (Torque) * dt + noise
-      const totalTorque = torqueAlign + torqueRep;
+      const totalTorque = torqueAlign + torqueRep + torqueCoh;
       const noiseTerm = Math.sqrt(2.0 * T * dt) * randomGaussian();
       
       let nextTheta = b.theta + totalTorque * dt + noiseTerm;
@@ -775,6 +834,47 @@ class Simulation {
       
       // Determine color by heading angle (HSL hue maps to [0, 360])
       const hue = Math.round((b.theta / (Math.PI * 2)) * 360);
+      
+      // Draw fictitious partner first if enabled
+      if (this.boidsParams.showPartners) {
+        const d_shift = 18;
+        const px = b.x + d_shift * Math.cos(b.theta);
+        const py = b.y + d_shift * Math.sin(b.theta);
+        const p_theta = b.theta + Math.PI;
+
+        // Draw dotted connection line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([1, 2]);
+        ctx.beginPath();
+        ctx.moveTo(b.x, b.y);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw ghost boid partner
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        const p_length = 8;
+        const p_width = 3.5;
+        const p_tx = px + p_length * Math.cos(p_theta);
+        const p_ty = py + p_length * Math.sin(p_theta);
+        const p_lx = px + p_width * Math.cos(p_theta + Math.PI * 0.8);
+        const p_ly = py + p_width * Math.sin(p_theta + Math.PI * 0.8);
+        const p_rx = px + p_width * Math.cos(p_theta - Math.PI * 0.8);
+        const p_ry = py + p_width * Math.sin(p_theta - Math.PI * 0.8);
+
+        ctx.moveTo(p_tx, p_ty);
+        ctx.lineTo(p_lx, p_ly);
+        ctx.lineTo(px, py);
+        ctx.lineTo(p_rx, p_ry);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
       ctx.fillStyle = `hsl(${hue}, 85%, 60%)`;
       ctx.strokeStyle = isSelected ? '#ffffff' : `hsl(${hue}, 85%, 40%)`;
 
