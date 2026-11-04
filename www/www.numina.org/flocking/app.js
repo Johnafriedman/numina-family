@@ -121,19 +121,12 @@ class RealTimeChart {
       ctx.lineTo(this.width - paddingRight, y);
       ctx.stroke();
 
-      // Y-axis labels (ranges 0 to 1 normally, or -1 to 1 for chase order parameter)
+      // Y-axis labels (ranges 0 to 1)
       ctx.fillStyle = '#64748b';
       ctx.font = '9px "JetBrains Mono"';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
-      
-      const isChaseMode = this.dataHistory[0].length > 1;
-      let labelVal;
-      if (isChaseMode) {
-        labelVal = (1.0 - (2.0 * i / gridLines)).toFixed(1);
-      } else {
-        labelVal = (1.0 - (i / gridLines)).toFixed(1);
-      }
+      const labelVal = (1.0 - (i / gridLines)).toFixed(1);
       ctx.fillText(labelVal, paddingLeft - 8, y);
     }
 
@@ -155,17 +148,7 @@ class RealTimeChart {
       for (let i = 0; i < this.dataHistory.length; i++) {
         const val = this.dataHistory[i][s];
         const x = paddingLeft + (chartWidth * i / (this.maxDataPoints - 1));
-        
-        const isChaseMode = numSeries > 1;
-        let y;
-        if (isChaseMode) {
-          // Map [-1, 1] to chartHeight
-          const normalizedVal = (val + 1.0) / 2.0; // [0, 1]
-          y = paddingTop + chartHeight - (chartHeight * normalizedVal);
-        } else {
-          // Map [0, 1] to chartHeight
-          y = paddingTop + chartHeight - (chartHeight * val);
-        }
+        const y = paddingTop + chartHeight - (chartHeight * val);
 
         if (i === 0) {
           ctx.moveTo(x, y);
@@ -188,6 +171,7 @@ class Boid {
     this.y = y;
     this.theta = theta;
     this.trail = [];
+    this.topNeighbors = [];
   }
 }
 
@@ -202,7 +186,6 @@ class Simulation {
     this.trailCtx = this.trailCanvas.getContext('2d');
     
     // Setup state variables
-    this.mode = 'boids'; // 'boids' | 'lattice' | 'chase'
     this.isPaused = false;
     this.drawCones = true;
     this.fps = 0;
@@ -220,7 +203,6 @@ class Simulation {
     // Interaction states
     this.mouse = { x: null, y: null };
     this.selectedBoid = null;
-    this.selectedSpin = null;
     
     // Set up canvas sizing
     this.resizeCanvas();
@@ -242,7 +224,6 @@ class Simulation {
       this.mouse.x = null;
       this.mouse.y = null;
       this.selectedBoid = null;
-      this.selectedSpin = null;
     });
 
     // Initialize parameters and event listeners
@@ -278,7 +259,6 @@ class Simulation {
   }
 
   initParams() {
-    // Mode 1: Boids parameters
     this.boidsParams = {
        count: 150,
        visionAngle: 120, // degrees
@@ -291,49 +271,13 @@ class Simulation {
        trailsEnabled: true,
        trailLength: 15,
        infiniteTrails: false,
-       showPartners: false,
        modelType: 'vision',
-       cohesion: 1.0
-    };
-
-    // Mode 2: Lattice parameters
-    this.latticeParams = {
-      L: 32,
-      visionAngle: 306, // degrees
-      coupling: 1.0,
-      temp: 0.40,
-      glauber: true
-    };
-
-    // Mode 3: Chase & Run parameters
-    this.chaseParams = {
-      L: 40,
-      jr: 1.0,
-      jl: -0.99,
-      jrec: 1.5,
-      temp: 0.08
+       cohesion: 1.0,
+       kInfluential: 1
     };
   }
 
   bindEvents() {
-    // Tab switching
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        tabs.forEach(t => t.classList.remove('active'));
-        e.target.classList.add('active');
-        
-        // Hide all control sidebars
-        document.querySelectorAll('.active-mode-controls').forEach(el => el.style.display = 'none');
-        
-        // Show active controls sidebar
-        this.mode = e.target.dataset.tab;
-        document.getElementById(`controls-${this.mode}`).style.display = 'flex';
-        
-        this.resetSimulation();
-      });
-    });
-
     // Control parameters bindings
     const bindSlider = (id, paramObj, key, callback) => {
       const slider = document.getElementById(id);
@@ -346,6 +290,8 @@ class Simulation {
             label.innerHTML = `${val}&deg;`;
           } else if (id.includes('grid')) {
             label.innerHTML = `${val} &times; ${val}`;
+          } else if (id.includes('count') || id.includes('length') || id.endsWith('-k')) {
+            label.innerHTML = `${Math.round(val)}`;
           } else {
             label.innerHTML = val.toFixed(2);
           }
@@ -359,6 +305,7 @@ class Simulation {
     bindSlider('param-boid-vision-angle', this.boidsParams, 'visionAngle');
     bindSlider('param-boid-alignment', this.boidsParams, 'alignment');
     bindSlider('param-boid-cohesion', this.boidsParams, 'cohesion');
+    bindSlider('param-boid-k', this.boidsParams, 'kInfluential');
     bindSlider('param-boid-noise', this.boidsParams, 'noise');
     bindSlider('param-boid-speed', this.boidsParams, 'speed');
     bindSlider('param-boid-repulsion', this.boidsParams, 'repulsion');
@@ -366,12 +313,10 @@ class Simulation {
 
     document.getElementById('param-boid-model-type').addEventListener('change', (e) => {
       this.boidsParams.modelType = e.target.value;
-      const cohesionRow = document.getElementById('row-boid-cohesion');
-      if (cohesionRow) {
-        cohesionRow.style.display = (e.target.value === 'classic') ? 'flex' : 'none';
-      }
+      this.syncModelUI();
       this.resetSimulation();
     });
+
     document.getElementById('toggle-boid-trails').addEventListener('change', (e) => {
       this.boidsParams.trailsEnabled = e.target.checked;
       if (!e.target.checked) {
@@ -394,29 +339,6 @@ class Simulation {
         lengthSlider.disabled = e.target.checked;
         lengthSlider.parentElement.style.opacity = e.target.checked ? '0.4' : '1';
       }
-    });
-
-    document.getElementById('toggle-boid-partners').addEventListener('change', (e) => {
-      this.boidsParams.showPartners = e.target.checked;
-    });
-
-    // Bind Lattice Sliders
-    bindSlider('param-lat-grid', this.latticeParams, 'L', () => this.resetSimulation());
-    bindSlider('param-lat-vision-angle', this.latticeParams, 'visionAngle');
-    bindSlider('param-lat-coupling', this.latticeParams, 'coupling');
-    bindSlider('param-lat-temp', this.latticeParams, 'temp');
-    document.getElementById('toggle-lat-glauber').addEventListener('change', (e) => {
-      this.latticeParams.glauber = e.target.checked;
-    });
-
-    // Bind Chase & Run Sliders
-    bindSlider('param-chase-grid', this.chaseParams, 'L', () => this.resetSimulation());
-    bindSlider('param-chase-jr', this.chaseParams, 'jr');
-    bindSlider('param-chase-jl', this.chaseParams, 'jl');
-    bindSlider('param-chase-jrec', this.chaseParams, 'jrec');
-    bindSlider('param-chase-temp', this.chaseParams, 'temp');
-    document.getElementById('btn-chase-stripes').addEventListener('click', () => {
-      this.initChaseStripes();
     });
 
     // Sidebar Play/Pause & Reset buttons
@@ -468,6 +390,75 @@ class Simulation {
     document.addEventListener('MSFullscreenChange', handleFS);
   }
 
+  syncModelUI() {
+    const model = this.boidsParams.modelType;
+    const cohesionRow = document.getElementById('row-boid-cohesion');
+    const cohesionTitle = document.getElementById('title-boid-cohesion');
+    const kRow = document.getElementById('row-boid-k');
+    const paperBadge = document.getElementById('paper-badge');
+
+    if (kRow) {
+      kRow.style.display = (model === 'influential') ? 'flex' : 'none';
+    }
+
+    if (cohesionRow) {
+      cohesionRow.style.display = (model === 'classic' || model === 'influential') ? 'flex' : 'none';
+      if (cohesionTitle) {
+        cohesionTitle.innerText = (model === 'influential') ? 'Attraction Strength (γ)' : 'Cohesion Strength';
+      }
+    }
+
+    if (paperBadge) {
+      if (model === 'influential') {
+        paperBadge.href = 'https://doi.org/10.1103/18qw-sfyd';
+        paperBadge.innerText = 'Kang et al. PRX Life (2026)';
+      } else if (model === 'classic') {
+        paperBadge.href = 'https://doi.org/10.1145/37401.37406';
+        paperBadge.innerText = 'Reynolds SIGGRAPH (1987)';
+      } else {
+        paperBadge.href = 'https://doi.org/10.1038/s41567-026-03317-0';
+        paperBadge.innerText = 'Shi et al. Nature Phys (2026)';
+      }
+    }
+
+    this.updateInfoPanel();
+  }
+
+  updateInfoPanel() {
+    const model = this.boidsParams.modelType;
+    if (model === 'influential') {
+      this.infoPanel.innerHTML = `
+        <strong>Most Influential Neighbor (PRX Life 2026):</strong>
+        <p style="margin-top: 6px; color: var(--text-secondary);">
+          Based on Kang et al., <em>PRX Life</em> 4, 043007 (2026). Rather than averaging across all visible neighbors, each individual ranks pairwise visual interactions by instantaneous influence magnitude <em>I<sub>ij</sub></em> (&radic;(F<sub>&parallel;</sub><sup>2</sup> + F<sub>&perp;</sub><sup>2</sup>)) and responds strictly to its <strong>top k</strong> most influential neighbor(s).
+        </p>
+        <p style="margin-top: 4px; color: var(--text-muted); font-size: 0.8rem;">
+          Hover over any bird to see its vision cone and its currently selected top influencer highlighted in gold.
+        </p>
+      `;
+    } else if (model === 'classic') {
+      this.infoPanel.innerHTML = `
+        <strong>Classic Boids (Reynolds 1987):</strong>
+        <p style="margin-top: 6px; color: var(--text-secondary);">
+          Omnidirectional reciprocal flocking model based on three heuristic steering behaviors: <strong>Alignment</strong> (matching average neighbor heading), <strong>Cohesion</strong> (steering toward local center of mass), and <strong>Separation</strong> (short-range repulsion).
+        </p>
+        <p style="margin-top: 4px; color: var(--text-muted); font-size: 0.8rem;">
+          Hover over any boid to inspect its interaction radius.
+        </p>
+      `;
+    } else {
+      this.infoPanel.innerHTML = `
+        <strong>Non-Reciprocal Vision Cone (Shi et al., 2026):</strong>
+        <p style="margin-top: 6px; color: var(--text-secondary);">
+          Self-propelled birds flying in continuous 2D space. Non-reciprocal alignment interactions are restricted to forward visual cones (2&Psi;), producing parity-time symmetry breaking and non-reciprocal torque dynamics.
+        </p>
+        <p style="margin-top: 4px; color: var(--text-muted); font-size: 0.8rem;">
+          Hover over any bird to inspect its active vision cone and interacting partners.
+        </p>
+      `;
+    }
+  }
+
   togglePlayPause() {
     this.isPaused = !this.isPaused;
     this.playPauseBtn.innerHTML = this.isPaused ? 'Play' : 'Pause';
@@ -501,43 +492,11 @@ class Simulation {
       this.trailCtx.clearRect(0, 0, this.trailCanvas.width, this.trailCanvas.height);
     }
     
-    if (this.mode === 'boids') {
-      this.primaryMetricLabel.innerHTML = 'Polarization: <strong id="val-primary-metric">0.00</strong>';
-      this.primaryMetricVal = document.getElementById('val-primary-metric');
-      document.getElementById('chart-title-text').innerText = 'Polarization (Flock Alignment)';
-      this.infoPanel.innerHTML = `
-        <strong>Flocking Boids Mode:</strong>
-        <p style="margin-top: 6px; color: var(--text-secondary);">
-          Self-propelled agents flying in continuous 2D space. Alignment updates are based on Itô Langevin equations. 
-          Hovering shows a boid's <code>Vision Angle</code>. A narrow angle makes interaction non-reciprocal.
-        </p>
-      `;
-      this.initBoids();
-    } else if (this.mode === 'lattice') {
-      this.primaryMetricLabel.innerHTML = 'Magnetization: <strong id="val-primary-metric">0.00</strong>';
-      this.primaryMetricVal = document.getElementById('val-primary-metric');
-      document.getElementById('chart-title-text').innerText = 'Magnetization Order Parameter (m)';
-      this.infoPanel.innerHTML = `
-        <strong>Lattice XY Spins:</strong>
-        <p style="margin-top: 6px; color: var(--text-secondary);">
-          Spins fixed on a 2D grid. Dynamics can run via continuous Langevin equations or the paper's equivalent 
-          Hamiltonian-embedded <strong>Glauber Monte Carlo</strong>. High temperature destroys order.
-        </p>
-      `;
-      this.initLatticeSpins();
-    } else if (this.mode === 'chase') {
-      this.primaryMetricLabel.innerHTML = 'Order Parameter Re(O): <strong id="val-primary-metric">0.00</strong>';
-      this.primaryMetricVal = document.getElementById('val-primary-metric');
-      document.getElementById('chart-title-text').innerText = 'Column Order Parameter O(t) [Re: Blue, Im: Pink]';
-      this.infoPanel.innerHTML = `
-        <strong>Chase & Run Stripes:</strong>
-        <p style="margin-top: 6px; color: var(--text-secondary);">
-          Non-reciprocal interactions along X (<code>J<sub>&larr;</sub> &ne; J<sub>&rarr;</sub></code>) and reciprocal along Y. 
-          When <code>J<sub>&larr;</sub> &approx; -J<sub>&rarr;</sub></code>, it forces stripe boundaries to shift, causing wave-like propagation.
-        </p>
-      `;
-      this.initChaseSpes();
-    }
+    this.primaryMetricLabel.innerHTML = 'Polarization: <strong id="val-primary-metric">0.00</strong>';
+    this.primaryMetricVal = document.getElementById('val-primary-metric');
+    document.getElementById('chart-title-text').innerText = 'Polarization (Flock Alignment)';
+    this.syncModelUI();
+    this.initBoids();
   }
 
   // --- MODE 1: FLOCKING BOIDS ---
@@ -579,6 +538,7 @@ class Simulation {
       const b = this.boids[i];
       let torqueAlign = 0;
       let torqueCoh = 0;
+      let torqueSocial = 0;
       
       let sumCos = 0;
       let sumSin = 0;
@@ -590,6 +550,9 @@ class Simulation {
       let repForceX = 0;
       let repForceY = 0;
       let neighborsInRep = 0;
+
+      // Candidate list for Influential Neighbor ranking
+      const candidates = [];
 
       // Get spatial grid neighbors (much faster than O(N^2))
       const cellNeighbors = this.spatialGrid.getNeighbors(b);
@@ -621,6 +584,37 @@ class Simulation {
             if (Math.abs(dpsi) <= halfPsi) {
               torqueAlign += -J * Math.sin(b.theta - n.theta);
             }
+          } else if (this.boidsParams.modelType === 'influential') {
+            // Most Influential Neighbor model (Kang et al. PRX Life 2026)
+            if (Math.abs(dpsi) <= halfPsi) {
+              let dtheta = n.theta - b.theta;
+              dtheta = Math.atan2(Math.sin(dtheta), Math.cos(dtheta));
+              
+              // Alignment force component (Eq. 12)
+              const fAli = J * Math.sin(dtheta);
+              
+              // Attraction force component (Eq. 11, 12):
+              const attStrength = this.boidsParams.cohesion;
+              const fAtt = (dist > R_rep) ? attStrength * ((dist - R_rep) / (R - R_rep)) : 0;
+              
+              // Longitudinal and lateral social acceleration components (Eqs. 11 & 12)
+              const fParallel = fAtt * Math.cos(dpsi);
+              const fPerp = fAtt * Math.sin(dpsi) + fAli;
+              
+              // Instantaneous influence magnitude I_ij (Eq. 14 in 2D)
+              const influence = Math.sqrt(fParallel * fParallel + fPerp * fPerp);
+              
+              candidates.push({
+                neighbor: n,
+                dx: dx,
+                dy: dy,
+                dist: dist,
+                dpsi: dpsi,
+                fPerp: fPerp,
+                fParallel: fParallel,
+                influence: influence
+              });
+            }
           } else {
             // Classic Boids: full 360 degree vision
             sumCos += Math.cos(n.theta);
@@ -640,7 +634,18 @@ class Simulation {
         }
       }
 
-      if (this.boidsParams.modelType === 'classic' && neighborsCount > 0) {
+      if (this.boidsParams.modelType === 'influential') {
+        // Rank candidates by instantaneous influence magnitude I_ij (Eq. 14)
+        candidates.sort((c1, c2) => c2.influence - c1.influence);
+        const k = Math.max(1, Math.min(candidates.length, Math.round(this.boidsParams.kInfluential)));
+        const topK = candidates.slice(0, k);
+        b.topNeighbors = topK.map(c => c.neighbor);
+
+        // Sum lateral steering torque over the top k most influential neighbors (Eq. 12)
+        for (const c of topK) {
+          torqueSocial += c.fPerp;
+        }
+      } else if (this.boidsParams.modelType === 'classic' && neighborsCount > 0) {
         // Alignment steering
         const theta_avg = Math.atan2(sumSin, sumCos);
         torqueAlign = -J * Math.sin(b.theta - theta_avg);
@@ -660,7 +665,7 @@ class Simulation {
       }
 
       // Angular Langevin update: dTheta = (Torque) * dt + noise
-      const totalTorque = torqueAlign + torqueRep + torqueCoh;
+      const totalTorque = torqueAlign + torqueRep + torqueCoh + torqueSocial;
       const noiseTerm = Math.sqrt(2.0 * T * dt) * randomGaussian();
       
       let nextTheta = b.theta + totalTorque * dt + noiseTerm;
@@ -771,22 +776,34 @@ class Simulation {
     const halfPsi = (this.boidsParams.visionAngle / 2) * (Math.PI / 180);
     const R = this.boidsParams.radius;
 
-    // Draw vision cone overlay behind boids
+    // Draw vision cone / interaction overlay behind boids
     if (this.selectedBoid) {
       const sb = this.selectedBoid;
+      const isInfluential = (this.boidsParams.modelType === 'influential');
+      const isClassic = (this.boidsParams.modelType === 'classic');
       
-      // Draw highlighted vision cone
+      // Draw highlighted vision cone / interaction radius
       ctx.beginPath();
       ctx.moveTo(sb.x, sb.y);
-      ctx.arc(sb.x, sb.y, R, sb.theta - halfPsi, sb.theta + halfPsi);
+      if (isClassic) {
+        ctx.arc(sb.x, sb.y, R, 0, Math.PI * 2);
+      } else {
+        ctx.arc(sb.x, sb.y, R, sb.theta - halfPsi, sb.theta + halfPsi);
+      }
       ctx.closePath();
-      ctx.fillStyle = 'rgba(0, 242, 254, 0.08)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0, 242, 254, 0.25)';
+
+      if (isInfluential) {
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.08)';
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+      } else {
+        ctx.fillStyle = 'rgba(0, 242, 254, 0.08)';
+        ctx.strokeStyle = 'rgba(0, 242, 254, 0.25)';
+      }
       ctx.lineWidth = 1.5;
+      ctx.fill();
       ctx.stroke();
 
-      // Highlight neighbors in cone
+      // Highlight neighbors in cone / interaction radius
       const cellNeighbors = this.spatialGrid.getNeighbors(sb);
       for (const n of cellNeighbors) {
         if (n === sb) continue;
@@ -804,24 +821,53 @@ class Simulation {
           let dpsi = psi_ij - sb.theta;
           dpsi = Math.atan2(Math.sin(dpsi), Math.cos(dpsi));
 
-          if (Math.abs(dpsi) <= halfPsi) {
-            // Draw link line
+          const inView = isClassic || (Math.abs(dpsi) <= halfPsi);
+
+          if (inView) {
+            const isTop = isInfluential && sb.topNeighbors && sb.topNeighbors.includes(n);
+
             ctx.beginPath();
             ctx.moveTo(sb.x, sb.y);
-            // Draw line towards neighboring coordinates (corrected for periodic wraparound drawing)
             ctx.lineTo(sb.x + dx, sb.y + dy);
-            ctx.strokeStyle = 'rgba(0, 242, 254, 0.4)';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([2, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
 
-            // Draw glowing halo around neighbor
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, 8, 0, Math.PI * 2);
-            ctx.strokeStyle = '#ff007f';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
+            if (isTop) {
+              // Vibrant golden beam to top influential neighbor
+              ctx.strokeStyle = '#fbbf24';
+              ctx.lineWidth = 2;
+              ctx.setLineDash([]);
+              ctx.stroke();
+
+              // Glowing amber halo around top influential neighbor
+              ctx.beginPath();
+              ctx.arc(n.x, n.y, 9, 0, Math.PI * 2);
+              ctx.strokeStyle = '#fbbf24';
+              ctx.lineWidth = 2;
+              ctx.shadowColor = '#fbbf24';
+              ctx.shadowBlur = 8;
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+
+              // Top influencer tag
+              ctx.fillStyle = '#fbbf24';
+              ctx.font = '500 10px "JetBrains Mono", monospace';
+              ctx.fillText('Top Influencer', n.x + 10, n.y - 6);
+            } else {
+              // Faint dashed line to other visible neighbors
+              ctx.strokeStyle = isInfluential ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 242, 254, 0.4)';
+              ctx.lineWidth = 1;
+              ctx.setLineDash([2, 4]);
+              ctx.stroke();
+              ctx.setLineDash([]);
+
+              if (!isInfluential) {
+                // Magenta halo for regular neighbor
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, 8, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ff007f';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+              }
+            }
           }
         }
       }
@@ -834,47 +880,6 @@ class Simulation {
       
       // Determine color by heading angle (HSL hue maps to [0, 360])
       const hue = Math.round((b.theta / (Math.PI * 2)) * 360);
-      
-      // Draw fictitious partner first if enabled
-      if (this.boidsParams.showPartners) {
-        const d_shift = 18;
-        const px = b.x + d_shift * Math.cos(b.theta);
-        const py = b.y + d_shift * Math.sin(b.theta);
-        const p_theta = b.theta + Math.PI;
-
-        // Draw dotted connection line
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-        ctx.lineWidth = 0.8;
-        ctx.setLineDash([1, 2]);
-        ctx.beginPath();
-        ctx.moveTo(b.x, b.y);
-        ctx.lineTo(px, py);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Draw ghost boid partner
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        const p_length = 8;
-        const p_width = 3.5;
-        const p_tx = px + p_length * Math.cos(p_theta);
-        const p_ty = py + p_length * Math.sin(p_theta);
-        const p_lx = px + p_width * Math.cos(p_theta + Math.PI * 0.8);
-        const p_ly = py + p_width * Math.sin(p_theta + Math.PI * 0.8);
-        const p_rx = px + p_width * Math.cos(p_theta - Math.PI * 0.8);
-        const p_ry = py + p_width * Math.sin(p_theta - Math.PI * 0.8);
-
-        ctx.moveTo(p_tx, p_ty);
-        ctx.lineTo(p_lx, p_ly);
-        ctx.lineTo(px, py);
-        ctx.lineTo(p_rx, p_ry);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
-
       ctx.fillStyle = `hsl(${hue}, 85%, 60%)`;
       ctx.strokeStyle = isSelected ? '#ffffff' : `hsl(${hue}, 85%, 40%)`;
 
@@ -917,367 +922,6 @@ class Simulation {
     return magnitude / this.boids.length;
   }
 
-  // --- MODE 2: LATTICE XY SPINS ---
-  initLatticeSpins() {
-    const L = this.latticeParams.L;
-    this.spins = new Float32Array(L * L);
-    // Initialize with randomized angles
-    for (let i = 0; i < L * L; i++) {
-      this.spins[i] = Math.random() * Math.PI * 2;
-    }
-    this.activeParticlesVal.innerText = L * L;
-  }
-
-  updateLatticeSpins(dt) {
-    if (this.isPaused) return;
-
-    const L = this.latticeParams.L;
-    const J = this.latticeParams.coupling;
-    const T = this.latticeParams.temp;
-    const halfPsi = (this.latticeParams.visionAngle / 2) * (Math.PI / 180);
-
-    if (this.latticeParams.glauber) {
-      // Glauber Dynamics based on Hamiltonian Embedding (Paper Eq 6 / Eq 13 / Eq 15)
-      // Run L*L random updates (one full sweep) per call
-      const sweeps = 2; // sweep multiplier
-      const maxDelta = 0.5; // size of spin proposal angle (radians)
-
-      for (let s = 0; s < sweeps * L * L; s++) {
-        // Pick a spin at random
-        const idx = Math.floor(Math.random() * L * L);
-        const y = Math.floor(idx / L);
-        const x = idx % L;
-
-        const theta = this.spins[idx];
-        const proposal = theta + (Math.random() * 2 - 1) * maxDelta;
-        
-        // Define neighbors (periodic boundary conditions)
-        const neighbors = [
-          { index: y * L + ((x + 1) % L), psi: 0 },         // Right
-          { index: ((y + 1) % L) * L + x, psi: Math.PI/2 },  // Up
-          { index: y * L + ((x - 1 + L) % L), psi: Math.PI },// Left
-          { index: ((y - 1 + L) % L) * L + x, psi: -Math.PI/2 } // Down
-        ];
-
-        // Compute Hamiltonian embedding energy difference dE (Eq 6)
-        let dE = 0;
-        for (const n of neighbors) {
-          const theta_n = this.spins[n.index];
-
-          // Check if neighbor is in vision cone at current state
-          let dpsi_curr = n.psi - theta;
-          dpsi_curr = Math.atan2(Math.sin(dpsi_curr), Math.cos(dpsi_curr));
-          const J_curr = Math.abs(dpsi_curr) <= halfPsi ? J : 0;
-
-          // Check if neighbor is in vision cone at proposed state
-          let dpsi_prop = n.psi - proposal;
-          dpsi_prop = Math.atan2(Math.sin(dpsi_prop), Math.cos(dpsi_prop));
-          const J_prop = Math.abs(dpsi_prop) <= halfPsi ? J : 0;
-
-          // Sum over bonds: -1/2 * (J_prop + J_curr) * [cos(theta' - theta_n) - cos(theta - theta_n)]
-          const cosDiff = Math.cos(proposal - theta_n) - Math.cos(theta - theta_n);
-          dE += -0.5 * (J_prop + J_curr) * cosDiff;
-        }
-
-        // Glauber acceptance rate: w = 1/2 * (1 - tanh(dE / (2T)))
-        const rate = 0.5 * (1.0 - Math.tanh(dE / (2.0 * T)));
-        if (Math.random() < rate) {
-          this.spins[idx] = (proposal + Math.PI * 2) % (Math.PI * 2);
-        }
-      }
-    } else {
-      // Direct Langevin Dynamics for comparison
-      const nextSpins = new Float32Array(L * L);
-      
-      for (let y = 0; y < L; y++) {
-        for (let x = 0; x < L; x++) {
-          const idx = y * L + x;
-          const theta = this.spins[idx];
-          
-          const neighbors = [
-            { index: y * L + ((x + 1) % L), psi: 0 },
-            { index: ((y + 1) % L) * L + x, psi: Math.PI/2 },
-            { index: y * L + ((x - 1 + L) % L), psi: Math.PI },
-            { index: ((y - 1 + L) % L) * L + x, psi: -Math.PI/2 }
-          ];
-
-          let torque = 0;
-          for (const n of neighbors) {
-            const theta_n = this.spins[n.index];
-            let dpsi = n.psi - theta;
-            dpsi = Math.atan2(Math.sin(dpsi), Math.cos(dpsi));
-            
-            if (Math.abs(dpsi) <= halfPsi) {
-              torque += -J * Math.sin(theta - theta_n);
-            }
-          }
-
-          const noise = Math.sqrt(2.0 * T * dt) * randomGaussian();
-          let nextTheta = theta + torque * dt + noise;
-          nextSpins[idx] = (nextTheta + Math.PI * 2) % (Math.PI * 2);
-        }
-      }
-      this.spins.set(nextSpins);
-    }
-  }
-
-  drawLatticeSpins() {
-    const ctx = this.ctx;
-    ctx.fillStyle = '#060913';
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    const L = this.latticeParams.L;
-    const cellWidth = this.width / L;
-    const cellHeight = this.height / L;
-
-    // Detect hovered cell
-    let hoverX = null, hoverY = null;
-    if (this.mouse.x !== null && this.mouse.y !== null && this.drawCones) {
-      hoverX = Math.floor(this.mouse.x / cellWidth);
-      hoverY = Math.floor(this.mouse.y / cellHeight);
-      if (hoverX >= 0 && hoverX < L && hoverY >= 0 && hoverY < L) {
-        this.selectedSpin = { x: hoverX, y: hoverY };
-      }
-    } else {
-      this.selectedSpin = null;
-    }
-
-    const halfPsi = (this.latticeParams.visionAngle / 2) * (Math.PI / 180);
-
-    for (let y = 0; y < L; y++) {
-      for (let x = 0; x < L; x++) {
-        const idx = y * L + x;
-        const theta = this.spins[idx];
-        const cx = (x + 0.5) * cellWidth;
-        const cy = (y + 0.5) * cellHeight;
-
-        // Draw color block
-        const hue = Math.round((theta / (Math.PI * 2)) * 360);
-        ctx.fillStyle = `hsl(${hue}, 80%, 45%)`;
-        ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-
-        // Draw arrow indicator inside cell if grid elements are large enough
-        if (cellWidth > 15) {
-          ctx.beginPath();
-          ctx.moveTo(cx - (cellWidth * 0.3) * Math.cos(theta), cy - (cellHeight * 0.3) * Math.sin(theta));
-          ctx.lineTo(cx + (cellWidth * 0.3) * Math.cos(theta), cy + (cellHeight * 0.3) * Math.sin(theta));
-          
-          // Arrow head
-          const arrowHeadX = cx + (cellWidth * 0.3) * Math.cos(theta);
-          const arrowHeadY = cy + (cellHeight * 0.3) * Math.sin(theta);
-          ctx.moveTo(arrowHeadX, arrowHeadY);
-          ctx.lineTo(arrowHeadX - 4 * Math.cos(theta - 0.5), arrowHeadY - 4 * Math.sin(theta - 0.5));
-          ctx.moveTo(arrowHeadX, arrowHeadY);
-          ctx.lineTo(arrowHeadX - 4 * Math.cos(theta + 0.5), arrowHeadY - 4 * Math.sin(theta + 0.5));
-          
-          ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        }
-      }
-    }
-
-    // Draw grid border lines if grid elements are visible
-    if (cellWidth > 8) {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      for (let x = 0; x <= L; x++) {
-        ctx.moveTo(x * cellWidth, 0);
-        ctx.lineTo(x * cellWidth, this.height);
-      }
-      for (let y = 0; y <= L; y++) {
-        ctx.moveTo(0, y * cellHeight);
-        ctx.lineTo(this.width, y * cellHeight);
-      }
-      ctx.stroke();
-    }
-
-    // Highlight hovered spin and its vision cone interactions
-    if (this.selectedSpin) {
-      const { x, y } = this.selectedSpin;
-      const idx = y * L + x;
-      const theta = this.spins[idx];
-      const cx = (x + 0.5) * cellWidth;
-      const cy = (y + 0.5) * cellHeight;
-
-      // Draw highlighted cell border
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-
-      // Draw vision cone arc
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      const radius = Math.max(cellWidth * 2.5, 40);
-      ctx.arc(cx, cy, radius, theta - halfPsi, theta + halfPsi);
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.stroke();
-
-      // Show neighbor interactions
-      const neighbors = [
-        { x: (x + 1) % L, y: y, psi: 0 },
-        { x: x, y: (y + 1) % L, psi: Math.PI/2 },
-        { x: (x - 1 + L) % L, y: y, psi: Math.PI },
-        { x: x, y: (y - 1 + L) % L, psi: -Math.PI/2 }
-      ];
-
-      for (const n of neighbors) {
-        let dpsi = n.psi - theta;
-        dpsi = Math.atan2(Math.sin(dpsi), Math.cos(dpsi));
-        const inVision = Math.abs(dpsi) <= halfPsi;
-
-        if (inVision) {
-          ctx.strokeStyle = '#00f2fe';
-          ctx.lineWidth = 2.5;
-          ctx.strokeRect(n.x * cellWidth, n.y * cellHeight, cellWidth, cellHeight);
-        }
-      }
-    }
-  }
-
-  // Calculate grid magnetization: m = 1/N * |Sum(exp(i*theta))|
-  calcMagnetization() {
-    let sumCos = 0;
-    let sumSin = 0;
-    const L = this.latticeParams.L;
-    for (let i = 0; i < L * L; i++) {
-      sumCos += Math.cos(this.spins[i]);
-      sumSin += Math.sin(this.spins[i]);
-    }
-    const mag = Math.sqrt(sumCos * sumCos + sumSin * sumSin);
-    return mag / (L * L);
-  }
-
-  // --- MODE 3: CHASE & RUN ---
-  initChaseSpes() {
-    const L = this.chaseParams.L;
-    this.chaseSpins = new Float32Array(L * L);
-    this.initChaseStripes();
-    this.activeParticlesVal.innerText = L * L;
-  }
-
-  initChaseStripes() {
-    const L = this.chaseParams.L;
-    // Perfect stripe initialization (Paper Page 12, Eq 24)
-    // theta = 0 for x in [L/4, 3L/4), and PI/2 otherwise
-    for (let y = 0; y < L; y++) {
-      for (let x = 0; x < L; x++) {
-        const idx = y * L + x;
-        if (x >= Math.floor(L / 4) && x < Math.floor(3 * L / 4)) {
-          this.chaseSpins[idx] = 0;
-        } else {
-          this.chaseSpins[idx] = Math.PI / 2;
-        }
-      }
-    }
-    this.chart.clear();
-  }
-
-  updateChaseSpins(dt) {
-    if (this.isPaused) return;
-
-    const L = this.chaseParams.L;
-    const jr = this.chaseParams.jr;
-    const jl = this.chaseParams.jl;
-    const jrec = this.chaseParams.jrec;
-    const T = this.chaseParams.temp;
-
-    const nextSpins = new Float32Array(L * L);
-
-    // Langevin integration for Chase & Run spins (Paper Eq 23)
-    for (let y = 0; y < L; y++) {
-      for (let x = 0; x < L; x++) {
-        const idx = y * L + x;
-        const theta = this.chaseSpins[idx];
-
-        // Periodic boundaries neighbors
-        const r_idx = y * L + ((x + 1) % L);
-        const l_idx = y * L + ((x - 1 + L) % L);
-        const u_idx = ((y + 1) % L) * L + x;
-        const d_idx = ((y - 1 + L) % L) * L + x;
-
-        const theta_r = this.chaseSpins[r_idx];
-        const theta_l = this.chaseSpins[l_idx];
-        const theta_u = this.chaseSpins[u_idx];
-        const theta_d = this.chaseSpins[d_idx];
-
-        // Equation: -jr*sin(theta - theta_r) - jl*sin(theta - theta_l) - jrec*(sin(theta - theta_u) + sin(theta - theta_d))
-        const torque = -jr * Math.sin(theta - theta_r) 
-                       - jl * Math.sin(theta - theta_l) 
-                       - jrec * (Math.sin(theta - theta_u) + Math.sin(theta - theta_d));
-
-        // Scale noise to keep it stable
-        const noise = Math.sqrt(2.0 * T * dt) * randomGaussian();
-        
-        let nextTheta = theta + torque * dt + noise;
-        nextSpins[idx] = (nextTheta + Math.PI * 4) % (Math.PI * 2);
-      }
-    }
-
-    this.chaseSpins.set(nextSpins);
-  }
-
-  drawChaseSpins() {
-    const ctx = this.ctx;
-    ctx.fillStyle = '#060913';
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    const L = this.chaseParams.L;
-    const cellWidth = this.width / L;
-    const cellHeight = this.height / L;
-
-    // Render cells using HSL hue based on spin angle
-    for (let y = 0; y < L; y++) {
-      for (let x = 0; x < L; x++) {
-        const idx = y * L + x;
-        const theta = this.chaseSpins[idx];
-        const hue = Math.round((theta / (Math.PI * 2)) * 360);
-        
-        ctx.fillStyle = `hsl(${hue}, 80%, 45%)`;
-        ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-      }
-    }
-
-    // Draw grid overlay lines
-    if (cellWidth > 8) {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      for (let x = 0; x <= L; x++) {
-        ctx.moveTo(x * cellWidth, 0);
-        ctx.lineTo(x * cellWidth, this.height);
-      }
-      for (let y = 0; y <= L; y++) {
-        ctx.moveTo(0, y * cellHeight);
-        ctx.lineTo(this.width, y * cellHeight);
-      }
-      ctx.stroke();
-    }
-  }
-
-  // Calculate Order Parameter for X=1 column (Paper Page 5: O(t) = 1/L * Sum(exp(i * theta_1,y)))
-  calcChaseOrderParameter() {
-    const L = this.chaseParams.L;
-    let sumCos = 0;
-    let sumSin = 0;
-    
-    // Sum over first column (x = 0)
-    for (let y = 0; y < L; y++) {
-      const idx = y * L + 0; // x = 0 index
-      sumCos += Math.cos(this.chaseSpins[idx]);
-      sumSin += Math.sin(this.chaseSpins[idx]);
-    }
-    
-    return {
-      re: sumCos / L,
-      im: sumSin / L
-    };
-  }
-
   // --- MAIN ANIMATION LOOP ---
   loop(time) {
     // Handle visibility/content-visibility skip
@@ -1303,43 +947,15 @@ class Simulation {
     }
 
     // Physics Update and Draw
-    if (this.mode === 'boids') {
-      this.updateBoids(dt);
-      this.drawBoids();
-      
-      const polarization = this.calcPolarization();
-      this.primaryMetricVal.innerText = polarization.toFixed(3);
-      
-      // Update chart history (only on frames if not paused, to keep it moving)
-      if (!this.isPaused) {
-        this.chart.addData([polarization]);
-      }
-    } else if (this.mode === 'lattice') {
-      this.updateLatticeSpins(dt);
-      this.drawLatticeSpins();
-      
-      const magnetization = this.calcMagnetization();
-      this.primaryMetricVal.innerText = magnetization.toFixed(3);
-      
-      if (!this.isPaused) {
-        this.chart.addData([magnetization]);
-      }
-    } else if (this.mode === 'chase') {
-      // Small fixed physics timestep to keep Langevin wave smooth
-      const subSteps = 5;
-      const subDt = dt / subSteps;
-      for (let i = 0; i < subSteps; i++) {
-        this.updateChaseSpins(subDt);
-      }
-      this.drawChaseSpins();
-      
-      const op = this.calcChaseOrderParameter();
-      this.primaryMetricVal.innerText = op.re.toFixed(3);
-      
-      if (!this.isPaused) {
-        // Plot both Real and Imaginary parts (two line chart)
-        this.chart.addData([op.re, op.im]);
-      }
+    this.updateBoids(dt);
+    this.drawBoids();
+    
+    const polarization = this.calcPolarization();
+    this.primaryMetricVal.innerText = polarization.toFixed(3);
+    
+    // Update chart history (only on frames if not paused, to keep it moving)
+    if (!this.isPaused) {
+      this.chart.addData([polarization]);
     }
 
     requestAnimationFrame(this.loop);

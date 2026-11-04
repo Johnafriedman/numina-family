@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Non-Reciprocal Flocking & Spin Dynamics Animation</title>
+  <title>Non-Reciprocal Flocking Birds Animation</title>
   <link rel="stylesheet" href="style.css">
-  <meta name="description" content="An interactive simulation of non-reciprocal vision-cone flocking and XY spin dynamics based on Hamiltonian embedding principles.">
+  <meta name="description" content="An interactive simulation of flocking birds using non-reciprocal vision-cone interactions and Hamiltonian embedding principles.">
 </head>
 <body>
   <header>
@@ -23,13 +23,7 @@
       </div>
     </div>
     
-    <div class="tabs-container">
-      <button class="tab-btn active" data-tab="boids" id="tab-boids">Flocking Boids</button>
-      <button class="tab-btn" data-tab="lattice" id="tab-lattice">Lattice Spins</button>
-      <button class="tab-btn" data-tab="chase" id="tab-chase">Chase & Run</button>
-    </div>
-    
-    <a href="https://doi.org/10.1038/s41567-026-03317-0" target="_blank" class="paper-badge">
+    <a href="https://doi.org/10.1038/s41567-026-03317-0" target="_blank" class="paper-badge" id="paper-badge">
       Shi et al. Nature Phys (2026)
     </a>
   </header>
@@ -94,9 +88,18 @@
             <span>Model Type</span>
           </div>
           <select id="param-boid-model-type" style="background: #0f172a; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 8px; border-radius: 8px; font-family: var(--font-sans); outline: none; cursor: pointer;">
-            <option value="vision" selected>Vision Cone (Nature Phys)</option>
-            <option value="classic">Classic Boids (Reynolds)</option>
+            <option value="vision" selected>Vision Cone (Nature Phys 2026)</option>
+            <option value="influential">Most Influential Neighbor (PRX Life 2026)</option>
+            <option value="classic">Classic Boids (Reynolds 1987)</option>
           </select>
+        </div>
+
+        <div class="control-row" id="row-boid-k" style="display: none;">
+          <div class="control-label">
+            <span>Influential Neighbors (k)</span>
+            <span class="control-value" id="lbl-boid-k">1</span>
+          </div>
+          <input type="range" id="param-boid-k" min="1" max="5" step="1" value="1">
         </div>
         
         <div class="control-row">
@@ -125,7 +128,7 @@
 
         <div class="control-row" id="row-boid-cohesion" style="display: none;">
           <div class="control-label">
-            <span>Cohesion Strength</span>
+            <span id="title-boid-cohesion">Cohesion Strength</span>
             <span class="control-value" id="lbl-boid-cohesion">1.00</span>
           </div>
           <input type="range" id="param-boid-cohesion" min="0.0" max="3.0" step="0.1" value="1.0">
@@ -175,16 +178,6 @@
           </div>
         </div>
 
-        <div class="control-row" style="margin-top: 5px;">
-          <div class="switch-container">
-            <span style="font-size: 0.85rem; color: var(--text-secondary);">Show Fictitious Partners</span>
-            <label class="switch">
-              <input type="checkbox" id="toggle-boid-partners">
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-
         <div class="control-row">
           <div class="control-label">
             <span>Trail Length</span>
@@ -194,107 +187,11 @@
         </div>
       </div>
 
-      <!-- Mode 2: Lattice XY Spins Controls -->
-      <div class="control-group active-mode-controls" id="controls-lattice" style="display: none;">
-        <span class="group-title">Lattice Spin Params</span>
-        
-        <div class="control-row">
-          <div class="control-label">
-            <span>Lattice Grid (L &times; L)</span>
-            <span class="control-value" id="lbl-lat-grid">32 &times; 32</span>
-          </div>
-          <input type="range" id="param-lat-grid" min="16" max="64" step="4" value="32">
-        </div>
-
-        <div class="control-row">
-          <div class="control-label">
-            <span>Vision Angle (2&Psi;)</span>
-            <span class="control-value" id="lbl-lat-vision-angle">306&deg;</span>
-          </div>
-          <input type="range" id="param-lat-vision-angle" min="10" max="360" step="5" value="306">
-        </div>
-
-        <div class="control-row">
-          <div class="control-label">
-            <span>Coupling Strength (J)</span>
-            <span class="control-value" id="lbl-lat-coupling">1.00</span>
-          </div>
-          <input type="range" id="param-lat-coupling" min="0.1" max="3.0" step="0.1" value="1.0">
-        </div>
-
-        <div class="control-row">
-          <div class="control-label">
-            <span>Temperature (T)</span>
-            <span class="control-value" id="lbl-lat-temp">0.40</span>
-          </div>
-          <input type="range" id="param-lat-temp" min="0.05" max="2.5" step="0.05" value="0.40">
-        </div>
-        
-        <div class="control-row" style="margin-top: 5px;">
-          <div class="switch-container">
-            <span style="font-size: 0.85rem; color: var(--text-secondary);">Glauber Monte Carlo</span>
-            <label class="switch">
-              <input type="checkbox" id="toggle-lat-glauber" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Mode 3: Chase & Run Controls -->
-      <div class="control-group active-mode-controls" id="controls-chase" style="display: none;">
-        <span class="group-title">Chase & Run Params</span>
-
-        <div class="control-row">
-          <div class="control-label">
-            <span>Lattice Grid (L &times; L)</span>
-            <span class="control-value" id="lbl-chase-grid">40 &times; 40</span>
-          </div>
-          <input type="range" id="param-chase-grid" min="16" max="80" step="4" value="40">
-        </div>
-
-        <div class="control-row">
-          <div class="control-label">
-            <span>Right Coupling (J<sub>&rarr;</sub>)</span>
-            <span class="control-value" id="lbl-chase-jr">1.00</span>
-          </div>
-          <input type="range" id="param-chase-jr" min="0.0" max="2.0" step="0.1" value="1.0">
-        </div>
-
-        <div class="control-row">
-          <div class="control-label">
-            <span>Left Coupling (J<sub>&larr;</sub>)</span>
-            <span class="control-value" id="lbl-chase-jl">-0.99</span>
-          </div>
-          <input type="range" id="param-chase-jl" min="-2.0" max="2.0" step="0.1" value="-0.99">
-        </div>
-
-        <div class="control-row">
-          <div class="control-label">
-            <span>Vertical Coupling (J<sub>rec</sub>)</span>
-            <span class="control-value" id="lbl-chase-jrec">1.50</span>
-          </div>
-          <input type="range" id="param-chase-jrec" min="0.0" max="3.0" step="0.1" value="1.5">
-        </div>
-
-        <div class="control-row">
-          <div class="control-label">
-            <span>Temperature (T)</span>
-            <span class="control-value" id="lbl-chase-temp">0.08</span>
-          </div>
-          <input type="range" id="param-chase-temp" min="0.0" max="1.0" step="0.02" value="0.08">
-        </div>
-        
-        <button class="btn btn-primary" id="btn-chase-stripes" style="margin-top: 10px; background: linear-gradient(135deg, var(--accent), var(--secondary)); box-shadow: 0 4px 15px rgba(255, 0, 127, 0.2);">
-          Re-Initialize Stripes
-        </button>
-      </div>
-
       <!-- Information Card -->
       <div class="info-panel" id="infoPanel">
-        <strong>Flocking Boids Mode:</strong>
+        <strong>Flocking Birds:</strong>
         <p style="margin-top: 6px; color: var(--text-secondary);">
-          Boids flying in continuous space. Each boid aligns only with neighbors in its <code>Vision Angle</code>. Hover over a boid to view its vision cone. Lowering the angle makes interaction non-reciprocal.
+          Self-propelled birds flying in continuous 2D space. Compare the non-reciprocal <strong>Vision Cone</strong> model (Shi et al., 2026) with the classic reciprocal <strong>Boids</strong> model (Reynolds). Hover over any bird to inspect its active vision cone.
         </p>
       </div>
     </aside>
